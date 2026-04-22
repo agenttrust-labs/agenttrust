@@ -1,3 +1,4 @@
 .secrets/
 .cache/
 .claude/skills/x-recon/.venv/
+.DS_Store

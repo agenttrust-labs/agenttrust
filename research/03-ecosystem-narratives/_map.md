@@ -3,12 +3,13 @@
 **Purpose:** Where the puck is going. A great idea in a dead narrative still loses.
 
 ## Files
-- `current-meta.md` — [Day 2] what Toly / Mert / Armani / Lily / Max Resnick are saying RIGHT NOW (last 60 days)
-- `infra-gaps.md` — [Day 2] acknowledged missing primitives (SVM, MEV, restaking, ACE, intents, solvers)
-- `consumer-gaps.md` — [Day 2] underserved user-facing categories (mobile, payments, social, identity)
-- `narrative-decay.md` — [Day 2] what's OVER (avoid these) — confirmed via low engagement on recent posts
+- `narrative-momentum.md` — **[Day 2 DONE]** 5 live narratives scored on momentum direction + strength + solo-fit + pick-ability. **Winner pair: (c) formally verified DeFi precision × (e) Token-2022 programmable transfers, with (d) AI-agents-using-crypto-rails as amplifier.**
 
-## x-recon sources
-- Profile scrapes for non-blocked Tier-1 accounts (armaniferrante, calilyliu, MaxResnick1, rajgokal, austin_federa, etc.)
-- Search scrapes (from:aeyakovenko, from:0xMert_) since the dummy is blocked by both
-- Search Category A ("solana needs" / "solana should build") and Category D (infra gaps)
+## Files NOT created (intentionally — absorbed into narrative-momentum.md)
+- `current-meta.md` — content folded into narrative-momentum §"Timeline" sections per narrative
+- `infra-gaps.md` — folded into narrative-momentum §"Wedges still open for solo"
+- `consumer-gaps.md` — N/A (consumer is killed per Day 1 binding constraints)
+- `narrative-decay.md` — N/A (kill-list in INDEX.md serves this purpose)
+
+## Source signal
+60 days of Tier-1 posting per `mert`, `toly`, `calilyliu`, `armaniferrante`, `vibhu`, `SolanaFndn`, `asymmetric_re`, `mattytay`, `colosseum`, `rajgokal`, `austin_federa` + builder voices `level941`, `SecuritiesDino`, `BuildOnSAEP`, `atxp_ai`, `dexteraisol`, `blueshift`, `HarmonicMath` + 15 thematic searches.

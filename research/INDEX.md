@@ -1,54 +1,67 @@
 # Colosseum Research Index
 
-Last updated: **2026-04-21 (Day 1, session #1 complete)**
-Days until submission: **19** (deadline 2026-05-11)
-Thesis status: **UNDECIDED → CONVERGING** (Day 3 lock deadline: **2026-04-23**)
+Last updated: **2026-04-22 (Day 2, session #2 complete)**
+Days until submission: **18** (deadline 2026-05-11)
+Thesis status: **CONVERGING — recommendation ready, lock pending Day 3 confirm**
 
-## Current thesis (one line, even if tentative)
-*Not yet selected.* Day 2 will produce `00-thesis/ideas-longlist.md` and `ideas-shortlist.md` with 6-axis scoring. Based on Day 1 patterns, the **vertical must be in {infra primitive, DeFi primitive, stablecoin infra, privacy/security primitive}** — this is binding.
+## Current thesis (one line, recommendation pending Day 3 confirm)
+**AgentSafe Hooks (venture product) + VeriHook (open-source library underneath)** — formally verified Token-2022 TransferHook safety layer for AI-agent payments on Solana. Rides 3 narratives: security-first + AI rails + Token-2022. One GitHub repo, two layers, accelerator-shaped.
 
-## Open questions blocking convergence
-1. Which of the 5 Tier-1 narrative axes does Mohit ride? (security-first architecture / unified liquidity / formal-verified DeFi precision / AI-as-rails with Phantom MCP / Token-2022 programmable stablecoin transfers). **Day 2 priority: pressure-test each against Mohit's specific skill set.**
-2. Does Mohit recruit a non-technical cofounder via Superteam cofounder directory in Day 2? Colosseum's explicit guidance is "winning teams average 3+ members." Solo is viable in infra/DeFi/security verticals per File 4 but handicapped.
-3. Which Superteam regional track does Mohit's geography give access to? (Superteam $350K+ side-track pool is a real secondary target — Day 2 research.)
-4. What is the specific duplicate-risk for each shortlist idea? (Many Cypherpunk winners like Vanish, MCPay, Cloak occupy privacy/x402 wedges — Day 3 duplicate-risk-check before thesis lock.)
-5. Frontier judge list is not publicly posted — does it drop before May 11 or remain opaque? (Proxied from prior cycles + x-recon-observed Tier-1 alignment for now.)
+Score: 55/60 on 6-axis rubric, **Matty accelerator filter: YES.** Detailed reasoning in [ideas-shortlist.md](./00-thesis/ideas-shortlist.md).
+
+## Open questions blocking Day 3 lock
+1. **5 founder-DM validations** (Dexter, MCPay, Latinum, Corbits, Phantom team) on whether they want a horizontal safety-hook layer. Need ≥2 affirmative by Day 7. **Day 3 morning: send the DMs before locking.**
+2. **Token-2022 TransferHook performance under 100+ TPS** — benchmark Day 4–5. If unacceptable CU cost, pivot to AgentEscrow (#2 in shortlist) before Day 7.
+3. **Differentiation from SAEP** — confirm via 1 DM that "agent payment safety hooks" reads as distinct category from "agent economy protocol with TransferHook fee capture." If indistinguishable, pivot framing.
+4. Should the Day-3 lock include an explicit Phantom MCP demo path, or defer to v1.1?
+5. Should Mohit recruit non-technical co-founder via Superteam India in Days 3–7 for video/pitch polish only? (Day 1 noted solo handicap; Day 2 backup co-founder available per mission statement.)
 
 ## Directory map
-- `00-thesis/` — empty, populate Day 2–3 via ideas-longlist → ideas-shortlist → THESIS_LOCK
-- `01-hackathon-mechanics/` — **rules-and-prizes.md ✓ + judges-and-bias.md ✓ (Day 1 done).** sponsor-tracks.md + submission-format.md pending Day 2.
-- `02-past-winners/` — **grand-champions.md ✓ + post-mortem-patterns.md ✓ (Day 1 done).** side-track-winners.md + accelerator-cohorts.md pending Day 2.
-- `03-ecosystem-narratives/` — empty, Day 2 priority (current-meta.md, infra-gaps.md, consumer-gaps.md, narrative-decay.md)
-- `04-sponsor-deep-dives/` — empty, Day 2 priority (especially Arcium + Reflect + Privy if thesis heads toward their surface area)
-- `05-grants-and-money/` — empty, Day 2–3 (Superteam Earn + regional tracks $350K+)
-- `06-competitive-intel/` — empty, Day 3 duplicate-risk-check before lock
-- `07-build-prep/` — empty until Day 3 thesis lock
+- `00-thesis/` — **ideas-longlist.md ✓ + ideas-shortlist.md ✓** (Day 2 done). THESIS_LOCK.md pending Day 3.
+- `01-hackathon-mechanics/` — rules-and-prizes.md ✓ + judges-and-bias.md ✓ (Day 1 + Day 2 update). sponsor-tracks.md + submission-format.md still pending.
+- `02-past-winners/` — grand-champions.md ✓ + post-mortem-patterns.md ✓ (Day 1 done).
+- `03-ecosystem-narratives/` — **narrative-momentum.md ✓** (Day 2). current-meta.md + infra-gaps.md absorbed into momentum file.
+- `04-sponsor-deep-dives/` — pending Day 3 (Phantom + Arcium + Privy if thesis confirms).
+- `05-grants-and-money/` — **active-capital-Q2-2026.md ✓** (Day 2). Other files absorbed.
+- `06-competitive-intel/` — **duplicate-risk-map.md ✓** (Day 2). Final duplicate-pass on Day 3 morning before lock.
+- `07-build-prep/` — pending Day 3 lock.
 
-## Most recent files (reverse-chrono, top 10)
-- `research/02-past-winners/post-mortem-patterns.md` — 9 patterns + 10 binding constraints for Mohit's thesis
-- `research/01-hackathon-mechanics/judges-and-bias.md` — 6 Tier-A judges, 6 Tier-B, synthesized biases, 10 VC firms sending investor judges
-- `research/02-past-winners/grand-champions.md` — 100+ winners across 5 cycles, table-structured
-- `research/01-hackathon-mechanics/rules-and-prizes.md` — $2.75M structure, Superteam $350K+ side pool, 3-min pitch + 2–3-min tech demo format
+## Most recent files (reverse-chrono)
+- `research/00-thesis/ideas-shortlist.md` — top 5 scored, AgentSafe Hooks (55/60) recommended
+- `research/00-thesis/ideas-longlist.md` — 13 candidates, all in (c)×(e) intersection
+- `research/06-competitive-intel/duplicate-risk-map.md` — 12 Frontier shippers + dominant players per narrative
+- `research/05-grants-and-money/active-capital-Q2-2026.md` — 10 ranked capital programs
+- `research/03-ecosystem-narratives/narrative-momentum.md` — 5-narrative momentum scoreboard
+- `research/01-hackathon-mechanics/judges-and-bias.md` — UPDATED with §5b judge engagement patterns
+- `research/02-past-winners/post-mortem-patterns.md` (Day 1)
+- `research/02-past-winners/grand-champions.md` (Day 1)
+- `research/01-hackathon-mechanics/rules-and-prizes.md` (Day 1, Day 2 minor edit on Superteam $350K side pool)
 
-## Kill-list (active — do not research these as primary thesis)
-- NFT PFP projects, generative art collections
-- Memecoin launchpads (as primary; memecoin *infra* OK if narrative-aligned)
-- Solana-vs-Ethereum-L2 comparison takes
-- Generic "Web3 social" without concrete wedge
-- 2021–2022 narratives: play-to-earn, metaverse, DAO-tooling-for-DAOs
-- **Cross-chain bridges as primary product** — confirmed by Matty Taylor [2026-04-20](https://x.com/mattytay/status/2046021326683734378): "Trustless, decentralized bridges do not exist. And probably never will exist."
-- "AI + crypto" without specific wedge (vague AI-agent slop)
-- Gaming (solo + 20-day window is unrealistic per File 4 Pattern #5)
-- Consumer-UX-heavy products (solo engineer authority is thin there)
-- Pure perp DEX clone of Drift/Hyperliquid (judge saturation)
+## Kill-list (active)
+- NFT PFP / generative art collections
+- Memecoin launchpads as primary
+- Solana-vs-Ethereum-L2 takes
+- Generic "Web3 social" without wedge
+- 2021–2022 narratives (P2E, metaverse, DAO-tooling-for-DAOs)
+- **Cross-chain bridges** ([Matty 2026-04-20](https://x.com/mattytay/status/2046021326683734378))
+- Vague "AI + crypto" agent slop (kept; the AI-rails narrative is fine, vague-agent slop is not)
+- Gaming, consumer-UX-heavy, pure DePIN — solo handicap per File 4
+- Pure perp DEX clone of Drift/Hyperliquid — judge saturation
+- Pure security audit tool (closest competitor: Alex Biryukov Solana Auditor Skills + STRIDE)
+- Pure unified-liquidity aggregator (5+ Frontier competitors + Jupiter dominance)
+- Tokenized-securities full stack (SecuritiesDino owns)
 
-## Binding constraints from Day 1 (do not relitigate unless new data)
-- Vertical MUST be in {infra primitive, DeFi primitive, stablecoin infra, privacy/security primitive}
-- Thesis must intersect ≥1 (ideally 2) of the 5 Tier-1 narrative axes
-- Target is Standout top-20 + accelerator interview, not Grand
-- Devnet at submission is acceptable; mainnet plan must be credible for Demo Day (~Aug 2026)
-- Security posture = 30-sec segment in technical demo video (non-negotiable, free judge win)
-- Project X account + user-conversation evidence starts Day 2 regardless of thesis
+## Binding constraints (Day 1 + Day 2)
+- Vertical: infra primitive / DeFi primitive / stablecoin infra / privacy-security primitive
+- Narrative intersection: (c) formally verified DeFi precision × (e) Token-2022 programmable transfers — primary; (d) AI-agents-using-crypto-rails — amplifier
+- Target Standout top-20 + accelerator interview, not Grand
+- Solo-buildable in 15 working days, devnet at submission acceptable
+- Security posture = 30-sec segment in technical demo (non-negotiable)
+- Project X account + user conversation evidence by Day 5
+- Co-founder available for non-technical only (video/ops/pitch)
+- Novel protocol layer required — no wrappers
+- Must pass Matty accelerator filter (venture-scale, not hobby)
 
 ## Session log
-- **2026-04-21 session #1 (Day 1)** — Skills loaded. Schema created (8 dirs + root INDEX). x-recon verified (login OK, 15 cookies valid). Phase 1 recon: 4 Day-1 files populated. x-recon used: 8 profile scrapes (6 successful: colosseum, armaniferrante, calilyliu, toly, mert, rajgokal; 2 wasted: matty_eth, MaxResnick1), 8 searches (1 successful: from:mattytay; 7 low/zero-result). Handle corrections pushed back into target-accounts.md. **Budget remaining: 12 profile scrapes + 2 searches + 5 threads for Day 2.**
+- **2026-04-21 session #1 (Day 1)** — Schema + 4 files + 8 profiles + 8 searches.
+- **2026-04-22 session #2 (Day 2)** — 4 synthesis files + longlist + shortlist. Used: 15 profiles (vibhu, SolanaFndn, asymmetric_re, austin_federa, level941, SecuritiesDino, atxp_ai, BuildOnSAEP, dexteraisol, blueshift, HarmonicMath + Day 1 cached-and-still-valid 6) + 15 searches + 0 threads. **Budget remaining for Day 3: 65 profiles, 15 searches, 10 threads.** Narrative pick locked at recommendation level; Day 3 = 5-DM validation + thesis lock.

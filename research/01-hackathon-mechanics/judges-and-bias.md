@@ -132,6 +132,62 @@ Weighted by cross-judge repetition across the last 60 days, top biases this cycl
 - Pre-existing products rebranded (out of hackathon scope)
 - Missing judge access to repo / docs / video (top recurring submission mistake)
 
+## 5b. Day-2 update: judge ENGAGEMENT patterns (not just statements)
+
+This section tracks what each judge *engages with* (retweets, replies, quotes), which is harder signal than what they post. Updated 2026-04-22 from x-recon Day 2 scrapes (`mert`, `toly`, `calilyliu`, `colosseum`, `armaniferrante`, `mattytay`, `vibhu`, `SolanaFndn`, `asymmetric_re`).
+
+### Matty Taylor (`@mattytay`)
+- Highest-engagement crypto-relevant tweet last 60d: **2026-04-09 "Anthropic Mythos taking a first look at DeFi protocols"** (2,130 likes) — Matty engages most with AI-meets-DeFi crossover.
+- RT'd Glasswing AI security agent ([2026-04-08](https://x.com/mattytay/status/2041737183363756327)) — actively endorses AI-driven security tools.
+- Identifies inner circle: [2026-04-06](https://x.com/mattytay/status/2041238525694316682) names `@toly @mert @crabbylions @vibhu` as his "team."
+- Boosts tracked Cohort 4 portfolio: Kormos, Unruggable, Vistadex, Credible, ArcherExchange, Cloak — pattern-matches new submissions to Cohort 4 shape.
+
+### Toly (`@toly`)
+- Crypto-tech engagement: RT'd [dhkleung 2026-04-20](https://x.com/dhkleung/status/2046106834784989341) on Solana Assembly + sBPF macro framework — endorses low-level DevEx.
+- RT'd [mmdhrumil 2026-04-19](https://x.com/mmdhrumil/status/2045956146717212878) on "wrapped USDC with programmable limits via Token 2022" — direct Token-2022-programmable-stablecoin endorsement.
+- RT'd Token-2022 retweeted material via mmdhrumil-style mentions — confirms Token-2022 obsession.
+- Most political/personal-economy content has highest engagement (poverty/Bernie/automation memes), but his crypto-tech RTs are concentrated on **Token-2022 + formal-verification + low-level Solana DevEx**.
+
+### Mert (`@mert`)
+- [2026-04-10](https://x.com/mert/status/2042577633515393205): explicit angel-investing offer — Helius Pro/Business gets pitch deck review. **Mert is operationally an angel investor at Frontier scale.**
+- [2026-04-21 LanaAI launch](https://x.com/mert/status/2046628605393002794): shipped his own AI×Solana product (block explorer killer). Engages most with AI-on-Solana products.
+- Warned about Drift exploit live ([2026-04-01](https://x.com/mert/status/2039391990073176258)) — incident-tracking-credible voice, not just commentary.
+- Pro-Anthropic, anti-OpenAI engagement pattern visible in tooling preferences.
+
+### Lily Liu (`@calilyliu`)
+- [2026-04-20](https://x.com/calilyliu/status/2046193737555144904): "single state machine = unified liquidity" — coining narrative for Foundation messaging.
+- [2026-04-16](https://x.com/calilyliu/status/2044790068099842443): celebrates USDT growth on Solana (520 likes) — stablecoin-liquidity-as-Solana-thesis is her top frame.
+- Engages with [Tether's Drift recovery 2026-04-16](https://x.com/tether/status/2044763602469507152) — reads the institutional rescue layer.
+- [2026-04-02 post-Drift](https://x.com/calilyliu/status/2039652201342050713): "Smart contracts held up. The real targets now are humans" — opsec-narrative co-author.
+
+### Armani Ferrante (`@armaniferrante`)
+- Single highest-engagement post 60d: **[2026-04-05 security take](https://x.com/armaniferrante/status/2040640954588414176) (1,204 likes, 178 RTs)** — security-first is his loudest public position.
+- TGE/Backpack-ops content dominates volume; security posts dominate engagement-per-tweet ratio.
+
+### Raj Gokal (`@rajgokal`)
+- Lower volume (14 tweets/60d) but engages on trading-infra + fintech-on-Solana (xStocks, SoFi, JPMorgan/Citi/HSBC at Solana Accelerate NYC).
+- [2026-04-16](https://x.com/rajgokal/status/2044603529390620673): "critical turning point in the future of trading infrastructure" — trading-infra-as-Solana-thesis.
+
+### Vibhu (`@vibhu`) — newly added Tier-A
+- [2026-04-06](https://x.com/vibhu/status/2041248631735374042): announced STRIDE security program publicly.
+- [2026-03-26](https://x.com/vibhu/status/2036969570649452652): **"99.99% of all onchain transactions in 2 years will be driven by agents, bots, and LLM-based wallets"** (452 likes) — agent-economy true-believer.
+- [2026-03-25](https://x.com/vibhu/status/2036861219986878741): "Solana to win in AI: Commerce & Payments, DevEx, Moonshots. Solana facilitated 15 million agentic payments so far in 2026 — nearly 65%."
+- [2026-03-24](https://x.com/vibhu/status/2036440301548560586): debuted **SDP (Solana Developer Platform)** — tokenization + payments orchestration with Mastercard, Western Union, Worldpay.
+- Core thesis: **AI commerce + tokenization-via-Token-2022 + DevEx**. Direct alignment with (d)×(e) intersection that Mohit is targeting.
+
+### Solana Foundation (`@SolanaFndn`)
+- [2026-04-06 STRIDE/SIRN announcement](https://x.com/SolanaFndn/status/2041246400977965124): 1,130 likes — top Foundation post 30d.
+- RT'd Brien Colwell's `yo_ur_network` (decentralized VPN on Solana) — privacy infrastructure being elevated.
+- RT'd ATXP Music live demo (Circuit & Chisel agent commerce) — endorses x402 product winners.
+- RT'd b_migliaccio (Token-2022 crate builder) — picks up small builders, not just protocols.
+
+### Asymmetric Research (`@asymmetric_re`) — STRIDE partner
+- Posts cadence is sparse (14 tweets/60d) but high-signal: STRIDE launch, p-token bug discovery before mainnet, "Code coverage for coding agents" prototype open-sourced 2026-04-09.
+- **Engages most with formal-verification + AI-audit-tooling crossover.** Not a builder or competitor — but signals what Foundation considers excellence.
+
+### Composite engagement signal
+The "Matty inner circle" (Matty + Toly + Mert + Vibhu + crabbylions) collectively engage with **Token-2022 + AI-agent rails + formal verification + security** in disproportionately high frequency. A thesis sitting at the intersection of these themes hits multiple inner-circle attention surfaces.
+
 ## 6. Open questions this file cannot yet answer
 
 - Is a single public judge roster expected to drop before May 11? (No evidence yet; may remain opaque until winners' announcement.)
