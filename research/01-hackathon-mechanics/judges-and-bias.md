@@ -188,6 +188,54 @@ This section tracks what each judge *engages with* (retweets, replies, quotes), 
 ### Composite engagement signal
 The "Matty inner circle" (Matty + Toly + Mert + Vibhu + crabbylions) collectively engage with **Token-2022 + AI-agent rails + formal verification + security** in disproportionately high frequency. A thesis sitting at the intersection of these themes hits multiple inner-circle attention surfaces.
 
+## 5c. Vibhu alignment pressure-test — Day 3 Gate 1
+
+**Purpose:** Day 2 flagged that the AgentSafe Hooks × VeriHook thesis maps onto Vibhu's public roadmap, which cuts both ways (strong judge alignment, but also risk that his team — Solana Foundation Developer Platform + Helius — builds it themselves). Day 3 Gate 1 explicitly tests this risk before proceeding.
+
+**Corpus:** 449 unique Vibhu tweets pulled via 3 x-recon searches (`from:vibhu since:2026-01-01` latest, `from:vibhu since:2026-01-01 min_faves:50` top, `from:vibhu since:2025-10-15 until:2026-03-31` latest) plus the 53-tweet Day-2 cached profile. Combined range: 2026-03-12 → 2026-04-22 (the X search cap truncates below ~6 weeks for high-volume posters; 200-result cap per query). Day 3 x-recon budget spent: 0 new profile scrapes, 2 new searches.
+
+**Methodology:** Exhaustive keyword sweep across 3 tiers.
+
+| Tier | Keywords | Hits |
+|------|----------|------|
+| Critical (adjacent work that would force STOP) | `transfer hook`, `transferhook`, `hook safety`, `agent safety`, `agent security`, `safe agent`, `policy enforcement`, `velocity limit`, `allowlist`, `kill switch`, `safety layer`, `compliance gat`, `policy engine`, `wallet policy` | **0 / 449** |
+| Adjacent (useful signal, not warning) | `token-2022`, `saep`, `x402`, `agentkit`, `mcp`, `agent wallet`, `programmable transfer`, `formal verification`, `formally verified`, `stride`, `agent payment`, `agent identity`, `agent sdk`, `custody`, `solana developer platform`, `sdp` | 5 / 449 |
+| Competitor handles | `blueshift`, `securitiesdino`, `buildonsaep`, `saep`, `dexter`, `mcpay`, `latinum`, `corbits`, `atxp_ai`, `crossmint`, `halborn`, `certora`, `phantom`, `privy`, `kamino`, `jupiter`, `circuit`, `vectra`, `harmonic`, `aristotle`, `squads`, `backpack` | 3 / 449 (Kamino endorsement re xStocks, Jupiter deflection) |
+
+### The 5 adjacent-signal tweets, in full
+
+1. **[2026-03-24 SDP debut](https://x.com/vibhu/status/2036440301548560586)** (398 likes): *"Stablecoins and tokenization are driving the future of finance...we're debuting SDP, a tokenization & payments orchestration platform to launch stablecoins, with Mastercard, Western Union, Worldpay, and 20+ infra providers."*
+2. **[2026-03-24 SDP demo](https://x.com/vibhu/status/2036444172765049057)** (122 likes): GuiBibeau and catgu_ demoing "stablecoin issuance made easy" with SDP.
+3. **[2026-03-24 Nansen live](https://x.com/vibhu/status/2036443493174894875)** (27 likes): live talk on "Solana Developer Platform, AI, and what's going on around Solana."
+4. **[2026-04-06 STRIDE announcement](https://x.com/vibhu/status/2041248631735374042)** (492 likes): *"We're tripling down on security for Solana DeFi... security program with Asymmetric Research, hands-on opsec reviews, 24/7 threat monitoring, Formal verification for top protocols."*
+5. **[2026-04-08 SDP adoption](https://x.com/vibhu/status/2041941914237202927)** (30 likes): "405 institutions are signed up for Solana Developer Platform."
+
+### What this means — classification
+
+**Vibhu's public roadmap = three lanes, none overlapping AgentSafe Hooks' wedge:**
+
+1. **SDP (Solana Developer Platform)** = enterprise tokenization + payments orchestration. Customer = institutions (Mastercard/Western Union/Worldpay). Artifact = hosted platform, not a developer library. Scope = stablecoin issuance, tokenization of real-world assets, payment flow orchestration. **Orthogonal** to AgentSafe Hooks (which sells to x402 facilitators + agent devs, not Fortune-500 payment networks).
+2. **STRIDE (Security Initiative for Real-world Networks)** = Asymmetric-Research-delivered white-glove opsec + formal verification for **top protocols** (explicitly: >$10M TVL per Day-2 research on STRIDE scope). Artifact = paid consulting engagements + threat monitoring. **Orthogonal** to AgentSafe Hooks (which is a reusable primitive library, not white-glove service).
+3. **Agent-commerce endorsement** = Vibhu retweets/endorses `atxp_ai`, Helius as indexing backend, Dialect as messaging layer, LanaAI (his own recent AI product). He never publicly commits to building safety primitives himself.
+
+**Zero critical-keyword hits across 449 tweets** = strong evidence Vibhu has not publicly committed to building the AgentSafe Hooks wedge. He doesn't mention transfer hooks, agent safety primitives, kill switches, velocity limits, or policy engines at all. The word "hook" does not appear in his 449-tweet corpus.
+
+### Classification: **(b) GREEN LIGHT** — proceed.
+
+**Rationale:** Vibhu consistently points at payment rails / tokenization / orchestration / top-tier security auditing — adjacent but orthogonal domains. He has never publicly signaled intent to build a transfer-hook safety library for agent wallets or a reusable agent-payment policy primitive. The word-level absence is decisive at this corpus size.
+
+### Residual risk (NOT a blocker, but should inform positioning)
+
+1. **18-month tail risk:** SDP could eventually add agent-payment primitives as the platform expands. Mohit's defense: move fast, ship a reusable library with dev adoption BEFORE SDP would reasonably expand into this wedge. If AgentSafe Hooks has 5+ integrator logos by demo day, acquisition/absorption becomes the expected outcome, not displacement.
+2. **STRIDE-adjacent absorption:** Asymmetric Research could productize parts of their FV work into open-source templates. Mitigation: ship Token-2022-extension-specific harnesses Asymmetric hasn't published (per their recent open-source signal on April 9 "Code coverage for coding agents").
+3. **Helius-as-indexer risk:** Helius could add hook-event indexing as a webhook product. That COMPLEMENTS AgentSafe Hooks (it indexes our events) rather than competes — so it's a potential sponsor/integration, not a competitor.
+
+### Implication for sharpening
+
+- **Proceed with AgentSafe Hooks × VeriHook direction.** Vibhu-alignment risk is orthogonal, not colliding.
+- **Position against SDP, not beneath it.** In pitch narrative, frame AgentSafe Hooks as *"the developer-layer primitive that complements platforms like SDP"* — explicit synergy, no overlap claim. This neutralizes the "why doesn't Vibhu's team just build this?" question before it's asked.
+- **Weight the STRIDE partnership angle in the submission.** Mohit's submission could reference STRIDE's existence as validation of the security-first direction, and position VeriHook as the open-source complement that STRIDE-ineligible sub-$10M-TVL builders can adopt.
+
 ## 6. Open questions this file cannot yet answer
 
 - Is a single public judge roster expected to drop before May 11? (No evidence yet; may remain opaque until winners' announcement.)

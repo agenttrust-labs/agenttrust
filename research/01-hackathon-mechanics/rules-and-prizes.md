@@ -141,6 +141,47 @@ Per [How-to-Win](https://blog.colosseum.com/how-to-win-a-colosseum-hackathon/) a
 - Whether mainnet deployment at submission is rewarded over devnet
 - Interim public workshop schedule beyond the few confirmed Discord sessions with Phantom Connect, Metaplex, World, Altitude
 
+## 10. Public Goods Award eligibility — confirmed rules (Day 3 Gate 2)
+
+**Source:** Official Rules PDF (`colosseum.com/legal/Solana Frontier Hackathon Rules.pdf`), full-text read 2026-04-23.
+
+### Verbatim language
+
+**Section 7. Limits** — *"Entrant may only be a Member of one (1) Team. A Team may only submit one (1) Project Submission at a time."*
+
+**Section 8. Winner Determination** — judging criteria (e) explicitly says: *"Open-source: Is this Project Submission open-source? How well does the Project Submission compose with other primitives in the Solana ecosystem?"*
+
+**Section 14. Prizes** (exact list, unchanged since 2026 publication):
+- (a) Grand Champion: $30,000 CASH-SPL
+- (b) Public Goods Award: $10,000 CASH-SPL
+- (c) University Award: $10,000 CASH-SPL
+- (d) An additional $10,000 CASH-SPL will be awarded to each of the next 20 standout teams beyond those mentioned above.
+
+### What the rules do NOT say
+
+- They do NOT state "one prize per submission."
+- They do NOT prohibit a single submission from winning both Public Goods + Standout (or Public Goods + Grand).
+- They do NOT define "public goods" in any specialized way — the only definitional anchor is the open-source judging axis in §8(e).
+- They do NOT require any specific open-source license (MIT/Apache/GPL).
+
+### Gate 2 classification: **(a) Bundling allowed — with one critical reframing**
+
+The rules force bundling: §7 only permits ONE Project Submission per team. So you physically cannot submit VeriHook as a separate project from AgentSafe Hooks. The original Day 2 framing — "bundle VeriHook (library) + AgentSafe Hooks (product) into one submission" — is the only legal structure anyway.
+
+The open question Day 2 assumed was "can one submission win two prize categories." The rules are silent. In Colosseum's Cypherpunk and Breakout cycles, the public-goods-tier award has historically been awarded to projects that were ALSO considered for Standout, with the administrator selecting the single best open-source/non-extractive project. Nothing in the rules contradicts that pattern continuing.
+
+**Conclusion:** Mohit's submission is ONE project ("AgentSafe Hooks, with VeriHook open-source library as its foundation") — single repo, single pitch video, single submission portal entry. The prize question becomes: does the judging panel *also* name it Public Goods winner? That's a judgment call, not a rules question, and not something Mohit can control beyond ensuring the open-source library layer is visibly separable, permissively-licensed (Apache 2.0 recommended), and presented as a standalone deliverable inside the repo.
+
+### Day 4 follow-up (low-priority)
+
+Ask Colosseum Discord `#frontier-general` *"When a single submission qualifies for both Public Goods and a Standout slot, is one precluded by the other, or can a project win both?"* — clarifies but does not block Day 3 lock either way. If precluded, Mohit still chooses Public Goods as second-preference fallback if Standout doesn't land — the open-source library layer makes both paths live.
+
+### Implications for thesis lock
+
+- **Bundling model unchanged.** One repo = `/verihook/` (open-source crate, Apache 2.0) + `/agentsafe/` (policy-registry + hosted monitoring, licensed differently). Single pitch video, single submission.
+- **Submission framing.** Do NOT pitch as "two products." Pitch as "one product (AgentSafe Hooks) whose foundation we open-sourced as a public good (VeriHook) — we think it should be a reusable primitive."
+- **License discipline Day-4 onward.** Apache 2.0 for `/verihook/`, Business Source License 1.1 (or similar) for `/agentsafe/` hosted components.
+
 ---
 
 ## What this means for Mohit's submission
