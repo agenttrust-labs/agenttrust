@@ -1,6 +1,6 @@
 # 00-thesis/
 
-**Purpose:** Convergence funnel. Everything in 01–06 feeds here. Day 4 reframe-attempt complete; lock pending Mohit Day-5 read.
+**Purpose:** Convergence funnel. Everything in 01–06 feeds here. Day 4.5 AgentTrust-sharpening-to-parity complete; lock pending Mohit Day-5 read of both SHARPENED specs side-by-side.
 
 ## Files
 - `ideas-longlist.md` — **[Day 2 DONE]** 13 candidates, all in (c)×(e) intersection. 9 ideas eliminated against constraints.
@@ -10,24 +10,45 @@
 - `agentsafe-pitch-compression.md` — **[Day 3 DONE]** Variant B (market-shape, Vibhu 99.99%) primary for pitch video; Variant A (concrete-failure $47K) for technical demo.
 - `AgentSafe-SHARPENED.md` — **[Day 3 DONE]** Single coherent sharpened spec combining Gates 1 & 2 + Q1–Q4. Day-3 lock candidate.
 - `day4-dm-drafts.md` — **[Day 3 DONE]** 6 discovery DMs. Decided OFF-TABLE for this sprint (per Day-4 mission brief).
-- `agenttrust-reframe-draft.md` — **[Day 4 DONE — Phase 2]** DRAFT reframed AgentTrust spec consuming Solana Agent Registry identity + reputation; ships PolicyVault + TrustGate x402 + ValidationRegistry as 3 components in single submission. Not a sharpened spec — input to Phase-3 decision.
-- `agenttrust-reframe-decision.md` — **[Day 4 DONE — Phase 3]** Single-question decision doc: *"is reframed AgentTrust meaningfully distinct from AgentSafe Hooks?"* **OUTCOME: DISTINCT.** All three criteria met; reverse-mapping problem is the load-bearing structural moat. Two caveats: pitch must support "stackable defense-in-depth" not "either-or"; Foundation/Quantu dependency-risk is real but mitigatable via MIT-license-survivability.
-- `agenttrust-other-leads.md` — **[Day 4 DONE — bonus]** Six leads ranked: A) standalone Validation Registry (sleeper), B) AgentSafe + 8004-read identity-gate (highest-leverage enrichment), C) AgentSafe + ValidationRegistry dual-bundle, D) AgentTrust-reframe full path, E) cross-registry adapter (not recommended), F) AgentSafe pure Day-3 lock (conservative default).
-- `THESIS_LOCK.md` — **[Day 5 owed]** Mohit reads AgentSafe-SHARPENED.md + agenttrust-reframe-draft.md + agenttrust-reframe-decision.md + agenttrust-other-leads.md + agent-registry-public-reception.md, then locks. Five clear options enumerated.
+- `agenttrust-reframe-draft.md` — **[Day 4 DONE — Phase 2]** DRAFT reframed AgentTrust spec consuming Solana Agent Registry identity + reputation; ships PolicyVault + TrustGate x402 + ValidationRegistry as 3 components in single submission. Not a sharpened spec — input to Phase-3 decision. **Superseded for v1 scope by `AgentTrust-SHARPENED.md` (Day-4.5).**
+- `agenttrust-reframe-decision.md` — **[Day 4 DONE — Phase 3]** Single-question decision doc: *"is reframed AgentTrust meaningfully distinct from AgentSafe Hooks?"* **OUTCOME: DISTINCT.** All three criteria met; reverse-mapping problem is the load-bearing structural moat.
+- `agenttrust-other-leads.md` — **[Day 4 DONE — bonus]** Six leads ranked: A) standalone Validation Registry (sleeper), B) AgentSafe + 8004-read identity-gate (enrichment), C) AgentSafe + ValidationRegistry dual-bundle, D) AgentTrust-reframe full path, E) cross-registry adapter (not recommended), F) AgentSafe pure Day-3 lock (conservative default). **Lock decision Day 5 narrows to AgentSafe pure (or +Lead-B enrichment) vs AgentTrust 2-component (Day-4.5 sharpened).**
+- `agenttrust-moat-analysis.md` — **[Day 4.5 DONE — Phase 1]** 3-component moat analysis. **Picked PolicyVault as sole structural moat** (TrustGate + ValidationRegistry demoted to features). Reverse-mapping defense + Foundation-stack-completion defense + first-buyer-pull defense.
+- `agenttrust-first-buyer.md` — **[Day 4.5 DONE — Phase 2]** Picked x402 facilitators with Foundation-alignment as additional pull lever. Dexter / atxp_ai / MCPay as top-3 named targets. **SAEP REMOVED from buyer list (now competitor per Phase-0 reclassification).** Regulated enterprises = Phase-2 (parallel cold-emails for discovery quotes).
+- `agenttrust-pitch-compression.md` — **[Day 4.5 DONE — Phase 3]** Two 30-second pitches compressed: Variant A (Nike consumer-fraud) + Variant B (Anthropic B2B scam-wrapper). Both Foundation-alignment-embedded; banned-vocabulary-clean (no "primitive"/"infrastructure"/"PolicyVault"/etc); SAEP-differentiation-implicit (never names SAEP). **Primary: Variant B for Frontier judges (Mert+Matty floor); Variant A for technical demo video.** Pre-empted Q&A drafted.
+- `agenttrust-solo-build-assessment.md` — **[Day 4.5 DONE — Phase 4]** Honest day-by-day buildability map with **four scope options surfaced** (full 3-component / trimmed 3-component / 2-component-with-ValidationRegistry-as-docs+stub / minimum-viable). Day-cost math per option at 1.4x velocity: Option 1 ~64% over budget, Option 2 ~16% over, Option 3 fits with 0.5 M-day buffer, Option 4 comfortable with 5.5 M-day buffer. Mohit picks scope Day 5 with full math in hand. Pre-decided 6-cut priority order applies to any scope picked; never-cut floor list defines submission-viable threshold. Critical Day-5 action (regardless of scope): pre-warm 3-5 demo agents on Quantu mainnet ATOM (without 12-day tier-vesting runway, headline demo doesn't work Day 12).
+- `AgentTrust-SHARPENED.md` — **[Day 4.5 DONE — Phase 6]** Single coherent sharpened spec mirroring AgentSafe-SHARPENED.md structure. Lock-readiness deliverable. Day-5 Mohit reads side-by-side with AgentSafe-SHARPENED, picks one, writes THESIS_LOCK.md.
+- `THESIS_LOCK.md` — **[Day 5 owed]** Mohit reads BOTH SHARPENED specs side-by-side, picks one, locks. Decision is now binary (AgentSafe Hooks pure or +Lead-B enrichment vs AgentTrust 2-component scope).
 
-**File NOT produced today (intentional):** `AgentTrust-SHARPENED.md` — Phase-3 decision was DISTINCT but per the Day-4 mission brief STOP instruction, the full Q2–Q4 + buildability + SHARPENED refinement was NOT auto-continued. Mohit explicitly authorizes the next step Day 5.
+**Phase 5 (founder pre-existing thinking dump) — UNRUN.** Mohit has 1.5 months of prior thinking on fake reviews / trust-credit primitives / sybil-resistance / gaming attacks. Did not surface during Day-4.5 session. Revisitable Day-5+ during build phase as `agenttrust-founder-prior-thinking.md`. Not a lock-blocker.
+
+## Day 4.5 outcome (2026-04-28)
+
+**Both theses sharpened to FULL parity (AgentSafe-SHARPENED.md from Day 3 + AgentTrust-SHARPENED.md from Day 4.5). Lock decision pending Day-5 Mohit-read.**
+
+**Phase-0 SAEP deep recon finding:** SAEP ships 10 Anchor programs on mainnet (agent_registry / treasury_standard / task_market / proof_verifier / dispute_arbitration / governance_program / fee_collector / nxs_staking / capability_registry / template_registry) with Halborn+OtterSec audit prep. BUT: zero Foundation endorsement claims, zero x402 facilitator partnerships, anonymous founder, $SAEP token launched on pump.fun, 2 GitHub stars / 500 X followers / 5 mainnet escrows. **SAEP's TreasuryStandard already ships per-tx/daily/weekly limits + allowlists + streaming budgets — but all are AGENT-SELF-spending, ZERO counterparty-aware gating.** PolicyVault's distinctive wedge survives but the differentiation must explicitly emphasize counterparty-aware-vs-self-spend. Foundation-aligned-vs-sovereign positioning is the load-bearing differentiation.
+
+**Phase-1 moat verdict:** **PolicyVault is THE structural moat.** TrustGate is the demo-vehicle for PolicyVault; ValidationRegistry is the standard-completion narrative-vehicle. Three mutually-reinforcing defensibility properties: reverse-mapping (vs AgentSafe v1.1) + Foundation-stack-completion (vs SAEP v2) + first-buyer-pull (vs Foundation absorption into SDP).
+
+**Phase-2 first-buyer:** x402 facilitators with Foundation-alignment as additional pull lever (Dexter / atxp_ai / MCPay top-3). **SAEP REMOVED from buyer list** (now competitor; zero outreach during Frontier window). Regulated enterprises = Phase-2 parallel cold-emails for discovery quotes.
+
+**Phase-3 pitch:** Two 30-second variants — Variant B (Anthropic B2B scam-wrapper) primary for Frontier judges; Variant A (Nike consumer-fraud) for technical demo video. Both Foundation-alignment-embedded; SAEP-differentiation-implicit (never names SAEP).
+
+**Phase-4 buildability map:** Four scope options surfaced with honest day-cost / risk / pitch-coverage tradeoffs per option. Day-cost math at 1.4x velocity: Option 1 (full 3-component) ~64% over budget; Option 2 (trimmed 3-component) ~16% over; Option 3 (2-component + ValidationRegistry-as-docs+stub) fits with 0.5 M-day buffer; Option 4 (minimum-viable) comfortable with 5.5 M-day buffer. Mohit picks scope Day 5 with full math in hand. Pre-decided 6-cut priority order applies to any scope picked; never-cut floor list defines submission-viable threshold.
+
+**Critical Day-5 action if AgentTrust locks:** Pre-warm 3-5 demo agents on Quantu mainnet ATOM Engine. ATOM tier vesting takes ~20 days; without pre-warming, headline tier-0-vs-tier-3 demo doesn't work Day 12.
 
 ## Day 4 outcome (2026-04-27)
 
-**Reframe attempt complete; both theses sharpened to DRAFT depth (not full SHARPENED parity); lock decision pending Day-5.**
+**Reframe attempt complete; AgentTrust sharpened to DRAFT depth (then to full SHARPENED depth on Day 4.5).**
 
-**Q1 finding (load-bearing):** Solana Agent Registry (Quantu Labs `8oo4dC4...` mainnet, ATOM Engine `AToMw53a...`) ships AgentTrust components 1 (Identity) + 2 (Reputation) — Foundation-endorsed at solana.com/agent-registry, MIT-licensed, 1,433 agents registered. AgentTrust raw spec compressed to 2 components (Policy + x402 mediation). User authorized Option B reframe — consume Agent Registry, ship PolicyVault + TrustGate + ValidationRegistry as the differentiated layer.
+**Q1 finding (load-bearing):** Solana Agent Registry (Quantu Labs `8oo4dC4...` mainnet, ATOM Engine `AToMw53a...`) ships AgentTrust components 1 (Identity) + 2 (Reputation) — Foundation-endorsed at solana.com/agent-registry, MIT-licensed, 1,433 agents registered.
 
-**Phase-3 verdict:** DISTINCT (architectural-layer + value-prop + structural-moat all pass; reverse-mapping problem is the load-bearing barrier preventing AgentSafe v1.1 from trivially absorbing the wedge).
+**Phase-3 verdict:** DISTINCT (architectural-layer + value-prop + structural-moat all pass).
 
-**Wedge-defensibility caveat (from broader research):** AgentSafe Hooks holds an EMPTY wedge (verified 0 shippers in 4-day refresh); AgentTrust-reframe enters a CONTESTED wedge (KAMIYO building stake-backed escrows; SAEP shipped 10 Anchor programs as direct Frontier competitor 2026-04-21; Cascade Protocol shipping 30 SATI releases + x402 trust gating roadmap; Microsoft / Callipsos / AIVM / sekuire claiming "missing trust layer" off-Solana).
+**Wedge-defensibility caveat:** AgentSafe Hooks holds EMPTY wedge; AgentTrust enters CONTESTED wedge (KAMIYO + SAEP + Cascade + Microsoft cross-chain).
 
-**Six-registry fragmentation finding:** Solana has 6+ competing agent identity registries (8004 / 014 / SATI / SAID / SAP / helixa). 8004-Solana is Foundation-endorsed but not ecosystem-dominant. PolicyVault would face an adoption-fragmentation problem the Phase-2 draft did not address.
+**Six-registry fragmentation finding:** 8004 / 014 / SATI / SAID / SAP / helixa. 8004-Solana is Foundation-endorsed but not ecosystem-dominant. PolicyVault v1 ships 8004-only (Day-4.5 cut); multi-registry adapter is Phase-2.
 
 ## Day 3 outcome (2026-04-23)
 
