@@ -3,13 +3,10 @@
 **Purpose:** Kill duplicate ideas before wasting a week. Layer-by-layer competitive scan feeds 00-thesis.
 
 ## Files
-- `duplicate-risk-map.md` — **[Day 2 DONE]** 12 Frontier-cycle shippers + dominant players per narrative (5 narratives covered). AgentSafe Hooks wedge confirmed open at (c)×(d)×(e) intersection.
-- `agentsafe-competitive-deep-scan.md` — **[Day 3 DONE]** 5-layer deep scan: Token-2022 transfer hooks, formally-verified DeFi, agent-wallet safety, x402 safety middleware, public-goods libraries. **Key findings:**
-  1. Asset-layer (mint-scoped) hook policy enforcement for agent payments = ZERO active shippers on Solana.
-  2. Wallet-layer (signer-scoped) policy = saturated (Privy, Crossmint, Bankrbot, OpenClawCash, WaaP, WalletSuite, Starchild, Kamiyo, WLF AgentPay).
-  3. SSS (Solana Stablecoin Standard) staked "OpenZeppelin for Solana stablecoins" flag in March 2026 — VeriHook must narrow to "agent-payment hooks" to avoid collision.
-  4. aperturerwa's RWA architecture (Policy Registry + ZK Verifier + Transfer Hook) is near-identical to AgentSafe Hooks' plan, vertical-distinct (RWA vs agent-payment) — study their repo Day 4.
-  5. Asymmetric Research open-sourced a coverage tool April 9; monitor for parallel open-source push into hook territory.
+- `duplicate-risk-map.md` — **[Day 2 DONE]** 12 Frontier-cycle shippers + dominant players per narrative.
+- `agentsafe-competitive-deep-scan.md` — **[Day 3 DONE]** 5-layer deep scan; asset-layer Token-2022 hooks for agent payments confirmed empty wedge.
+- `agent-registry-cpi-surface.md` — **[Day 4 DONE — Phase 1]** Technical reference for the Solana Agent Registry `agent-registry-8004` + atom-engine programs. AgentAccount + AtomStats PDAs are publicly readable; ATOM trust_tier (0–4) + risk_score + diversity_ratio cached + readable. MIT-licensed. Validation Registry archived in v0.5.0 ("planned for future upgrade"). 1,433 agents registered. **Reverse-mapping (wallet → agent) NOT a public PDA** — load-bearing finding for Phase-3 distinctness.
+- `agent-registry-public-reception.md` — **[Day 4 DONE — bonus]** Public discourse synthesis: ERC-8004's "deliberately left open" gaps, the "missing trust layer" framing claimed by half a dozen TradFi/Web2 voices, the SIX-registry fragmentation reality on Solana (8004/014/SATI/SAID/SAP/helixa), KAMIYO building stake-backed escrows on top of registry, SAEP shipping 10-program full stack 2026-04-21 as direct Frontier competitor, Cascade Protocol's 30-release SATI ecosystem + x402 trust gating roadmap. **Conclusion: AgentSafe Hooks empty wedge robust; AgentTrust-reframe wedge contested.**
 
 ## Files NOT created (intentionally)
 - `github-active-projects.md` — duplicate-risk-map.md + agentsafe-competitive-deep-scan.md together cover shipping-builder intel.
