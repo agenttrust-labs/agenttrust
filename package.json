@@ -3,13 +3,15 @@
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
+  "packageManager": "pnpm@10.33.0",
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "test": "anchor test"
   },
   "devDependencies": {
-    "@coral-xyz/anchor": "^1.0.0",
+    "@coral-xyz/anchor": "^0.31.1",
+    "@solana/web3.js": "^1.98.0",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",
