@@ -1,4 +1,21 @@
-.secrets/
-.cache/
-.claude/skills/x-recon/.venv/
+target/
+node_modules/
+.anchor/
+test-ledger/
+.venv/
 .DS_Store
+dist/
+build/
+*.log
+
+# Internal docs and artifacts (do not ship)
+plan/
+research/
+docs/
+agenttrust-grant/
+*.md
+!README.md
+!execution.md
+.cache/
+.secrets/
+.claude/skills/x-recon/.venv/
