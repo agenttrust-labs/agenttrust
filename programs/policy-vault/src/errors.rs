@@ -72,4 +72,11 @@ pub enum PolicyVaultError {
     InvalidConfidence = 6056,
     #[msg("Unrated treatment must be 0=Deny, 1=Allow, or 2=RequireValidation")]
     InvalidUnratedTreatment = 6057,
+
+    #[msg("AgentAccount uninitialized (zero lamports)")]
+    AgentAccountUninitialized = 6060,
+    #[msg("AgentAccount has wrong owner program")]
+    AgentAccountWrongOwner = 6061,
+    #[msg("AgentAccount data size mismatch (expected 748 bytes)")]
+    AgentAccountSizeMismatch = 6062,
 }

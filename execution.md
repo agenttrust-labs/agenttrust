@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-**Phase 2 — CounterpartyTier policy + AtomStats deserialization** | Status: planning (Phase 1 verified + committed; Phase 2 plan in "Next Phase" below)
+**Phase 3 — Velocity + KillSwitch policies + PolicyAuthority multisig** | Status: planning
 
 ### Phase 0 plan (completed 2026-05-02)
 
@@ -117,7 +117,8 @@ Devnet program deploy cost: ~3–5 SOL per program × 3 = 9–15 SOL. Current de
 ## Phases Complete
 
 - **2026-05-02 — Phase 0 — setup + scaffold** — Anchor workspace at repo root, 3 program crates compile to BPF, IDL JSONs generated, devnet/localnet program IDs locked in `Anchor.toml` + `declare_id!`. Commit: `scaffold anchor workspace + 3 program crates`.
-- **2026-05-02 — Phase 1 — PolicyVault state schema + Spending policy** — 4 PDA structs (PolicyAccount/VelocityLedger/KillSwitchState/PolicyAuthority) split per-file under `state/`, byte layouts match `docs/plan/research/04-policyvault-build-playbook.md §B`. Pure-function Spending policy with 15 unit tests (happy/sad/edge/boundary/overflow/rollover/ISO-week/negative-ts) — all green. `init_policy` instruction with nested config args + range validation + auth-gap acknowledged via SECURITY comment (Phase 3 deliverable). `review-and-iterate` skill ran clean: B/A-/A/B/A/B+ rubric grades.
+- **2026-05-02 — Phase 1 — PolicyVault state schema + Spending policy** — 4 PDA structs (PolicyAccount/VelocityLedger/KillSwitchState/PolicyAuthority) split per-file under `state/`, byte layouts match `docs/plan/research/04-policyvault-build-playbook.md §B`. Pure-function Spending policy with 15 unit tests (happy/sad/edge/boundary/overflow/rollover/ISO-week/negative-ts) — all green. `init_policy` instruction with nested config args + range validation + auth-gap acknowledged via SECURITY comment (Phase 3 deliverable). `review-and-iterate` skill ran clean: B/A-/A/B/A/B+ rubric grades. Anchor TS integration tests added (8 cases) + pnpm switch (commit `40c15c0`). Side-effect: all 3 programs deployed to devnet executable.
+- **2026-05-02 — Phase 2 — CounterpartyTier policy + AtomStats byte parser** — `ext/atom_engine.rs` (manual byte-offset reader for Quantu's foreign PDA, 561 bytes, locked offsets 549/551/555/557/560), `ext/agent_registry.rs` (defensive AgentAccount validators), `policies/counterparty_tier.rs` (pure-fn tier-gating policy with `From<&PolicyAccount>` snapshot + `Unrated`/`Allow`/`Deny` outcome). 29 new Rust unit tests (46 total). `build-defi-protocol` skill consulted for Anchor cross-program PDA patterns; `review-and-iterate` flagged 2 issues fixed pre-commit: tier clamping → fail-loud, graceful-degradation early-return doc/code mismatch.
 
 ---
 
@@ -158,9 +159,31 @@ Devnet program deploy cost: ~3–5 SOL per program × 3 = 9–15 SOL. Current de
 
 ---
 
-## Next Phase — Phase 2 plan
+## Next Phase — Phase 3 plan
 
-**Phase 2 — CounterpartyTier policy + AtomStats deserialization** (May 3, Day 9)
+**Phase 3 — Velocity + KillSwitch policies + PolicyAuthority multisig + init_policy auth gate** (May 3-4, Day 9-10)
+
+Skills to load before writing: `cso` for the multisig + auth-gate code path (security-critical); reuse `build-defi-protocol` patterns from Phase 2.
+
+Deliverables:
+1. `programs/policy-vault/src/policies/velocity.rs` — pure-fn Velocity sliding-window with tier-decay (`apply_tier_decay`: tier 0 → ¼ window, tier 1 → ½, tier 2 → ¾, tier 3 → 1×, tier 4 → 5/4×). Returns `VelocityOutcome { Allow(VelocityDeltas), Deny(reason) }` — composer applies the deltas only on the all-policies-passed branch (Allow-path-only commit).
+2. `programs/policy-vault/src/policies/killswitch.rs` — pure-fn KillSwitch evaluator: `evaluate(state) -> Option<DenyReason>`. Plus the KillSwitch state-mutation instruction lives in `instructions/set_killswitch.rs`.
+3. `programs/policy-vault/src/instructions/init_authority.rs` — initialise `PolicyAuthority` PDA with members + threshold; default 2-of-3 per playbook §F.1.
+4. `programs/policy-vault/src/instructions/init_killswitch.rs` — initialise `KillSwitchState` PDA per scope (Global default).
+5. `programs/policy-vault/src/instructions/set_killswitch.rs` — multisig-gated pause/unpause; counts distinct signers from PolicyAuthority.members; require ≥ threshold; stamps `paused_at_slot` / `unpaused_at_slot` / `paused_by`.
+6. **Close the Phase-1 init_policy auth gap.** Add `policy_authority` account to `init_policy.rs` accounts struct + `require!(authority.members.contains(&payer.key()), MemberNotInAuthority)` guard. Update SECURITY comment from "Phase 3 deliverable" → "auth-gated as of Phase 3".
+7. Pure-Rust unit tests for Velocity + KillSwitch + multisig-distinct-signer dedup. ~30 new test cases.
+8. Anchor TS integration tests for `init_authority`, `init_killswitch`, `set_killswitch`. 4-6 new TS test cases.
+
+Edge cases mapped upfront:
+- **Velocity overflow**: cumulative + amount > u64::MAX → `VelocityOverflow`. Use `checked_add`.
+- **Velocity window expiry**: `now_slot - window_start_slot >= window_slots` → reset (window_start_slot = now_slot, cumulative_amount = 0).
+- **Velocity Allow-path-only commit**: policy module returns `Pending(deltas)`; composer applies only after every other policy passes. Phase 2 CounterpartyTier already follows this; Velocity must too.
+- **Multisig dedup**: same signer pubkey appearing twice (signs twice or duplicated in `remaining_accounts`) counts once.
+- **Member out-of-range**: `member_count` must be 1..=7 (v1 cap); `threshold` must be 1..=member_count.
+- **Auth-gate transition**: existing PolicyAccount PDAs created in Phase 1 (no auth gate) — Phase 3 adds the requirement going forward; existing accounts grandfather. Document this; don't break tests.
+
+Verification gate: cargo build green + anchor build green + cargo test green (~76 tests total) + anchor test green (~14 TS tests total) + `review-and-iterate` clean + commit.
 
 Skills to load before writing: `build-defi-protocol` (Anchor 1.0 cross-program PDA read patterns) + `cso` (signer/account-validation rigor on the foreign-account read path).
 
