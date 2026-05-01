@@ -16,6 +16,9 @@ pub mod instructions;
 pub mod policies;
 pub mod state;
 
+#[cfg(kani)]
+pub mod proofs;
+
 // Re-export accounts structs + macro-generated `__client_accounts_*` modules
 // at crate root so the `#[program]` macro can resolve them. Named imports
 // (not glob) — globbing all four modules would cause `handler` symbol

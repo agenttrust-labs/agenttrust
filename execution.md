@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-**Phase 5 — All 5 Kani invariants green + close init_authority bootstrap race** | Status: planning (Phase 4 verified + committed)
+**Phase 6 — TrustGate Anchor program + Express x402 service** | Status: planning (Phase 5 verified + committed)
 
 ### Phase 0 plan (completed 2026-05-02)
 
@@ -121,6 +121,7 @@ Devnet program deploy cost: ~3–5 SOL per program × 3 = 9–15 SOL. Current de
 - **2026-05-02 — Phase 2 — CounterpartyTier policy + AtomStats byte parser** — `ext/atom_engine.rs` (manual byte-offset reader for Quantu's foreign PDA, 561 bytes, locked offsets 549/551/555/557/560), `ext/agent_registry.rs` (defensive AgentAccount validators), `policies/counterparty_tier.rs` (pure-fn tier-gating policy with `From<&PolicyAccount>` snapshot + `Unrated`/`Allow`/`Deny` outcome). 29 new Rust unit tests (46 total). `build-defi-protocol` skill consulted for Anchor cross-program PDA patterns; `review-and-iterate` flagged 2 issues fixed pre-commit: tier clamping → fail-loud, graceful-degradation early-return doc/code mismatch.
 - **2026-05-02 — Phase 3 — Velocity + KillSwitch + PolicyAuthority multisig + init_policy auth gap closed** — `policies/velocity.rs` (pure-fn sliding-window with tier-decay ¼/½/¾/1×/5/4× via u128 saturating math), `policies/killswitch.rs` (paused-flag eval), 3 new instructions: `init_authority` (1..=7 members, no-dups, caller-in-members), `init_killswitch` (PerAgent scope), `set_killswitch` (multisig-gated pause/unpause). `init_policy` now requires payer ∈ `policy_authority.members` — Phase 1 auth gap closed. `PolicyAuthority::count_distinct_signing_members` extracted as pure-fn for Phase 5 Kani harness. 91 tests green (74 Rust + 17 TS). Devnet program data extended by 100KB (~2.3 SOL). `review-and-iterate` flagged 2 findings collapsed into one fix (pubkey-based dedup + pure-fn extraction) applied pre-commit. **Known remaining gap:** init_authority bootstrap race (anyone-can-call-first); documented + scoped to Phase 5 closure via AgentAccount.owner check.
 - **2026-05-02 — Phase 4 — gate_payment composer + RequireValidation policy + ValidationAttestation byte parser** — `ext/validation_registry.rs` (manual byte-offset reader for our own validation-registry program's PDA, 290 bytes, owner+size+graceful-degradation matching the atom_engine parser pattern from Phase 2). `policies/require_validation.rs` (pure-fn evaluator with zero-hash sentinel, expiry math, attestor whitelist [Pubkey;2] permissionless when both zero, three-way outcome Allow/Deny/RequiresAttestation). `policies/composer.rs` (pure-fn `compose_decision` orchestrating all 5 policies in fail-fast order: KillSwitch → Spending → Velocity → CounterpartyTier → RequireValidation; returns ComposerResult with optional deltas; non-Allow paths reset deltas to None — defense in depth). `instructions/gate_payment.rs` (thin Anchor wrapper: snapshots accounts up-front before mutation, calls compose_decision, applies deltas + emits events ONLY on Allow, returns Result<GateDecision> via Anchor return-data channel). `spending::apply_deltas` + `velocity::apply_deltas` mutation helpers added. 136 tests green (112 Rust + 24 TS). Devnet program data extended +50KB. `review-and-iterate` Phase 4 delta clean — 0 findings. **Note:** Kani harnesses originally split Phase 4 (2) + Phase 5 (3); rolled into single Phase 5 = all 5 for cleaner toolchain setup.
+- **2026-05-02 — Phase 5 — All 5 Kani invariants PROVEN GREEN** — 5 invariant harnesses under `programs/policy-vault/src/proofs/` behind `#[cfg(kani)]`. (1) `paused_killswitch_implies_no_allow` over compose_decision (126 sub-checks, 0.20s); (2) `velocity_allow_implies_cumulative_le_max` over velocity::evaluate with inductive precondition (9 sub-checks, 0.03s); (3) `counterparty_tier_monotone` over counterparty_tier::evaluate (8 sub-checks, 0.02s); (4) `validation_expiry_correct` over require_validation::evaluate with `#[kani::unwind(40)]` for 32-byte memcmp (85 sub-checks, 0.21s); (5) `multisig_threshold_enforced` over PolicyAuthority::count_distinct_signing_members bounded to 3 members × 3 signers (149 sub-checks, 62.55s). Total: 377 sub-checks across 5 invariants, ~63s verification time. CI workflow `.github/workflows/kani-prove.yml` runs all 5 on every PR via `model-checking/kani-github-action@v1.1`. AgentAccount.owner cross-program check (closes Phase 3 init_authority bootstrap race) DEFERRED to Phase 9 E2E — requires real Quantu integration that Phase 9 already needs.
 
 ---
 
@@ -161,7 +162,34 @@ Devnet program deploy cost: ~3–5 SOL per program × 3 = 9–15 SOL. Current de
 
 ---
 
-## Next Phase — Phase 5 plan
+## Next Phase — Phase 6 plan
+
+**Phase 6 — TrustGate Anchor program + Express x402 service** (May 4, Day 10)
+
+Skills to load before writing: `build-defi-protocol` (Anchor 1.0+ CPI patterns for the `give_feedback` invocation against `agent-registry-8004`); refer to `docs/plan/research/05-trustgate-x402-class.md` for the x402 spec + facilitator playbook.
+
+Deliverables:
+1. `programs/trustgate/src/state.rs` — `TrustGateAuthority` (107 bytes, seeds `[b"trustgate_auth", facilitator_pubkey]`) + `FeedbackEmissionLog` (90 bytes, seeds `[b"feedback_log", payment_id_hash]`).
+2. `programs/trustgate/src/ext/agent_registry.rs` — pinned discriminator `[145, 136, 123, 3, 215, 165, 98, 41]` for `give_feedback`; CPI builder + signer-seeds for the PDA-signed call.
+3. `programs/trustgate/src/instructions/init_authority.rs` — initialise `TrustGateAuthority` per facilitator deployment.
+4. `programs/trustgate/src/instructions/emit_feedback.rs` — PDA-signed CPI to `agent_registry_8004::give_feedback`; idempotency-checked via `FeedbackEmissionLog`. Phase 1 fields: `payment_id, payee_asset, score, tag1, tag2, endpoint, feedback_uri`.
+5. `programs/trustgate/src/instructions/dispute_payment.rs` — emits negative-score (20) feedback with `tag1="dispute"` + `tag2=<reason>`. Phase 1 v1.0 (no validation-registry attestor escalation; that's v1.1).
+6. `programs/trustgate/src/lib.rs` wiring + IDL sanity.
+7. `trustgate/server/` — Express TypeScript service (~600 LOC). 4 endpoints: `POST /verify`, `POST /settle`, `POST /dispute`, `GET /receipt/:payment_id`. x402 header layer per playbook §x402-spec-compliance.
+8. Tests: TrustGate Anchor TS tests (init_authority, emit_feedback against mocked agent-registry, dispute_payment); Express service unit tests (jest or similar) for endpoint handlers.
+
+Edge cases mapped upfront:
+- **CPI signer seeds** — `[b"trustgate_auth", facilitator_pubkey, &[bump]]` must match TrustGateAuthority PDA derivation.
+- **Idempotency** — `FeedbackEmissionLog` PDA must be `init`-only; reinit fails. Prevents double-emit on tx retry.
+- **`SelfFeedbackNotAllowed (6300)`** — Quantu's agent_registry rejects self-feedback. TrustGate's PDA seeds use facilitator_pubkey (external entity), so structurally satisfied.
+- **Atomic-tx invariant** — gate_payment + transfer + emit_feedback MUST be one tx (Token-2022 TransferHook footgun per playbook §A.2). The Express service constructs a single tx; TS SDK in Phase 7 enforces this via literal-type guard + runtime throw.
+- **Devnet program ID swap** — devnet agent-registry is `8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C`; mainnet is `8oo4dC4...`. TrustGate currently has agent-registry pinned to devnet ID (matches gate_payment policy program).
+
+Verification gate: cargo build green + anchor build green + cargo test green + anchor test green (~6 new TS tests for TrustGate) + express tests green + `review-and-iterate` clean + commit.
+
+---
+
+## (legacy) Phase 5 plan
 
 **Phase 5 — All 5 Kani invariants green + close init_authority bootstrap race** (May 3, Day 9)
 

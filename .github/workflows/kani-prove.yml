@@ -1,0 +1,39 @@
+name: Kani Formal Verification
+
+on:
+  pull_request:
+    paths:
+      - 'programs/policy-vault/src/**'
+      - 'programs/policy-vault/Cargo.toml'
+  push:
+    branches: [main]
+    paths:
+      - 'programs/policy-vault/src/**'
+      - 'programs/policy-vault/Cargo.toml'
+  workflow_dispatch:
+
+jobs:
+  prove:
+    name: Prove 5 PolicyVault invariants
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Kani
+        uses: model-checking/kani-github-action@v1.1
+        with:
+          kani-version: '0.67.0'
+
+      - name: Prove invariants
+        working-directory: programs/policy-vault
+        run: |
+          cargo kani --harness paused_killswitch_implies_no_allow
+          cargo kani --harness velocity_allow_implies_cumulative_le_max
+          cargo kani --harness counterparty_tier_monotone
+          cargo kani --harness validation_expiry_correct
+          cargo kani --harness multisig_threshold_enforced
+
+      - name: Summary
+        if: success()
+        run: echo "All 5 PolicyVault invariants proven green. ✓"
