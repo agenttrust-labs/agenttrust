@@ -1,4 +1,9 @@
-# AgentTrust — 30-Second Pitch Compression (Day 4.5 Phase 3)
+# AgentTrust — 30-Second Pitch Compression (Day 4.5 Phase 3) [SUPERSEDED 2026-04-28 PM]
+
+> **⚠ DEPRECATED — read the new authoritative file first.** Variants A (Nike) and B (Anthropic) below are the Day-4.5 brainstorm anchors. Post-research-marathon synthesis review concluded they undersell what AgentTrust actually defends (see `plan/final_idea/changes/2026-04-28-pitch-frames-elevation.md` for the rationale). The **authoritative pitch frames** are now at `plan/final_idea/PITCH_FRAMES_LOCKED.md` — Variant A (Solana fund's autonomous treasury bot routed $1.2M to a clone of a real protocol; visual cold open), Variant B (same scenario rewritten for the spoken pitch with Vibhu's 15M-agentic-payments stat + Lily's verbatim "smart contracts held up; the human-trust layer didn't" post-Drift quote), Variant C (Twitter / Superteam / mass-distribution opener), Variant D (regulated-enterprise cold-email opener). All operational artifacts (`plan/other_tasks/ops/*.md`, DM files, grant drafts) reference the new file. The Q&A section below (Q1–Q5) is PRESERVED and remains valid as input for accelerator-interview drilling. The opener variants below are HISTORICAL.
+
+---
+
 
 **Purpose:** Compress AgentTrust's three-component scope into a 30-second pitch without scaffolding. The pitch must (1) compile to ≤75 words, (2) avoid forbidden vocabulary, (3) embed SAEP-differentiation via Foundation-alignment frame WITHOUT naming SAEP, (4) test against four-judge bias profiles.
 
