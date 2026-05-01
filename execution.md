@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-**Phase 1 — PolicyVault state schema + Spending policy** | Status: planning
+**Phase 2 — CounterpartyTier policy + AtomStats deserialization** | Status: planning (Phase 1 verified + committed; Phase 2 plan in "Next Phase" below)
 
 ### Phase 0 plan (completed 2026-05-02)
 
@@ -18,7 +18,18 @@
    - `package.json` (TS deps for `@coral-xyz/anchor` 1.0+ tests), `tsconfig.json`
    - `LICENSE` (MIT) + `README.md` (Foundation-alignment opener)
 7. ✅ `cargo build` green (24.5s), `anchor build` green — 3 `.so` files (56664 bytes each) + 3 IDL JSONs
-8. ⏳ Commit: `scaffold anchor workspace + 3 program crates`
+8. ✅ Commit: `scaffold anchor workspace + 3 program crates` (`6b17009`)
+
+### Phase 1 plan (completed 2026-05-02)
+
+1. ✅ Restructured to SRP layout — `state/` (one struct per file), `policies/` (one policy per file), `instructions/` (one ix per file), `constants.rs` separated, `errors.rs` + `events.rs` at top level.
+2. ✅ Moved internal docs to `docs/` (plan/research now under `docs/plan/`, `docs/research/`) — root holds only ship-relevant files. CLAUDE.md path refs updated. New memory rules saved (`feedback_code_quality_first.md`, `feedback_repo_root_clean.md`).
+3. ✅ State schema: 4 PDA structs match playbook §B byte offsets exactly (PolicyAccount 240B, VelocityLedger 88B, KillSwitchState 104B, PolicyAuthority 280B).
+4. ✅ Decision types: `GateDecision`, `DenyReason` with stable `code()` mapping (decoupled from Borsh wire format because `#[repr(u8)] = N` conflicts with AnchorSerialize derive).
+5. ✅ Spending policy: pure function over `(SpendingState, amount, unix_ts) -> SpendingOutcome { Allow(deltas) | Deny(reason) }`. UTC midnight + ISO Monday rollover. `From<&PolicyAccount>` snapshot constructor.
+6. ✅ `init_policy` instruction with nested config args (SpendingConfig, VelocityConfig, CounterpartyConfig, ValidationConfig) + range validation + auth-gap SECURITY comment for Phase 3.
+7. ✅ 15 unit tests for Spending — happy/sad/edge/boundary/overflow/rollover/ISO-week/negative-ts. All green.
+8. ✅ `review-and-iterate` skill ran clean: B (security, scoped Phase-3 init-auth gap), A (correctness), A (error handling), B (testing — integration phase 9), A (organization), B+ (docs). HTML artifact at `docs/internal/reviews/2026-05-02-phase-1-policy-vault-review.html`.
 
 ### Program IDs (locked Phase 0)
 
@@ -106,6 +117,7 @@ Devnet program deploy cost: ~3–5 SOL per program × 3 = 9–15 SOL. Current de
 ## Phases Complete
 
 - **2026-05-02 — Phase 0 — setup + scaffold** — Anchor workspace at repo root, 3 program crates compile to BPF, IDL JSONs generated, devnet/localnet program IDs locked in `Anchor.toml` + `declare_id!`. Commit: `scaffold anchor workspace + 3 program crates`.
+- **2026-05-02 — Phase 1 — PolicyVault state schema + Spending policy** — 4 PDA structs (PolicyAccount/VelocityLedger/KillSwitchState/PolicyAuthority) split per-file under `state/`, byte layouts match `docs/plan/research/04-policyvault-build-playbook.md §B`. Pure-function Spending policy with 15 unit tests (happy/sad/edge/boundary/overflow/rollover/ISO-week/negative-ts) — all green. `init_policy` instruction with nested config args + range validation + auth-gap acknowledged via SECURITY comment (Phase 3 deliverable). `review-and-iterate` skill ran clean: B/A-/A/B/A/B+ rubric grades.
 
 ---
 
@@ -133,16 +145,58 @@ Devnet program deploy cost: ~3–5 SOL per program × 3 = 9–15 SOL. Current de
 - Existing repo is a research workspace, not a code workspace. Phase 0 transforms it into the build target.
 - **`cargo-build-sbf` PATH workaround**: Homebrew's `solana` formula at `/opt/homebrew/bin/solana` does NOT include `cargo-build-sbf`. The Agave install at `~/.local/share/solana/install/active_release/bin/` has the matching 3.1.14 toolchain with `cargo-build-sbf`. Every `anchor build` / `anchor test` invocation must prepend `PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"`. Permanent fix would be a fish-config tweak; for now we prepend per-invocation.
 - Empty `#[program] mod {}` triggers Anchor cfg warnings (`anchor-debug`, `custom-heap`, `custom-panic`). Harmless; resolve once Phase 1 adds real instructions.
+- **Anchor 1.0 `#[program]` macro requires accounts struct + macro-generated `__client_accounts_*` modules to be reachable from crate root.** Pattern: `pub use instructions::init_policy::*;` at `lib.rs` top level brings both into crate scope. Any modular Anchor codebase needs this.
+- **`#[repr(u8)]` enum WITH explicit `= N` discriminants conflicts with `AnchorSerialize` / `AnchorDeserialize` derives.** Fix: drop the explicit discriminants. If clients need stable u8 codes, add a `code()` const method that maps each variant to its number — decoupled from the Borsh wire format ordering.
+- **Repo organization rule** (per Mohit's feedback 2026-05-02): research/plan/internal docs go in `docs/`; root holds only ship-relevant files. Memory rule saved at `feedback_repo_root_clean.md`.
+- **Code-quality discipline rule** (per Mohit's feedback 2026-05-02): SRP per file, pure-fn policies, run `review-and-iterate` skill BEFORE every commit. Memory rule saved at `feedback_code_quality_first.md`. Updated 2026-05-02 to also cover using skills DURING coding (not only review): `build-defi-protocol` for Anchor patterns, `cso` for security-sensitive code, `debug-program` reactively.
 
 ---
 
 ## Blockers
 
-(none — Phase 1 starting)
+(none — Phase 2 starting)
 
 ---
 
-## Next Phase — Phase 1 plan
+## Next Phase — Phase 2 plan
+
+**Phase 2 — CounterpartyTier policy + AtomStats deserialization** (May 3, Day 9)
+
+Skills to load before writing: `build-defi-protocol` (Anchor 1.0 cross-program PDA read patterns) + `cso` (signer/account-validation rigor on the foreign-account read path).
+
+Deliverables:
+1. `programs/policy-vault/src/ext/mod.rs` — re-exports + namespace.
+2. `programs/policy-vault/src/ext/atom_engine.rs`:
+   - Constants: `ATOM_ENGINE_DEVNET_ID`, `ATOM_ENGINE_MAINNET_ID`, `ATOM_STATS_SIZE = 561`, `ATOM_STATS_TRUST_TIER_OFFSET = 551`, `ATOM_STATS_TIER_CONFIRMED_OFFSET = 555`, `ATOM_STATS_RISK_SCORE_OFFSET = 549`, `ATOM_STATS_CONFIDENCE_OFFSET = 557`, `ATOM_STATS_SCHEMA_VERSION_OFFSET = 560`, `ATOM_STATS_SCHEMA_VERSION_EXPECTED = 1`.
+   - `pub struct AtomStatsView { tier_immediate: u8, tier_confirmed: u8, risk_score: u8, confidence: u16 }` returned by parser.
+   - `pub fn read_atom_stats_view(account: &UncheckedAccount) -> Result<Option<AtomStatsView>>` — None if uninitialised (lamports == 0); checks owner == ATOM_ENGINE_ID, data_len == 561, schema_version == 1.
+3. `programs/policy-vault/src/ext/agent_registry.rs`:
+   - Constants: `AGENT_REGISTRY_DEVNET_ID`, `AGENT_REGISTRY_MAINNET_ID`, `AGENT_ACCOUNT_SIZE = 748`.
+   - Defensive size + owner validators (used Phase 4 by composer).
+4. `programs/policy-vault/src/policies/counterparty_tier.rs`:
+   - `pub struct CounterpartyState { gate_mode, min_tier, max_risk_score, min_confidence, default_unrated_treatment }` snapshot.
+   - `pub enum CounterpartyOutcome { Allow, Deny(DenyReason), Unrated }`.
+   - `pub fn evaluate(state, view: Option<AtomStatsView>) -> CounterpartyOutcome` — pure function over the view (already parsed by `read_atom_stats_view`).
+   - `Unrated` is mapped to Allow / Deny / RequireValidation by the composer per `default_unrated_treatment`.
+5. Pure-Rust unit tests for `counterparty_tier::evaluate`:
+   - tier ≥ min → Allow
+   - tier < min → Deny(BelowMinTier)
+   - risk > max_risk → Deny(AboveMaxRisk)
+   - confidence < min_confidence → Deny(BelowMinConfidence)
+   - view = None → Unrated
+   - gate_mode toggle: Immediate uses tier_immediate; Confirmed uses tier_confirmed
+   - risk constraint disabled (max_risk_score = 255) → ignored
+   - confidence constraint disabled (min_confidence = 0) → ignored
+6. **Devnet integration smoke** (one TS test in `tests/integration/`): construct an `AtomStatsView`-shaped account on localnet via `[test.validator.clone]` of the mainnet atom-engine; verify our reader extracts the right tier byte. (Live mainnet read is bonus.)
+
+Edge cases mapped upfront:
+- Schema bump to v2 → fail-loud with `AtomStatsSchemaMismatch` (schema_version != 1).
+- AtomStats account owned by a different program (e.g., system) → `AtomStatsWrongOwner`.
+- Account exists but data_len != 561 → `AtomStatsSizeMismatch`.
+- Tier byte > 4 → treat as 4 (clamped) since ATOM tiers are 0..=4 by spec; or `AtomStatsSchemaMismatch` if strict. Decision: clamp to 4 (forward-compat — ATOM may add tier 5 someday).
+- gate_mode = Immediate but tier_confirmed > tier_immediate (rare but possible during vesting transitions): use whichever the policy asked for; don't second-guess.
+
+Verification gate: cargo build green + anchor build green + cargo test green (~25 tests total) + `review-and-iterate` clean + commit.
 
 **Phase 1 — PolicyVault state schema + Spending policy** (today, May 2 — overlap into May 3 if needed)
 
