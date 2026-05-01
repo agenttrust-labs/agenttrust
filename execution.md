@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-**Phase 3 — Velocity + KillSwitch policies + PolicyAuthority multisig** | Status: planning
+**Phase 4 — gate_payment composer + RequireValidation + first 2 Kani invariants** | Status: planning (Phase 3 verified + committed)
 
 ### Phase 0 plan (completed 2026-05-02)
 
@@ -119,6 +119,7 @@ Devnet program deploy cost: ~3–5 SOL per program × 3 = 9–15 SOL. Current de
 - **2026-05-02 — Phase 0 — setup + scaffold** — Anchor workspace at repo root, 3 program crates compile to BPF, IDL JSONs generated, devnet/localnet program IDs locked in `Anchor.toml` + `declare_id!`. Commit: `scaffold anchor workspace + 3 program crates`.
 - **2026-05-02 — Phase 1 — PolicyVault state schema + Spending policy** — 4 PDA structs (PolicyAccount/VelocityLedger/KillSwitchState/PolicyAuthority) split per-file under `state/`, byte layouts match `docs/plan/research/04-policyvault-build-playbook.md §B`. Pure-function Spending policy with 15 unit tests (happy/sad/edge/boundary/overflow/rollover/ISO-week/negative-ts) — all green. `init_policy` instruction with nested config args + range validation + auth-gap acknowledged via SECURITY comment (Phase 3 deliverable). `review-and-iterate` skill ran clean: B/A-/A/B/A/B+ rubric grades. Anchor TS integration tests added (8 cases) + pnpm switch (commit `40c15c0`). Side-effect: all 3 programs deployed to devnet executable.
 - **2026-05-02 — Phase 2 — CounterpartyTier policy + AtomStats byte parser** — `ext/atom_engine.rs` (manual byte-offset reader for Quantu's foreign PDA, 561 bytes, locked offsets 549/551/555/557/560), `ext/agent_registry.rs` (defensive AgentAccount validators), `policies/counterparty_tier.rs` (pure-fn tier-gating policy with `From<&PolicyAccount>` snapshot + `Unrated`/`Allow`/`Deny` outcome). 29 new Rust unit tests (46 total). `build-defi-protocol` skill consulted for Anchor cross-program PDA patterns; `review-and-iterate` flagged 2 issues fixed pre-commit: tier clamping → fail-loud, graceful-degradation early-return doc/code mismatch.
+- **2026-05-02 — Phase 3 — Velocity + KillSwitch + PolicyAuthority multisig + init_policy auth gap closed** — `policies/velocity.rs` (pure-fn sliding-window with tier-decay ¼/½/¾/1×/5/4× via u128 saturating math), `policies/killswitch.rs` (paused-flag eval), 3 new instructions: `init_authority` (1..=7 members, no-dups, caller-in-members), `init_killswitch` (PerAgent scope), `set_killswitch` (multisig-gated pause/unpause). `init_policy` now requires payer ∈ `policy_authority.members` — Phase 1 auth gap closed. `PolicyAuthority::count_distinct_signing_members` extracted as pure-fn for Phase 5 Kani harness. 91 tests green (74 Rust + 17 TS). Devnet program data extended by 100KB (~2.3 SOL). `review-and-iterate` flagged 2 findings collapsed into one fix (pubkey-based dedup + pure-fn extraction) applied pre-commit. **Known remaining gap:** init_authority bootstrap race (anyone-can-call-first); documented + scoped to Phase 4 closure via AgentAccount.owner check.
 
 ---
 

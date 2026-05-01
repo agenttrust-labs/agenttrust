@@ -16,7 +16,7 @@ use crate::constants::{
 };
 use crate::errors::PolicyVaultError;
 use crate::events::PolicyInitialized;
-use crate::state::{PolicyAccount, VelocityLedger};
+use crate::state::{PolicyAccount, PolicyAuthority, VelocityLedger};
 
 const ALL_KIND_BITS: u8 = KIND_KILLSWITCH
     | KIND_SPENDING
@@ -121,6 +121,14 @@ pub struct InitPolicy<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
+    /// PolicyAuthority for the agent — must already exist (call `init_authority`
+    /// first). The handler validates that `payer` is in `members[]`.
+    #[account(
+        seeds = [PolicyAuthority::SEED_PREFIX, payer_agent_asset.as_ref()],
+        bump = policy_authority.bump,
+    )]
+    pub policy_authority: Account<'info, PolicyAuthority>,
+
     #[account(
         init,
         payer = payer,
@@ -151,12 +159,18 @@ pub fn handler(
     payer_agent_asset: Pubkey,
     args: InitPolicyArgs,
 ) -> Result<()> {
-    // SECURITY: `init_policy` is currently NOT auth-gated against the agent's
-    // owner. Anyone can fund a PolicyAccount for any `payer_agent_asset`. This
-    // is acceptable for Phase 1 (state-schema + Spending only) because no
-    // policy decision yet trusts the policy state in a payment-altering way.
-    // Phase 3 introduces `PolicyAuthority` + cross-program AgentAccount owner
-    // verification before this handler will be considered production-ready.
+    // SECURITY (Phase 3): payer must be in PolicyAuthority.members. Phase 4
+    // adds the cross-program AgentAccount.owner check on top to prevent the
+    // bootstrap-race exposure (anyone-can-init_authority-first).
+    let auth = &ctx.accounts.policy_authority;
+    let payer_key = ctx.accounts.payer.key();
+    let is_member = auth
+        .members
+        .iter()
+        .take(auth.member_count as usize)
+        .any(|m| *m == payer_key);
+    require!(is_member, PolicyVaultError::MemberNotInAuthority);
+
     args.validate()?;
 
     let policy = &mut ctx.accounts.policy_account;

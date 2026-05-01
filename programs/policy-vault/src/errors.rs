@@ -55,6 +55,8 @@ pub enum PolicyVaultError {
     ThresholdExceedsMembers = 6043,
     #[msg("Member count out of range (1..=7)")]
     MemberCountOutOfRange = 6044,
+    #[msg("Authority members must be unique (no duplicates)")]
+    DuplicateAuthorityMember = 6045,
 
     #[msg("Unrated counterparty under deny treatment")]
     UnratedTreatmentDeny = 6050,
