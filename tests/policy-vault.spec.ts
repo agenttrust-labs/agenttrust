@@ -392,4 +392,156 @@ describe("policy-vault", () => {
       }
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // gate_payment (Phase 4)
+  // ---------------------------------------------------------------------------
+
+  describe("gate_payment", () => {
+    // Spending + KillSwitch enabled (0x01 | 0x02 = 0x03). Avoids needing
+    // foreign atom-engine accounts for tier reads in Phase 4 tests.
+    const BITMASK_SPENDING_PLUS_KILLSWITCH = 0x03;
+    const BITMASK_VELOCITY_ONLY            = 0x04;
+    const BITMASK_SPENDING_PLUS_VELOCITY   = 0x06;
+
+    /// Setup helper — init_authority + init_killswitch + init_policy with the
+    /// given bitmask. Returns the PDAs the test will need.
+    async function setupAgentWithPolicy(
+      bitmask: number,
+      policyId: number,
+      perTxMax: number = 100,
+    ) {
+      const agent = freshAgent();
+      const [authPda] = deriveAuthorityPda(program.programId, agent);
+      const [ksPda]   = deriveKillSwitchPda(program.programId, agent);
+      const [policyPda] = derivePolicyPda(program.programId, agent, policyId);
+      const [ledgerPda] = deriveVelocityPda(program.programId, agent, policyId);
+
+      await initAuthorityFor(agent);
+      await initKillSwitchFor(agent);
+
+      const args = { ...defaultArgs(policyId), enabledKindsBitmask: bitmask };
+      args.spending.perTxMax = new BN(perTxMax);
+      args.spending.dailyMax = new BN(perTxMax * 5);
+      args.spending.weeklyMax = new BN(perTxMax * 20);
+      args.velocity.maxInWindow = new BN(perTxMax * 10);
+      await initPolicyFor(agent, args);
+
+      return { agent, authPda, ksPda, policyPda, ledgerPda };
+    }
+
+    async function callGatePayment(
+      env: Awaited<ReturnType<typeof setupAgentWithPolicy>>,
+      payee: PublicKey,
+      amount: number,
+      policyId: number,
+    ) {
+      return program.methods
+        .gatePayment(env.agent, payee, new BN(amount), PublicKey.default, policyId)
+        .accounts({
+          caller:          wallet,
+          policyAccount:   env.policyPda,
+          velocityLedger:  env.ledgerPda,
+          killSwitchState: env.ksPda,
+          payerAtomStats:        null,
+          payeeAtomStats:        null,
+          validationAttestation: null,
+        })
+        .rpc();
+    }
+
+    it("Allow updates spending_today_used + spending_today_anchor", async () => {
+      const env = await setupAgentWithPolicy(BITMASK_SPENDING_PLUS_KILLSWITCH, 100);
+      await callGatePayment(env, freshAgent(), 50, 100);
+
+      const policy = await program.account.policyAccount.fetch(env.policyPda);
+      expect(policy.spendingTodayUsed.toNumber()).to.equal(50);
+      // anchor is day-index since epoch — must be > 0 in 2026.
+      expect(policy.spendingTodayAnchor.toNumber()).to.be.greaterThan(20_000);
+    });
+
+    it("two consecutive Allow calls accumulate spending_today_used", async () => {
+      const env = await setupAgentWithPolicy(BITMASK_SPENDING_PLUS_KILLSWITCH, 101);
+      await callGatePayment(env, freshAgent(), 30, 101);
+      await callGatePayment(env, freshAgent(), 25, 101);
+
+      const policy = await program.account.policyAccount.fetch(env.policyPda);
+      expect(policy.spendingTodayUsed.toNumber()).to.equal(55);
+    });
+
+    it("KillSwitch paused causes Deny — no state mutation", async () => {
+      const env = await setupAgentWithPolicy(BITMASK_SPENDING_PLUS_KILLSWITCH, 102);
+
+      // Pause the agent's KillSwitchState.
+      await program.methods
+        .setKillswitch(env.agent, true)
+        .accounts({ signer: wallet, policyAuthority: env.authPda, killSwitchState: env.ksPda })
+        .rpc();
+
+      // gate_payment now returns Deny — tx succeeds but spending counters DON'T move.
+      await callGatePayment(env, freshAgent(), 50, 102);
+
+      const policy = await program.account.policyAccount.fetch(env.policyPda);
+      expect(policy.spendingTodayUsed.toNumber()).to.equal(0); // unchanged
+    });
+
+    it("Spending per-tx exceeded causes Deny — no state mutation", async () => {
+      const env = await setupAgentWithPolicy(BITMASK_SPENDING_PLUS_KILLSWITCH, 103, /*perTxMax*/ 100);
+      // amount > per_tx_max → Deny(SpendingPerTxExceeded)
+      await callGatePayment(env, freshAgent(), 200, 103);
+
+      const policy = await program.account.policyAccount.fetch(env.policyPda);
+      expect(policy.spendingTodayUsed.toNumber()).to.equal(0);
+    });
+
+    it("Velocity Allow updates VelocityLedger.cumulative_amount", async () => {
+      const env = await setupAgentWithPolicy(BITMASK_VELOCITY_ONLY, 104);
+      await callGatePayment(env, freshAgent(), 70, 104);
+
+      const ledger = await program.account.velocityLedger.fetch(env.ledgerPda);
+      expect(ledger.cumulativeAmount.toNumber()).to.equal(70);
+      expect(ledger.lastCommitSlot.toNumber()).to.be.greaterThan(0);
+    });
+
+    it("Spending + Velocity Allow updates BOTH counters atomically", async () => {
+      const env = await setupAgentWithPolicy(BITMASK_SPENDING_PLUS_VELOCITY, 105);
+      await callGatePayment(env, freshAgent(), 40, 105);
+
+      const policy = await program.account.policyAccount.fetch(env.policyPda);
+      const ledger = await program.account.velocityLedger.fetch(env.ledgerPda);
+      expect(policy.spendingTodayUsed.toNumber()).to.equal(40);
+      expect(ledger.cumulativeAmount.toNumber()).to.equal(40);
+    });
+
+    it("Velocity window exceeded causes Deny — cumulative does not advance", async () => {
+      // VELOCITY_ONLY bitmask so Spending limits don't compete for the deny path.
+      const policyId = 106;
+      const agent = freshAgent();
+      await initAuthorityFor(agent);
+      await initKillSwitchFor(agent);
+
+      const args = { ...defaultArgs(policyId), enabledKindsBitmask: BITMASK_VELOCITY_ONLY };
+      args.velocity.maxInWindow = new BN(1000);
+      await initPolicyFor(agent, args);
+
+      const env = {
+        agent,
+        authPda:   deriveAuthorityPda(program.programId, agent)[0],
+        ksPda:     deriveKillSwitchPda(program.programId, agent)[0],
+        policyPda: derivePolicyPda(program.programId, agent, policyId)[0],
+        ledgerPda: deriveVelocityPda(program.programId, agent, policyId)[0],
+      };
+
+      // 2 calls at 500 each = 1000 cumulative (right at the velocity cap).
+      await callGatePayment(env, freshAgent(), 500, policyId);
+      await callGatePayment(env, freshAgent(), 500, policyId);
+      const ledgerMid = await program.account.velocityLedger.fetch(env.ledgerPda);
+      expect(ledgerMid.cumulativeAmount.toNumber()).to.equal(1000);
+
+      // 3rd call would push cumulative to 1500 > 1000 → Velocity denies.
+      await callGatePayment(env, freshAgent(), 500, policyId);
+      const ledgerAfter = await program.account.velocityLedger.fetch(env.ledgerPda);
+      expect(ledgerAfter.cumulativeAmount.toNumber()).to.equal(1000);
+    });
+  });
 });

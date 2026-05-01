@@ -18,3 +18,4 @@
 
 pub mod agent_registry;
 pub mod atom_engine;
+pub mod validation_registry;

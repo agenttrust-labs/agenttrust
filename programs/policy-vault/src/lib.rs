@@ -20,6 +20,8 @@ pub mod state;
 // at crate root so the `#[program]` macro can resolve them. Named imports
 // (not glob) — globbing all four modules would cause `handler` symbol
 // collisions since each instruction module exports its own `pub fn handler`.
+pub use state::{DenyReason, GateDecision};
+pub use instructions::gate_payment::GatePayment;
 pub use instructions::init_authority::InitAuthority;
 pub use instructions::init_killswitch::InitKillSwitch;
 pub use instructions::init_policy::{
@@ -28,6 +30,7 @@ pub use instructions::init_policy::{
 pub use instructions::set_killswitch::SetKillSwitch;
 // Anchor-generated `__client_accounts_*` modules are `pub(crate)`; bring them
 // to crate root so the `#[program]` macro can resolve `crate::__client_accounts_*`.
+pub(crate) use instructions::gate_payment::__client_accounts_gate_payment;
 pub(crate) use instructions::init_authority::__client_accounts_init_authority;
 pub(crate) use instructions::init_killswitch::__client_accounts_init_kill_switch;
 pub(crate) use instructions::init_policy::__client_accounts_init_policy;
@@ -76,5 +79,20 @@ pub mod policy_vault {
         args: InitPolicyArgs,
     ) -> Result<()> {
         instructions::init_policy::handler(ctx, payer_agent_asset, args)
+    }
+
+    /// Compose the 5 policy kinds + return a `GateDecision`. Applies state
+    /// mutations (Spending counters, VelocityLedger) only on `Allow`.
+    pub fn gate_payment(
+        ctx: Context<GatePayment>,
+        payer_agent_asset: Pubkey,
+        payee_agent_asset: Pubkey,
+        amount: u64,
+        mint: Pubkey,
+        policy_id: u32,
+    ) -> Result<GateDecision> {
+        instructions::gate_payment::handler(
+            ctx, payer_agent_asset, payee_agent_asset, amount, mint, policy_id,
+        )
     }
 }

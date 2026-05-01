@@ -142,6 +142,16 @@ pub fn evaluate(
     })
 }
 
+/// Apply Allow-path deltas to the on-chain `VelocityLedger`. Called by the
+/// composer's Anchor wrapper (`gate_payment::handler`) only on the
+/// all-policies-passed branch — the read-only `VelocityOutcome::Allow(deltas)`
+/// is the staging state until ALL policies pass.
+pub fn apply_deltas(ledger: &mut VelocityLedger, deltas: &VelocityDeltas) {
+    ledger.cumulative_amount = deltas.new_cumulative_amount;
+    ledger.last_commit_slot  = deltas.new_last_commit_slot;
+    ledger.window_start_slot = deltas.new_window_start_slot;
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------

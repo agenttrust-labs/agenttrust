@@ -44,6 +44,10 @@ pub enum PolicyVaultError {
     AttestationSubjectMismatch = 6034,
     #[msg("Validation capability mismatch")]
     AttestationCapabilityMismatch = 6035,
+    #[msg("ValidationAttestation account has wrong owner")]
+    AttestationWrongOwner = 6036,
+    #[msg("ValidationAttestation account size mismatch (expected 290 bytes)")]
+    AttestationSizeMismatch = 6037,
 
     #[msg("KillSwitch engaged for this scope")]
     KillSwitchEngaged = 6040,

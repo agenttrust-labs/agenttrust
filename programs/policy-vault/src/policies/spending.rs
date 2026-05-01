@@ -124,6 +124,16 @@ pub fn evaluate(state: SpendingState, amount: u64, unix_ts: i64) -> SpendingOutc
     })
 }
 
+/// Apply Allow-path deltas to the on-chain `PolicyAccount`. Called by the
+/// composer's Anchor wrapper (`gate_payment::handler`) only on the
+/// all-policies-passed branch.
+pub fn apply_deltas(account: &mut PolicyAccount, deltas: &SpendingDeltas) {
+    account.spending_today_used   = deltas.new_today_used;
+    account.spending_week_used    = deltas.new_week_used;
+    account.spending_today_anchor = deltas.new_today_anchor;
+    account.spending_week_anchor  = deltas.new_week_anchor;
+}
+
 // ---------------------------------------------------------------------------
 // Tests — pure-Rust, no Anchor program-test framework needed.
 // ---------------------------------------------------------------------------
