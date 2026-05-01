@@ -1,0 +1,32 @@
+{
+  "name": "@agenttrust/trustgate-server",
+  "version": "0.1.0",
+  "description": "AgentTrust TrustGate — Express x402 facilitator reference implementation",
+  "private": true,
+  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "ts-mocha -p ./tsconfig.json -t 30000 test/**/*.test.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
+    "@solana/web3.js": "^1.98.0",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.0",
+    "@types/express": "^4.17.21",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^20.0.0",
+    "@types/supertest": "^6.0.2",
+    "chai": "^4.3.4",
+    "mocha": "^9.0.3",
+    "supertest": "^7.0.0",
+    "ts-mocha": "^10.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^4.9.5"
+  }
+}
