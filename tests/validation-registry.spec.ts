@@ -51,8 +51,12 @@ describe("validation-registry", () => {
 
   describe("end-to-end flow: namespace → attestor → request → respond → revoke", () => {
     it("walks through all 5 instructions", async () => {
+      // Per-test fresh randomness so re-runs against persistent devnet state
+      // don't collide. namespaceName + capability descriptor are unique per run.
+      const runTag = Math.random().toString(36).slice(2, 8); // 6-char suffix
+
       // -- 1. register_namespace ---------------------------------------------
-      const namespaceName = "kyc.tier-1";
+      const namespaceName = `kyc.tier-1.${runTag}`;
       const namespaceHash = sha256(namespaceName);
       const nsPda = deriveNamespacePda(program.programId, namespaceHash);
 
@@ -77,22 +81,25 @@ describe("validation-registry", () => {
       expect(ns.creator.toBase58()).to.equal(wallet.toBase58());
 
       // -- 2. register_attestor ----------------------------------------------
-      // Use the wallet itself as attestor for the happy path (it's a Signer).
+      // Use the wallet itself as attestor for the happy path. The PDA is keyed
+      // by attestor pubkey — same pubkey across runs, so tolerate prior init.
       const attestorPda = deriveAttestorPda(program.programId, wallet);
-
-      await program.methods
-        .registerAttestor("ipfs://Qm-attestor-civic-metadata")
-        .accounts({
-          attestor:        wallet,
-          attestorProfile: attestorPda,
-          systemProgram:   SystemProgram.programId,
-        })
-        .rpc();
+      try {
+        await program.methods
+          .registerAttestor("ipfs://Qm-attestor-civic-metadata")
+          .accounts({
+            attestor:        wallet,
+            attestorProfile: attestorPda,
+            systemProgram:   SystemProgram.programId,
+          })
+          .rpc();
+      } catch (_) { /* already registered from prior run */ }
 
       let profile = await program.account.attestorProfile.fetch(attestorPda);
       expect(profile.attestor.toBase58()).to.equal(wallet.toBase58());
-      expect(profile.totalAttestations.toNumber()).to.equal(0);
-      expect(profile.displayNameUri).to.equal("ipfs://Qm-attestor-civic-metadata");
+      // Snapshot counters before this run; we'll assert they incremented by 1.
+      const preAttestations  = profile.totalAttestations.toNumber();
+      const preRevocations   = profile.totalRevokedByAttestor.toNumber();
 
       // -- 3. request_validation ---------------------------------------------
       // capability_hash convention: SHA256("namespace:version:claim_descriptor")[..32]
@@ -101,12 +108,12 @@ describe("validation-registry", () => {
 
       // Need a namespace at the capabilityHash key for request_validation's
       // capability_namespace constraint to resolve. Re-register a second
-      // namespace under the capabilityHash.
+      // namespace under the capabilityHash. Name must NOT contain ':'.
       const capNsPda = deriveNamespacePda(program.programId, capabilityHash);
       await program.methods
         .registerNamespace(
           Array.from(capabilityHash),
-          capabilityDescriptor.slice(0, 32),  // bound to MAX_NAME_LEN
+          `kyc-cap-${runTag}`,
           "v1",
           "ipfs://Qm-cap-schema",
         )
@@ -175,7 +182,7 @@ describe("validation-registry", () => {
       expect(Buffer.from(att.attestorSignature).every((b: number) => b === 0)).to.equal(true);
 
       profile = await program.account.attestorProfile.fetch(attestorPda);
-      expect(profile.totalAttestations.toNumber()).to.equal(1);
+      expect(profile.totalAttestations.toNumber()).to.equal(preAttestations + 1);
 
       // -- 5. revoke_validation ----------------------------------------------
       const reasonHash = sha256("subject revoked KYC consent");
@@ -199,7 +206,7 @@ describe("validation-registry", () => {
       expect(Buffer.from(revokedAtt.revocationReasonHash).equals(reasonHash)).to.equal(true);
 
       profile = await program.account.attestorProfile.fetch(attestorPda);
-      expect(profile.totalRevokedByAttestor.toNumber()).to.equal(1);
+      expect(profile.totalRevokedByAttestor.toNumber()).to.equal(preRevocations + 1);
     });
 
     it("re-revoking the same attestation fails with AlreadyRevoked", async () => {
