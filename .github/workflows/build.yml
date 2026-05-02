@@ -71,5 +71,8 @@ jobs:
         run: cargo install --git https://github.com/solana-foundation/anchor avm --force --locked
           && avm install 1.0.1 && avm use 1.0.1
 
+      # target/deploy/*-keypair.json is gitignored (deploy secret), so a fresh
+      # runner generates a random keypair whose PID won't match declare_id!.
+      # --ignore-keys skips that check; CI only needs to verify BPF compiles.
       - name: anchor build
-        run: anchor build
+        run: anchor build --ignore-keys
