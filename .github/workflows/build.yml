@@ -1,0 +1,75 @@
+name: Build + Rust unit tests
+
+on:
+  pull_request:
+    paths:
+      - 'programs/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'Anchor.toml'
+  push:
+    branches: [main]
+    paths:
+      - 'programs/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'Anchor.toml'
+  workflow_dispatch:
+
+jobs:
+  cargo-build:
+    name: cargo build + cargo test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache cargo registry + target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: cargo build (workspace)
+        run: cargo build --workspace --locked
+
+      - name: cargo test (Rust unit tests)
+        run: cargo test --workspace --lib --locked
+
+  anchor-build:
+    name: anchor build (BPF)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.local/share/solana/install
+            target
+          key: ${{ runner.os }}-anchor-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Solana CLI 3.1.14
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v3.1.14/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor 1.0.1
+        run: cargo install --git https://github.com/solana-foundation/anchor avm --force --locked
+          && avm install 1.0.1 && avm use 1.0.1
+
+      - name: anchor build
+        run: anchor build
