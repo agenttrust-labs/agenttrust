@@ -1,8 +1,11 @@
-# @agenttrust/trustgate
+# agentrustt
 
 > Drop-in TrustGate middleware for x402 facilitators on Solana. Adds
 > `gate_payment + emit_feedback` to any Express app with atomic-tx
 > invariant enforcement.
+>
+> npm: [`agentrustt`](https://www.npmjs.com/package/agentrustt) ·
+> repo: [`mohit-1710/agenttrust`](https://github.com/mohit-1710/agenttrust)
 
 **AgentTrust completes the Solana Foundation's ERC-8004 trust stack** —
 this package is the TypeScript surface that lets x402 facilitators
@@ -11,20 +14,24 @@ this package is the TypeScript surface that lets x402 facilitators
 ## Install
 
 ```bash
-pnpm add @agenttrust/trustgate
+pnpm add agentrustt
 # or
-npm install @agenttrust/trustgate
+npm install agentrustt
 # or
-yarn add @agenttrust/trustgate
+yarn add agentrustt
 ```
+
+> **Naming note.** The npm package is `agentrustt` (double-t — `@agenttrust`
+> on npm was claimed before AgentTrust the project existed). Imports use
+> the same name.
 
 Peer dep: `express ^4.21` (only needed if you mount the middleware).
 
 ## Two import surfaces
 
 ```ts
-import { mountTrustGate } from "@agenttrust/trustgate/express";
-import { gatePayment, settle, dispute } from "@agenttrust/trustgate/client";
+import { mountTrustGate } from "agentrustt/express";
+import { gatePayment, settle, dispute } from "agentrustt/client";
 ```
 
 Plus a root namespace with the atomicity guard, PDA derivations, and
@@ -34,7 +41,7 @@ shared types:
 import {
   AtomicityEnforced, AtomicityNotEnforcedError,
   derivePolicyPda, DEFAULT_DEVNET_PROGRAM_IDS,
-} from "@agenttrust/trustgate";
+} from "agentrustt";
 ```
 
 ## Quick start — Express middleware
@@ -42,7 +49,7 @@ import {
 ```ts
 import express from "express";
 import { Keypair } from "@solana/web3.js";
-import { mountTrustGate } from "@agenttrust/trustgate/express";
+import { mountTrustGate } from "agentrustt/express";
 
 const app = express();
 app.use(express.json());
@@ -75,7 +82,7 @@ You now have:
 
 ```ts
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { gatePayment } from "@agenttrust/trustgate/client";
+import { gatePayment } from "agentrustt/client";
 
 const decision = await gatePayment({
   rpcUrl:          "https://api.devnet.solana.com",

@@ -1,5 +1,5 @@
 {
-  "name": "@agenttrust/trustgate",
+  "name": "agentrustt",
   "version": "0.1.0",
   "description": "Drop-in TrustGate middleware for x402 facilitators on Solana — adds gate_payment + emit_feedback to any Express app with atomic-tx invariant enforcement",
   "license": "MIT",
