@@ -18,4 +18,5 @@ agenttrust-grant/
 !execution.md
 .cache/
 .secrets/
-.claude/skills/x-recon/.venv/
+.claude/
+.claude.json
