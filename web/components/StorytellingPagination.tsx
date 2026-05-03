@@ -27,6 +27,7 @@ export default function StorytellingPagination({
             key={panel.title}
             onClick={() => onSelectStory(index)}
             aria-current={isActive ? "step" : undefined}
+            data-story-chapter
           >
             <span className={styles.chapterNumber}>{index + 1}</span>
             <span className={styles.chapterRule} aria-hidden="true" />

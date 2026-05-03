@@ -119,9 +119,6 @@
   pointer-events: none;
   opacity: 0;
   transform: translateY(22px);
-  transition:
-    opacity 650ms var(--ease-out-strong),
-    transform 650ms var(--ease-out-strong);
 }
 
 .copyPanelActive {
@@ -228,14 +225,18 @@
   place-items: center;
   opacity: 0;
   transform: translateY(28px);
-  transition:
-    opacity 700ms var(--ease-out-strong),
-    transform 700ms var(--ease-out-strong);
 }
 
 .visualPanelActive {
   opacity: 1;
   transform: translateY(0);
+}
+
+.visualMotionLayer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
 }
 
 .visualIndex,

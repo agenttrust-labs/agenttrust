@@ -82,11 +82,13 @@ export default function StorytellingGraphic({
             : styles.visualPanel;
 
         return (
-          <div className={className} key={panel.title}>
-            <span className={styles.visualIndex}>{`/// 00${index + 1}`}</span>
-            <span className={styles.visualCornerLeft} />
-            <span className={styles.visualCornerRight} />
-            <Visual kind={panel.visual} />
+          <div className={className} data-story-visual-panel key={panel.title}>
+            <div className={styles.visualMotionLayer}>
+              <span className={styles.visualIndex}>{`/// 00${index + 1}`}</span>
+              <span className={styles.visualCornerLeft} />
+              <span className={styles.visualCornerRight} />
+              <Visual kind={panel.visual} />
+            </div>
           </div>
         );
       })}

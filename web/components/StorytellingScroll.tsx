@@ -90,6 +90,7 @@ export default function StorytellingScroll() {
               {STORYTELLING_PANELS.map((panel, index) => (
                 <StorytellingCopyPanel
                   key={panel.title}
+                  index={index}
                   panel={panel}
                   isActive={index === activeIndex}
                 />

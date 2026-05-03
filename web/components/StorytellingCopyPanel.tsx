@@ -3,11 +3,13 @@ import styles from "@/components/StorytellingSection.module.css";
 import type { StoryPanel } from "@/types/storytelling";
 
 interface StorytellingCopyPanelProps {
+  readonly index: number;
   readonly isActive: boolean;
   readonly panel: StoryPanel;
 }
 
 export default function StorytellingCopyPanel({
+  index,
   isActive,
   panel,
 }: StorytellingCopyPanelProps) {
@@ -16,7 +18,12 @@ export default function StorytellingCopyPanel({
     : styles.copyPanel;
 
   return (
-    <article className={className} aria-hidden={!isActive}>
+    <article
+      className={className}
+      aria-hidden={!isActive}
+      data-story-copy-panel
+      data-story-index={index}
+    >
       <p className={styles.eyebrow}>{panel.eyebrow}</p>
       <h2 className={styles.title}>{panel.title}</h2>
       <p className={styles.body}>{panel.body}</p>
