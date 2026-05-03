@@ -1,0 +1,31 @@
+import Image from "next/image";
+import styles from "@/components/MediaCard.module.css";
+import type { MediaCard as MediaCardData } from "@/data/media";
+
+interface MediaCardProps {
+  readonly card: MediaCardData;
+}
+
+export default function MediaCard({ card }: MediaCardProps) {
+  return (
+    <a className={styles.card} href={card.href} data-media-card>
+      <Image
+        alt={card.imageAlt}
+        className={styles.image}
+        height={420}
+        src={card.imageSrc}
+        width={640}
+      />
+      <div className={styles.content}>
+        <span className={styles.blurStack} aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </span>
+        <h3>{card.title}</h3>
+      </div>
+    </a>
+  );
+}

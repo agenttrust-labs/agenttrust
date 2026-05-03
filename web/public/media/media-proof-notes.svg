@@ -1,0 +1,9 @@
+<svg width="640" height="420" viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="420" fill="#161616"/>
+  <path d="M0 0H640V420H0V0Z" fill="url(#g)"/>
+  <path d="M90 86H550M90 150H550M90 214H550M90 278H550M90 342H550" stroke="#ffffff" stroke-opacity=".13"/>
+  <path d="M178 52V368M320 52V368M462 52V368" stroke="#ffffff" stroke-opacity=".13"/>
+  <path d="M320 82L504 338H136L320 82Z" stroke="#8F78FF" stroke-width="9"/>
+  <path d="M160 300L206 338L288 238M352 250L394 290L482 190" stroke="#FBFAF9" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs><radialGradient id="g" cx="0" cy="0" r="1" gradientTransform="translate(320 210) rotate(90) scale(290 340)" gradientUnits="userSpaceOnUse"><stop stop-color="#6F4CFF" stop-opacity=".58"/><stop offset="1" stop-color="#050505"/></radialGradient></defs>
+</svg>
