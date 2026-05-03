@@ -1,6 +1,7 @@
 import BenchmarkSection from "@/components/BenchmarkSection";
 import EventsSection from "@/components/EventsSection";
 import ExploreSection from "@/components/ExploreSection";
+import FooterSection from "@/components/FooterSection";
 import Hero from "@/components/Hero";
 import MediaSection from "@/components/MediaSection";
 import NetworkSection from "@/components/NetworkSection";
@@ -27,6 +28,7 @@ export default function Home() {
         <ExploreSection />
         <EventsSection />
         <MediaSection />
+        <FooterSection />
       </main>
     </>
   );
