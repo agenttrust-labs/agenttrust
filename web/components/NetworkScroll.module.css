@@ -1,0 +1,74 @@
+.pinArea {
+  min-height: 100dvh;
+}
+
+.stage {
+  display: grid;
+  min-height: 100dvh;
+  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 78px 32px 40px;
+}
+
+.body {
+  max-width: 27ch;
+  margin: 0;
+  font-size: clamp(1.55rem, 2vw, 1.75rem);
+  font-weight: 400;
+  line-height: 1.28;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.dim {
+  color: rgba(10, 10, 10, 0.36);
+}
+
+.ctaWrap {
+  margin-top: 46px;
+}
+
+.visual {
+  position: relative;
+  display: flex;
+  min-height: 720px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, #fff 0%, transparent 24%),
+    linear-gradient(315deg, #fff 0%, transparent 24%),
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.68) 0.75px, transparent 0.75px);
+  background-size: auto, auto, 17.5px 17.5px;
+}
+
+@media (min-width: 940px) {
+  .pinArea {
+    min-height: 220dvh;
+  }
+
+  .stage {
+    position: sticky;
+    top: 0;
+    grid-template-columns: 31% 38% 31%;
+    min-height: 100dvh;
+  }
+
+  .copy {
+    padding: 100px 32px 40px;
+  }
+
+  .visual {
+    min-height: 100dvh;
+    border-top: 0;
+    border-right: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+  }
+}
