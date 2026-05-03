@@ -1,6 +1,7 @@
 import BenchmarkSection from "@/components/BenchmarkSection";
 import Hero from "@/components/Hero";
 import PerformanceSection from "@/components/PerformanceSection";
+import PlugAndPlaySection from "@/components/PlugAndPlaySection";
 import SectionMarkers from "@/components/SectionMarkers";
 import StorytellingSection from "@/components/StorytellingSection";
 import TopNav from "@/components/TopNav";
@@ -15,6 +16,7 @@ export default function Home() {
         <BenchmarkSection />
         <StorytellingSection />
         <PerformanceSection />
+        <PlugAndPlaySection />
       </main>
     </>
   );
