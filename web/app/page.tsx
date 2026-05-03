@@ -1,4 +1,5 @@
 import BenchmarkSection from "@/components/BenchmarkSection";
+import EventsSection from "@/components/EventsSection";
 import ExploreSection from "@/components/ExploreSection";
 import Hero from "@/components/Hero";
 import NetworkSection from "@/components/NetworkSection";
@@ -23,6 +24,7 @@ export default function Home() {
         <NetworkSection />
         <TrilemmaSection />
         <ExploreSection />
+        <EventsSection />
       </main>
     </>
   );

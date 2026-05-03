@@ -3,13 +3,13 @@ import styles from "@/components/ui/PillLink.module.css";
 export interface PillLinkProps {
   readonly children: string;
   readonly href: string;
-  readonly icon?: "file" | "globe";
+  readonly icon?: "calendar" | "file" | "globe";
   readonly size?: "heroPrimary" | "heroSecondary" | "nav";
   readonly variant: "primary" | "secondary";
 }
 
 interface PillIconProps {
-  readonly icon: "file" | "globe";
+  readonly icon: "calendar" | "file" | "globe";
 }
 
 function PillIcon({ icon }: PillIconProps) {
@@ -24,6 +24,22 @@ function PillIcon({ icon }: PillIconProps) {
         <circle cx="12" cy="12" r="10" />
         <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
         <path d="M2 12h20" />
+      </svg>
+    );
+  }
+
+  if (icon === "calendar") {
+    return (
+      <svg
+        aria-hidden="true"
+        className={styles.icon}
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path d="M8 2v4" />
+        <path d="M16 2v4" />
+        <rect x="3" y="4" width="18" height="18" rx="2" />
+        <path d="M3 10h18" />
       </svg>
     );
   }
