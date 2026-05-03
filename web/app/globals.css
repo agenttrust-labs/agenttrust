@@ -3,6 +3,7 @@
 :root {
   --bg: #fbfaf9;
   --bg-elev: #ffffff;
+  --bg-neutral: #fafafa;
   --ink: #0a0a0a;
   --ink-dim: rgba(10, 10, 10, 0.55);
   --border: rgba(10, 10, 10, 0.1);
@@ -20,6 +21,7 @@
   --color-foreground: var(--ink);
   --color-bg: var(--bg);
   --color-bg-elev: var(--bg-elev);
+  --color-bg-neutral: var(--bg-neutral);
   --color-ink: var(--ink);
   --color-ink-dim: var(--ink-dim);
   --color-rule: var(--border);

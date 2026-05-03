@@ -6,6 +6,7 @@ import PlugAndPlaySection from "@/components/PlugAndPlaySection";
 import SectionMarkers from "@/components/SectionMarkers";
 import StorytellingSection from "@/components/StorytellingSection";
 import TopNav from "@/components/TopNav";
+import TrilemmaSection from "@/components/TrilemmaSection";
 
 export default function Home() {
   return (
@@ -19,6 +20,7 @@ export default function Home() {
         <PerformanceSection />
         <PlugAndPlaySection />
         <NetworkSection />
+        <TrilemmaSection />
       </main>
     </>
   );
