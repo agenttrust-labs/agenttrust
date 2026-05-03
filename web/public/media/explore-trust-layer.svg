@@ -1,0 +1,24 @@
+<svg width="768" height="512" viewBox="0 0 768 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="768" height="512" fill="#18181b"/>
+  <g opacity="0.32" stroke="#ffffff">
+    <path d="M384 86L158 408H610L384 86Z"/>
+    <path d="M384 164L254 366H514L384 164Z"/>
+    <path d="M384 86V24"/>
+    <path d="M158 408C114 424 78 450 42 488"/>
+    <path d="M610 408C654 424 690 450 726 488"/>
+  </g>
+  <g stroke="#6f4cff" stroke-width="3">
+    <path d="M384 164L254 366H514L384 164Z"/>
+    <path d="M384 164V266"/>
+  </g>
+  <g fill="#0e100f" stroke="#6f4cff" stroke-width="3">
+    <circle cx="384" cy="86" r="38"/>
+    <circle cx="158" cy="408" r="38"/>
+    <circle cx="610" cy="408" r="38"/>
+  </g>
+  <g fill="#fbfaf9" font-family="monospace" font-size="18" letter-spacing="2">
+    <text x="384" y="84" text-anchor="middle">RULES</text>
+    <text x="158" y="406" text-anchor="middle">IDENTITY</text>
+    <text x="610" y="406" text-anchor="middle">VALIDATION</text>
+  </g>
+</svg>
