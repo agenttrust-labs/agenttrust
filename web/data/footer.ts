@@ -13,7 +13,7 @@ export interface FooterUtilityLink extends FooterLink {
 }
 
 export interface FooterSocialLink extends FooterLink {
-  readonly icon: "discord" | "x";
+  readonly icon: "discord" | "linkedin" | "x" | "youtube";
 }
 
 export const NEWSLETTER_CONTENT = {
@@ -61,16 +61,6 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
 ];
 
 export const FOOTER_UTILITY_LINKS: readonly FooterUtilityLink[] = [
-  {
-    href: "https://github.com/mohit-1710/agenttrust",
-    isExternal: true,
-    label: "GitHub",
-  },
-  {
-    href: "https://www.npmjs.com/package/@agenttrust-sdk/trustgate",
-    isExternal: true,
-    label: "npm Package",
-  },
   { href: "#footer", label: "Privacy Policy" },
   { href: "#footer", label: "Terms of Service" },
 ];
@@ -78,4 +68,6 @@ export const FOOTER_UTILITY_LINKS: readonly FooterUtilityLink[] = [
 export const FOOTER_SOCIAL_LINKS: readonly FooterSocialLink[] = [
   { href: "#footer", icon: "x", label: "X" },
   { href: "#footer", icon: "discord", label: "Discord" },
+  { href: "#footer", icon: "youtube", label: "YouTube" },
+  { href: "#footer", icon: "linkedin", label: "LinkedIn" },
 ];

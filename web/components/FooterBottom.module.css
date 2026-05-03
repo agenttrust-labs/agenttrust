@@ -81,6 +81,18 @@
     opacity 150ms var(--ease-out-strong);
 }
 
+.socialLink[data-icon="discord"] {
+  color: #5865f2;
+}
+
+.socialLink[data-icon="youtube"] {
+  color: #ff0033;
+}
+
+.socialLink[data-icon="linkedin"] {
+  color: #0a66c2;
+}
+
 .socialIcon {
   width: 24px;
   height: 24px;
@@ -106,8 +118,7 @@
 }
 
 @media (hover: hover) {
-  .arrowLink:hover,
-  .socialLink:hover {
+  .arrowLink:hover {
     color: rgba(10, 10, 10, 0.62);
   }
 
