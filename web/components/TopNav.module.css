@@ -1,0 +1,126 @@
+.header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 12px 16px;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1920px;
+  padding: 12px 20px;
+  margin: 0 auto;
+}
+
+.cluster { display: contents; }
+.listWrap {
+  grid-column: 1 / -1;
+  order: 3;
+  min-width: 0;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.link,
+.label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.label {
+  font-family: var(--font-geist-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  line-height: 20px;
+  text-transform: uppercase;
+}
+
+.link {
+  min-height: 40px;
+  color: var(--ink);
+  border-radius: 6px;
+}
+
+.label {
+  min-height: 40px;
+  padding: 0 8px;
+  font-size: 0.67rem;
+  color: var(--ink-dim);
+  letter-spacing: 0.08em;
+  border-radius: 8px;
+  transition: color 300ms var(--ease-out-strong), background-color 300ms var(--ease-out-strong), transform 300ms var(--ease-out-strong);
+}
+
+@media (min-width: 940px) {
+  .nav {
+    display: flex;
+    height: 56px;
+    gap: normal;
+    padding: 2px 40px;
+  }
+
+  .cluster {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    height: 52px;
+  }
+
+  .cluster > a {
+    margin-left: 16px;
+  }
+
+  .listWrap {
+    order: initial;
+    width: max-content;
+    height: 52px;
+  }
+
+  .list {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    height: 52px;
+    gap: 4px;
+  }
+
+  .link {
+    min-height: 36px;
+    padding: 0;
+  }
+
+  .label {
+    min-height: 36px;
+    padding: 0 16px;
+    font-size: 14px;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+  }
+
+}
+
+@media (hover: hover) {
+  .link:hover .label {
+    color: var(--ink);
+    background: var(--bg-elev);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .link:hover .label {
+    transform: translateY(-1.5px);
+  }
+}

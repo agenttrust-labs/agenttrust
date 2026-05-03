@@ -12,11 +12,13 @@ build/
 plan/
 research/
 docs/
+references/
 agenttrust-grant/
 *.md
 !README.md
 !execution.md
 .cache/
 .secrets/
+.playwright-mcp/
 .claude/
 .claude.json

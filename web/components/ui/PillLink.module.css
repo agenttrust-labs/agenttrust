@@ -1,0 +1,91 @@
+.link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 6px;
+  height: 36px;
+  min-height: 36px;
+  padding: 8px 16px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  border-radius: 999px;
+  transition:
+    box-shadow 300ms var(--ease-out-strong),
+    transform 300ms var(--ease-out-strong);
+}
+
+.primary {
+  color: var(--bg-elev);
+  background: var(--accent);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.secondary {
+  color: #000000;
+  background:
+    radial-gradient(50% 50%, rgba(250, 250, 250, 0.33) 0, rgba(115, 115, 115, 0.04) 100%),
+    #fbfaf9;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgb(255, 255, 255),
+    inset 0 -1px 0 rgb(255, 255, 255),
+    0 0 0 1px rgba(0, 0, 0, 0.07);
+}
+
+.heroPrimary {
+  min-width: 160px;
+}
+
+.heroSecondary {
+  min-width: 242px;
+}
+
+.nav {
+  min-height: 40px;
+  font-size: 0.67rem;
+  letter-spacing: 0.04em;
+}
+
+.icon {
+  position: relative;
+  z-index: 10;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.label {
+  position: relative;
+  z-index: 10;
+}
+
+@media (min-width: 940px) {
+  .nav {
+    min-width: 211px;
+    height: 36px;
+    min-height: 36px;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .link:hover {
+    transform: translateY(-1.5px);
+  }
+}
