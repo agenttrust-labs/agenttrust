@@ -1,3 +1,4 @@
+import HeroInteractiveOverlay from "@/components/HeroInteractiveOverlay";
 import { HERO_MEDIA } from "@/data/hero";
 import styles from "@/components/Hero.module.css";
 
@@ -19,6 +20,7 @@ export default function HeroMedia() {
       >
         <source src={HERO_MEDIA.src} type="video/mp4" />
       </video>
+      <HeroInteractiveOverlay />
     </figure>
   );
 }
