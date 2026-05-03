@@ -1,4 +1,4 @@
-import styles from "@/components/PerformanceSection.module.css";
+import styles from "@/components/PerformanceStats.module.css";
 import { PERFORMANCE_STATS } from "@/data/performance";
 
 export default function PerformanceStats() {

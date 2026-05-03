@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import styles from "@/components/PerformanceSection.module.css";
+import styles from "@/components/PerformanceBars.module.css";
 import { PERFORMANCE_BARS } from "@/data/performance";
 
 interface BarStyle extends CSSProperties {

@@ -6,7 +6,7 @@ import PerformanceBars from "@/components/PerformanceBars";
 import PerformanceRadar from "@/components/PerformanceRadar";
 import PerformanceStats from "@/components/PerformanceStats";
 import PillLink from "@/components/ui/PillLink";
-import styles from "@/components/PerformanceSection.module.css";
+import styles from "@/components/PerformanceScroll.module.css";
 import { PERFORMANCE_CTA, PERFORMANCE_STATEMENT } from "@/data/performance";
 import { createPerformanceScrollAnimation } from "@/lib/animations/performanceScroll";
 import { useReducedMotion } from "@/hooks/useReducedMotion";

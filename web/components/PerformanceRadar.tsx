@@ -1,4 +1,4 @@
-import styles from "@/components/PerformanceSection.module.css";
+import styles from "@/components/PerformanceRadar.module.css";
 
 export default function PerformanceRadar() {
   return (
