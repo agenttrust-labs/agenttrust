@@ -1,4 +1,5 @@
 import AgentTrustLogo from "@/components/AgentTrustLogo";
+import TopNavDropdown from "@/components/TopNavDropdown";
 import styles from "@/components/TopNav.module.css";
 import PillLink from "@/components/ui/PillLink";
 import { PRIMARY_NAV_CTA, PRIMARY_NAV_LINKS } from "@/data/navigation";
@@ -13,10 +14,13 @@ export default function TopNav() {
           <div className={styles.listWrap}>
             <ul className={styles.list}>
               {PRIMARY_NAV_LINKS.map((link) => (
-                <li key={link.href}>
+                <li className={styles.item} key={link.label}>
                   <a href={link.href} className={styles.link}>
                     <span className={styles.label}>{link.label}</span>
                   </a>
+                  {link.menu ? (
+                    <TopNavDropdown columns={link.menu} label={link.label} />
+                  ) : null}
                 </li>
               ))}
             </ul>

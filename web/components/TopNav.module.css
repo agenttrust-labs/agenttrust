@@ -18,6 +18,14 @@
 }
 
 .cluster { display: contents; }
+
+.item {
+  position: relative;
+}
+
+.dropdown {
+  display: none;
+}
 .listWrap {
   grid-column: 1 / -1;
   order: 3;
@@ -110,17 +118,140 @@
     letter-spacing: 0.01em;
   }
 
+  .dropdown {
+    display: block;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    z-index: 60;
+    width: min(538px, calc(100vw - 48px));
+    padding: 8px;
+    pointer-events: none;
+    visibility: hidden;
+    background: #f4f4f5;
+    border: 1px solid rgba(10, 10, 10, 0.14);
+    border-radius: 16px;
+    opacity: 0;
+    transform: translate(-50%, -8px) scale(0.985);
+    transition:
+      opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
+      transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 0s linear 200ms;
+  }
+
+  .item:hover .dropdown,
+  .item:focus-within .dropdown {
+    pointer-events: auto;
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+    transition-delay: 0s;
+  }
+
+  .dropdownShell {
+    padding: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    box-shadow:
+      0 -1px 3px 0 rgba(0, 0, 0, 0.25) inset,
+      0 1px 1px 0 rgba(0, 0, 0, 0.12) inset,
+      0 0 0 1px rgba(0, 0, 0, 0.25);
+  }
+
+  .dropdownGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .dropdownColumn,
+  .dropdownList,
+  .dropdownCopy {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dropdownHeading {
+    padding: 8px;
+    margin: 0 0 16px;
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: rgba(10, 10, 10, 0.52);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .dropdownList {
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .dropdownLink {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 232px;
+    min-height: 72px;
+    padding: 8px;
+    border-radius: 6px;
+    transition:
+      color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dropdownIcon {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    flex: 0 0 auto;
+    color: var(--ink);
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dropdownCopy {
+    flex: 1;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .dropdownTitle,
+  .dropdownDescription {
+    letter-spacing: 0;
+  }
+
+  .dropdownTitle {
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+
+  .dropdownDescription {
+    color: rgba(10, 10, 10, 0.52);
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .dropdownLink:hover,
+  .dropdownLink:focus-visible {
+    background: var(--bg-elev);
+  }
+
+  .dropdownLink:hover .dropdownIcon,
+  .dropdownLink:focus-visible .dropdownIcon {
+    color: var(--accent);
+  }
 }
 
 @media (hover: hover) {
   .link:hover .label {
     color: var(--ink);
-    background: var(--bg-elev);
-  }
-}
-
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .link:hover .label {
-    transform: translateY(-1.5px);
   }
 }
