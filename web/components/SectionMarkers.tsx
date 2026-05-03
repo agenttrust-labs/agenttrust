@@ -3,10 +3,9 @@
 import type { CSSProperties } from "react";
 import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import styles from "@/components/SectionMarkers.module.css";
 import { SECTION_MARKERS } from "@/data/sections";
+import { createSectionMarkerTriggers } from "@/lib/animations/sectionMarkers";
 
 interface MarkerStyle extends CSSProperties {
   "--marker-index": number;
@@ -19,38 +18,17 @@ export default function SectionMarkers() {
 
   useGSAP(
     () => {
-      const shouldReduceMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
+      return createSectionMarkerTriggers({
+        markers: SECTION_MARKERS,
+        onActiveIndexChange: (nextIndex) => {
+          if (nextIndex === activeIndexRef.current) {
+            return;
+          }
 
-      if (shouldReduceMotion) {
-        return;
-      }
-
-      const media = gsap.matchMedia();
-
-      media.add("(min-width: 940px)", () => {
-        const trigger = ScrollTrigger.create({
-          start: 0,
-          end: () => ScrollTrigger.maxScroll(window),
-          scrub: 1,
-          onUpdate: (self) => {
-            const nextIndex = Math.min(
-              SECTION_MARKERS.length - 1,
-              Math.round(self.progress * (SECTION_MARKERS.length - 1)),
-            );
-
-            if (nextIndex !== activeIndexRef.current) {
-              activeIndexRef.current = nextIndex;
-              setActiveIndex(nextIndex);
-            }
-          },
-        });
-
-        return () => trigger.kill();
+          activeIndexRef.current = nextIndex;
+          setActiveIndex(nextIndex);
+        },
       });
-
-      return () => media.revert();
     },
     { scope: rootRef },
   );

@@ -13,26 +13,31 @@ export function createPlugAndPlayReveal({
   gsap.registerPlugin(ScrollTrigger);
 
   const revealItems = root.querySelectorAll<HTMLElement>("[data-plug-reveal]");
+  const trigger = root.closest("section") ?? root;
 
   if (isReducedMotion) {
     gsap.set(revealItems, { autoAlpha: 1, clearProps: "transform" });
     return;
   }
 
-  gsap.fromTo(
+  const timeline = gsap.timeline({
+    scrollTrigger: {
+      trigger,
+      start: "top top",
+      end: "+=680",
+      scrub: 1,
+    },
+  });
+
+  timeline.fromTo(
     revealItems,
     { autoAlpha: 0, y: 20 },
     {
       autoAlpha: 1,
       y: 0,
-      duration: 0.66,
-      ease: "sine.inOut",
-      stagger: 0.1,
-      scrollTrigger: {
-        trigger: root,
-        start: "top 58%",
-        once: true,
-      },
+      duration: 1,
+      ease: "power2.out",
+      stagger: 0.08,
     },
   );
 }
