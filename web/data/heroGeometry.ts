@@ -12,12 +12,12 @@ export interface HeroGeometryConfig {
 
 export const HERO_GEOMETRY_CONFIG: HeroGeometryConfig = {
   accent: "#6f4cff",
-  connectionDistance: 210,
-  glyphLifeMs: 4200,
+  connectionDistance: 340,
+  glyphLifeMs: 14000,
   ink: "#0a0a0a",
-  maxGlyphs: 72,
-  spawnDistance: 12,
-  spawnIntervalMs: 22,
+  maxGlyphs: 108,
+  spawnDistance: 8,
+  spawnIntervalMs: 16,
 };
 
 export const HERO_POLYGON_SEQUENCE: readonly HeroPolygonSides[] = [

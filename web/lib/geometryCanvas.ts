@@ -38,6 +38,24 @@ export function strokePolygon(
   context.stroke();
 }
 
+export function fillPolygon(
+  context: CanvasRenderingContext2D,
+  points: readonly CanvasPoint[],
+  fillStyle: string,
+): void {
+  const first = points[0];
+  if (!first) {
+    return;
+  }
+
+  context.beginPath();
+  context.moveTo(first.x, first.y);
+  points.slice(1).forEach((point) => context.lineTo(point.x, point.y));
+  context.closePath();
+  context.fillStyle = fillStyle;
+  context.fill();
+}
+
 export function strokeLine(
   context: CanvasRenderingContext2D,
   from: CanvasNode,
@@ -48,6 +66,21 @@ export function strokeLine(
   context.beginPath();
   context.moveTo(from.cx, from.cy);
   context.lineTo(to.cx, to.cy);
+  context.strokeStyle = strokeStyle;
+  context.lineWidth = lineWidth;
+  context.stroke();
+}
+
+export function strokePointLine(
+  context: CanvasRenderingContext2D,
+  from: CanvasPoint,
+  to: CanvasPoint,
+  strokeStyle: string,
+  lineWidth: number,
+): void {
+  context.beginPath();
+  context.moveTo(from.x, from.y);
+  context.lineTo(to.x, to.y);
   context.strokeStyle = strokeStyle;
   context.lineWidth = lineWidth;
   context.stroke();
