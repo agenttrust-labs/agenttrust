@@ -119,6 +119,7 @@
   pointer-events: none;
   opacity: 0;
   transform: translateY(22px);
+  will-change: opacity, transform;
 }
 
 .copyPanelActive {
@@ -225,6 +226,8 @@
   place-items: center;
   opacity: 0;
   transform: translateY(28px);
+  transform-origin: center;
+  will-change: opacity, transform;
 }
 
 .visualPanelActive {
@@ -237,6 +240,8 @@
   inset: 0;
   display: grid;
   place-items: center;
+  transform-origin: center;
+  will-change: transform;
 }
 
 .visualIndex,
@@ -288,16 +293,33 @@
 .visualSoftRing,
 .visualDash,
 .visualAccent,
-.visualCheck {
+.visualCheck,
+.visualMutedLine,
+.visualRoute,
+.visualBlocked,
+.visualDecision,
+.visualHalo,
+.visualStamp,
+.visualStopFill {
   vector-effect: non-scaling-stroke;
 }
 
 .visualLine,
 .visualFrame,
 .visualSoftRing,
-.visualDash {
+.visualDash,
+.visualMutedLine,
+.visualDecision,
+.visualHalo,
+.visualStamp,
+.visualStopFill {
   stroke: var(--ink);
   stroke-width: 2;
+}
+
+.visualMutedLine,
+.visualHalo {
+  opacity: 0.18;
 }
 
 .visualDash,
@@ -316,18 +338,173 @@
   stroke-width: 2;
 }
 
-.visualAccent,
-.visualCheck {
+.visualNodeDark {
+  fill: var(--ink);
+}
+
+.visualNodeAccent {
+  fill: var(--accent);
   stroke: var(--accent);
   stroke-width: 2;
 }
 
+.visualAccent,
+.visualCheck,
+.visualRoute {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.visualRoute,
+.visualBlocked {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.visualRoute {
+  stroke-width: 2.5;
+}
+
+.visualBlocked {
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+
+.visualDecision {
+  fill: rgba(255, 255, 255, 0.44);
+}
+
+.visualDecision,
+.visualFrame,
+.visualStamp,
+.visualStopFill {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.visualStopFill {
+  fill: rgba(111, 76, 255, 0.08);
+}
+
+.visualStamp {
+  fill: rgba(111, 76, 255, 0.12);
+  stroke: var(--accent);
+}
+
+.visualHashLine {
+  fill: rgba(10, 10, 10, 0.16);
+}
+
 .visualText {
-  fill: var(--ink);
+  fill: rgba(10, 10, 10, 0.1);
   font-family: var(--font-geist-mono), monospace;
-  font-size: 64px;
+  font-size: 72px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
+}
+
+.visualLabel,
+.visualSmallLabel {
+  fill: var(--ink);
+  font-family: var(--font-geist-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+.visualLabel {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+}
+
+.visualSmallLabel {
+  fill: rgba(10, 10, 10, 0.42);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .visualRoute,
+  .visualAccent {
+    stroke-dasharray: 18 14;
+    animation: visual-dash-flow 6.8s linear infinite;
+  }
+
+  .visualDash {
+    animation: visual-dash-reverse 9s linear infinite;
+  }
+
+  .visualHalo {
+    animation: visual-halo-breathe 4.2s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .visualNodeAccent {
+    animation: visual-node-pulse 2.8s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .visualDecision,
+  .visualFrame,
+  .visualStamp,
+  .visualStopFill {
+    animation: visual-panel-drift 7.2s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .visualFrame,
+  .visualStamp {
+    animation-delay: -2.4s;
+  }
+}
+
+@keyframes visual-dash-flow {
+  to {
+    stroke-dashoffset: -128;
+  }
+}
+
+@keyframes visual-dash-reverse {
+  to {
+    stroke-dashoffset: 96;
+  }
+}
+
+@keyframes visual-halo-breathe {
+  0%,
+  100% {
+    opacity: 0.14;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 0.26;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes visual-node-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.18);
+  }
+}
+
+@keyframes visual-panel-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -4px, 0);
+  }
 }
 
 @media (min-width: 940px) {

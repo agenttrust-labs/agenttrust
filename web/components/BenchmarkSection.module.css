@@ -20,6 +20,7 @@
   position: relative;
   display: grid;
   min-height: 424px;
+  overflow: hidden;
   place-items: center;
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
@@ -36,11 +37,18 @@
   color: var(--ink);
   text-align: center;
   letter-spacing: -0.05em;
+  will-change: transform;
+}
+
+.headingMask {
+  display: block;
+  overflow: clip;
 }
 
 .headingLine {
   display: block;
   white-space: nowrap;
+  will-change: transform;
 }
 
 .corner {
@@ -49,6 +57,8 @@
   height: 24px;
   border-color: var(--ink);
   border-style: solid;
+  transform-origin: center;
+  will-change: opacity, transform;
 }
 
 .top-left {

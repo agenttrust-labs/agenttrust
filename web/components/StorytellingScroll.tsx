@@ -13,6 +13,7 @@ import {
   STORYTELLING_SECTION_ID,
 } from "@/data/storytelling";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { createPointerParallax } from "@/lib/animations/pointerParallax";
 import { createStorytellingScrollTrigger } from "@/lib/animations/storytellingScroll";
 
 export default function StorytellingScroll() {
@@ -41,13 +42,27 @@ export default function StorytellingScroll() {
       const media = gsap.matchMedia();
 
       media.add("(min-width: 940px)", () => {
+        const graphics = root.querySelector<HTMLElement>("[data-story-graphics]");
         const trigger = createStorytellingScrollTrigger({
           count: STORYTELLING_PANELS.length,
           root,
           onActiveIndexChange: setStoryIndex,
         });
+        const cleanupParallax = graphics
+          ? createPointerParallax({
+              duration: 0.88,
+              maxRotation: 0.3,
+              maxX: 18,
+              maxY: 12,
+              root: graphics,
+              targetSelector: "[data-story-motion-layer]",
+            })
+          : () => undefined;
 
-        return () => trigger.kill();
+        return () => {
+          cleanupParallax();
+          trigger.kill();
+        };
       });
 
       return () => media.revert();
