@@ -1,0 +1,405 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/preset.css';
+
+@theme {
+  --color-fd-background: #ffffff;
+  --color-fd-foreground: #1a1a1e;
+  --color-fd-muted: #f8f8fb;
+  --color-fd-muted-foreground: #535357;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #1a1a1e;
+  --color-fd-card: #fbfbfd;
+  --color-fd-card-foreground: #1a1a1e;
+  --color-fd-border: #f2f1f5;
+  --color-fd-primary: #6f4cff;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #f8f8fb;
+  --color-fd-secondary-foreground: #1a1a1e;
+  --color-fd-accent: rgba(111, 76, 255, 0.1);
+  --color-fd-accent-foreground: #3f2ac9;
+  --color-fd-ring: rgba(111, 76, 255, 0.44);
+  --color-fd-overlay: rgba(16, 16, 22, 0.22);
+}
+
+@theme static {
+  --color-fd-info: #4a63ff;
+  --color-fd-warning: #b87913;
+  --color-fd-error: #c13b26;
+  --color-fd-success: #1f7a3d;
+  --color-fd-idea: #6f4cff;
+  --color-fd-diff-remove: rgba(193, 59, 38, 0.12);
+  --color-fd-diff-remove-symbol: #c13b26;
+  --color-fd-diff-add: rgba(31, 122, 61, 0.1);
+  --color-fd-diff-add-symbol: #1f7a3d;
+}
+
+:root {
+  --bg: #ffffff;
+  --bg-rail: #fbfbfd;
+  --bg-subtle: #f8f8fb;
+  --bg-code: #fafafc;
+  --ink: #1a1a1e;
+  --ink-dim: #535357;
+  --ink-soft: #737377;
+  --border: #f2f1f5;
+  --border-strong: rgba(162, 161, 166, 0.3);
+  --accent: #6f4cff;
+  --accent-deep: #3f2ac9;
+  --accent-soft: rgba(111, 76, 255, 0.1);
+  --ok: #1f7a3d;
+  --warn: #b87913;
+  --err: #c13b26;
+  --radius-control: 12px;
+  --radius-small: 8px;
+  color-scheme: light;
+}
+
+.dark {
+  --color-fd-background: #0a0a0c;
+  --color-fd-foreground: #ededf2;
+  --color-fd-muted: #121217;
+  --color-fd-muted-foreground: rgba(237, 237, 242, 0.68);
+  --color-fd-popover: #111116;
+  --color-fd-popover-foreground: #ededf2;
+  --color-fd-card: #101014;
+  --color-fd-card-foreground: #ededf2;
+  --color-fd-border: rgba(242, 241, 245, 0.12);
+  --color-fd-primary: #8d74ff;
+  --color-fd-primary-foreground: #0a0a0c;
+  --color-fd-secondary: #15151a;
+  --color-fd-secondary-foreground: #ededf2;
+  --color-fd-accent: rgba(141, 116, 255, 0.14);
+  --color-fd-accent-foreground: #d8d0ff;
+  --color-fd-ring: rgba(141, 116, 255, 0.48);
+  --color-fd-overlay: rgba(0, 0, 0, 0.52);
+  --bg: #0a0a0c;
+  --bg-rail: #101014;
+  --bg-subtle: #15151a;
+  --bg-code: #111116;
+  --ink: #ededf2;
+  --ink-dim: rgba(237, 237, 242, 0.72);
+  --ink-soft: rgba(237, 237, 242, 0.58);
+  --border: rgba(242, 241, 245, 0.12);
+  --border-strong: rgba(242, 241, 245, 0.18);
+  --accent: #8d74ff;
+  --accent-deep: #cfc5ff;
+  --accent-soft: rgba(141, 116, 255, 0.14);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scrollbar-gutter: stable;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-geist-sans);
+  letter-spacing: 0;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-geist-sans);
+  letter-spacing: 0;
+  text-rendering: geometricPrecision;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
+a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-geist-mono);
+}
+
+#nd-docs-layout {
+  background: var(--bg);
+  color: var(--ink);
+  --fd-layout-width: 1440px;
+  --fd-sidebar-width: 0px;
+  --fd-toc-width: 0px;
+}
+
+@media (min-width: 1024px) {
+  #nd-docs-layout {
+    --fd-sidebar-width: 264px;
+  }
+}
+
+@media (min-width: 1280px) {
+  #nd-docs-layout {
+    --fd-toc-width: 264px;
+  }
+}
+
+#nd-sidebar {
+  background: var(--bg-rail);
+  border-color: var(--border);
+  color: var(--ink-soft);
+}
+
+@media (max-width: 1023px) {
+  #nd-docs-layout {
+    --fd-header-height: 56px;
+    --fd-sidebar-width: 0px;
+  }
+
+  [data-sidebar-placeholder] {
+    display: none !important;
+  }
+
+  #nd-subnav {
+    display: flex !important;
+  }
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] {
+  padding: 16px;
+}
+
+#nd-sidebar header,
+#nd-subnav,
+[data-toc-popover] > header {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+#nd-sidebar a,
+#nd-sidebar button {
+  border-radius: var(--radius-control);
+}
+
+#nd-sidebar a:not(.agenttrust-brand),
+#nd-sidebar button:not([data-search-full]) {
+  min-height: 32px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+#nd-sidebar a[data-active='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+#nd-sidebar a[data-active='true']::before {
+  background: var(--accent);
+}
+
+#nd-sidebar a[data-active='false']:hover,
+#nd-sidebar button:hover,
+[data-search-full]:hover {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
+[data-search-full] {
+  min-height: 36px;
+  border-radius: var(--radius-control);
+  border-color: var(--border-strong);
+  background: var(--bg);
+  color: var(--ink-soft);
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+
+[data-search-full] kbd {
+  border-color: var(--border);
+  background: var(--bg-subtle);
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 16px;
+  box-shadow: none;
+}
+
+.agenttrust-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+a:hover .agenttrust-brand,
+.agenttrust-brand:hover {
+  color: var(--accent-deep);
+}
+
+.agenttrust-brand-mark {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, transparent 48%, var(--accent) 48% 52%, transparent 52%),
+    linear-gradient(0deg, transparent 48%, var(--accent) 48% 52%, transparent 52%),
+    var(--bg);
+}
+
+#nd-page {
+  max-width: 900px;
+  padding-top: 56px;
+  padding-inline: 32px;
+  gap: 16px;
+}
+
+@media (min-width: 1280px) {
+  #nd-page {
+    padding-inline: 72px;
+  }
+}
+
+@media (max-width: 767px) {
+  #nd-page {
+    padding-inline: 24px;
+    padding-top: 32px;
+  }
+}
+
+#nd-page h1 {
+  color: var(--ink);
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 720;
+  letter-spacing: 0;
+}
+
+#nd-page h2 {
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 32px;
+  letter-spacing: 0;
+}
+
+#nd-page h3 {
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+#nd-page p,
+#nd-page li {
+  color: var(--ink-dim);
+  line-height: 1.75;
+}
+
+#nd-page > p:first-of-type,
+#nd-page [class*='DocsDescription'] {
+  color: var(--ink-dim);
+}
+
+#nd-page hr,
+#nd-page [class*='border'],
+#nd-toc,
+#nd-toc * {
+  border-color: var(--border);
+}
+
+#nd-page a {
+  color: var(--accent-deep);
+}
+
+#nd-page a:hover {
+  color: var(--accent);
+}
+
+#nd-page table {
+  border-color: var(--border);
+  font-size: 14px;
+}
+
+#nd-page th {
+  background: var(--bg-subtle);
+  color: var(--ink);
+}
+
+#nd-page td,
+#nd-page th {
+  border-color: var(--border);
+}
+
+#nd-page :not(pre) > code {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--border) 50%, transparent);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 7px;
+}
+
+#nd-page pre,
+#nd-page figure {
+  border-radius: var(--radius-control);
+}
+
+#nd-page pre {
+  border: 1px solid var(--border);
+  background: var(--bg-code) !important;
+  box-shadow: none;
+}
+
+#nd-page pre code {
+  font-size: 13px;
+  line-height: 24px;
+}
+
+#nd-toc {
+  color: var(--ink-soft);
+  padding-top: 56px;
+}
+
+#toc-title {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+#nd-toc a {
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+#nd-toc a[data-active='true'],
+#nd-toc a:hover {
+  color: var(--accent);
+}
+
+[role='dialog'] {
+  border-color: var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: 0 18px 48px rgba(16, 16, 22, 0.14);
+}
+
+[role='dialog'] input {
+  font-family: var(--font-geist-sans);
+}
+
+[data-theme-toggle] {
+  border-color: var(--border);
+  background: var(--bg);
+}
+
+button[aria-label='Open Next.js Dev Tools'] {
+  display: none !important;
+}
