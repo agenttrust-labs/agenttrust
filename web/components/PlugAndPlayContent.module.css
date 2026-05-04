@@ -11,7 +11,7 @@
 
 .headingFrame {
   display: grid;
-  width: min(100vw, 1440px);
+  width: min(100%, 1440px);
   grid-template-columns: minmax(120px, 1fr) auto minmax(120px, 1fr);
   align-items: center;
   gap: clamp(52px, 6.7vw, 96px);
