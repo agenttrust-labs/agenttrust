@@ -1,0 +1,50 @@
+---
+title: TrustGate
+description: The x402 facilitator program that emits ERC-8004 feedback through Quantu.
+---
+
+TrustGate is the on-chain x402 bridge. It owns a per-facilitator PDA, signs feedback CPI calls into Quantu, and records idempotency by payment hash.
+
+## Instructions
+
+| Instruction | Purpose |
+| --- | --- |
+| `init_authority(facilitator)` | creates the facilitator PDA |
+| `emit_feedback(...)` | CPI into Quantu `agent_registry_8004::give_feedback` |
+| `dispute_payment(...)` | emits negative-score feedback for disputed payments |
+
+## PDA signer
+
+TrustGate signs CPI with:
+
+```txt
+["trustgate_auth", facilitator_pubkey, bump]
+```
+
+That PDA is the feedback authority, not the payee agent. This prevents self-feedback while allowing a facilitator to write receipt-grade feedback after settlement.
+
+## Feedback idempotency
+
+`FeedbackEmissionLog` is initialized at:
+
+```txt
+["feedback_log", payment_id_hash]
+```
+
+Reusing the same payment hash fails account initialization, so retries cannot double-emit feedback.
+
+## x402 mapping
+
+The SDK and server map PolicyVault outcomes into response headers:
+
+| Decision | HTTP | Headers |
+| --- | --- | --- |
+| `Allow` | `200` | `X-Agent-Trust-Decision: Allow` |
+| `Deny` | `402` | reason code and reason name |
+| `RequireValidation` | `402` | required capability hash |
+
+## Source
+
+- Program: `programs/trustgate/src/lib.rs`
+- CPI wrapper: `programs/trustgate/src/ext/agent_registry.rs`
+- Server route layer: `trustgate/server/src/routes/verify.ts`

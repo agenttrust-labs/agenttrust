@@ -1,0 +1,71 @@
+---
+title: "@agenttrust-sdk/trustgate"
+description: TypeScript client helpers, Express middleware, and atomicity guard.
+---
+
+The SDK is the facilitator-facing TypeScript package.
+
+```bash
+pnpm add @agenttrust-sdk/trustgate
+```
+
+## Imports
+
+```ts
+import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+import { gatePayment, settle, dispute } from "@agenttrust-sdk/trustgate/client";
+import {
+  AtomicityNotEnforcedError,
+  DEFAULT_DEVNET_PROGRAM_IDS,
+  derivePolicyPda,
+} from "@agenttrust-sdk/trustgate";
+```
+
+## gatePayment
+
+`gatePayment()` is a read-only decision call.
+
+```ts
+type GateDecision =
+  | { kind: "Allow" }
+  | { kind: "Deny"; reasonCode: number; reasonName: string }
+  | { kind: "RequireValidation"; capabilityHash: number[] };
+```
+
+The helper simulates the Anchor instruction and parses the return-data channel into the TypeScript union.
+
+## mountTrustGate
+
+`mountTrustGate(app, config)` adds x402 routes to an Express service in fewer than 50 lines.
+
+```ts
+await mountTrustGate(app, {
+  rpcUrl: "https://api.devnet.solana.com",
+  facilitatorKeypair,
+  defaultPolicyId: 1,
+  network: "solana-devnet",
+  atomicityEnforced: true,
+});
+```
+
+## Atomicity guard
+
+`settle`, `dispute`, and middleware config require:
+
+```ts
+{ atomicityEnforced: true }
+```
+
+The marker is literal `true`, not `boolean`, and the runtime guard throws if a caller bypasses TypeScript with a cast.
+
+## v0.1 surface
+
+| API | Status |
+| --- | --- |
+| `gatePayment` | implemented |
+| `mountTrustGate` `/verify` | implemented |
+| `mountTrustGate` `/receipt` | implemented |
+| `settle` | guarded surface, transaction builder follows |
+| `dispute` | guarded surface, transaction builder follows |
+
+Source: `trustgate/sdk/src`.

@@ -215,9 +215,15 @@ samp {
   min-height: 36px;
   border-radius: var(--radius-control);
   border-color: var(--border-strong);
-  background: var(--bg);
-  color: var(--ink-soft);
-  box-shadow: 0 0 0 1px var(--border-strong);
+  background: var(--bg) !important;
+  color: var(--ink-soft) !important;
+  box-shadow: 0 0 0 1px var(--border-strong) !important;
+}
+
+#nd-sidebar [data-search-full]:hover,
+#nd-sidebar [data-search-full]:focus-visible {
+  background: var(--bg-subtle) !important;
+  color: var(--accent-deep) !important;
 }
 
 [data-search-full] kbd {
@@ -290,6 +296,10 @@ a:hover .agenttrust-brand,
   letter-spacing: 0;
 }
 
+#nd-page h2 a {
+  color: var(--ink) !important;
+}
+
 #nd-page h3 {
   color: var(--ink);
   letter-spacing: 0;
@@ -324,6 +334,7 @@ a:hover .agenttrust-brand,
 #nd-page table {
   border-color: var(--border);
   font-size: 14px;
+  min-width: 620px;
 }
 
 #nd-page th {
@@ -402,4 +413,119 @@ a:hover .agenttrust-brand,
 
 button[aria-label='Open Next.js Dev Tools'] {
   display: none !important;
+}
+
+.docs-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 48px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.docs-footer code,
+.license-badge {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--ink);
+  font-family: var(--font-geist-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+}
+
+.program-id-table,
+.kani-proof-badge {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg-subtle);
+}
+
+.program-id-table {
+  display: grid;
+  margin: 18px 0 28px;
+  overflow: hidden;
+}
+
+.program-id-row {
+  display: grid;
+  grid-template-columns: minmax(148px, 0.35fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.program-id-row:last-child {
+  border-bottom: 0;
+}
+
+.program-id-row span,
+.program-id-row code {
+  font-family: var(--font-geist-mono);
+  font-size: 12px;
+}
+
+.program-id-row code {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.kani-proof-badge {
+  display: grid;
+  grid-template-columns: minmax(0, 0.45fr) minmax(0, 0.55fr);
+  gap: 18px;
+  margin: 18px 0 28px;
+  padding: 16px;
+}
+
+.kani-proof-badge strong {
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.kani-proof-badge p {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.kani-proof-badge ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kani-proof-badge li {
+  margin: 0;
+  line-height: 18px;
+}
+
+.kani-proof-badge code {
+  font-size: 11px;
+}
+
+@media (max-width: 640px) {
+  .program-id-row,
+  .kani-proof-badge {
+    grid-template-columns: 1fr;
+  }
+
+  .program-id-row {
+    gap: 4px;
+  }
 }

@@ -1,0 +1,49 @@
+---
+title: ValidationRegistry
+description: Capability namespaces, attestors, requests, responses, and revocations.
+---
+
+ValidationRegistry is the attestation leg of AgentTrust. PolicyVault reads `ValidationAttestation` accounts when `RequireValidation` is enabled.
+
+## Accounts
+
+| PDA | Role |
+| --- | --- |
+| `CapabilityNamespace` | names a validation capability and schema URI |
+| `AttestorProfile` | records an attestor identity URI |
+| `ValidationRequest` | opens a request for an agent and capability |
+| `ValidationAttestation` | stores a response, expiry, and revoked flag |
+
+## Instructions
+
+| Instruction | Notes |
+| --- | --- |
+| `register_namespace` | permissionless, caller computes `SHA256(name_utf8)` |
+| `register_attestor` | self-registration with display URI |
+| `request_validation` | subject owner or third party opens a request |
+| `respond_to_validation` | attestor writes the attestation |
+| `revoke_validation` | original attestor sets `revoked = true` |
+
+The program source currently exposes five instructions. The docs reserve the sixth slot for the next attestor-management extension.
+
+## Attestation message
+
+The response path uses a domain-separated message:
+
+```txt
+AGENTTRUST_ATTEST || subject || capability || payload || expires
+```
+
+PolicyVault does not trust arbitrary attestations. `RequireValidation` checks the subject, capability hash, expiry, revoked flag, and allowed attestor list.
+
+## Byte fields consumed by PolicyVault
+
+| Field | Offset |
+| --- | --- |
+| subject asset | `8` |
+| capability hash | `40` |
+| attestor | `72` |
+| expires at slot | `208` |
+| revoked flag | `216` |
+
+Source: `programs/validation-registry/src/lib.rs`.

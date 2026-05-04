@@ -1,0 +1,24 @@
+---
+title: Devnet program IDs
+description: Current AgentTrust devnet deployment addresses.
+---
+
+These are the pinned devnet program IDs for the Frontier build.
+
+<ProgramIdsTable />
+
+## TypeScript constants
+
+```ts
+import { DEFAULT_DEVNET_PROGRAM_IDS } from "@agenttrust-sdk/trustgate";
+```
+
+The SDK currently exposes PolicyVault and TrustGate by default. ValidationRegistry is read by PolicyVault through its account parser and is listed here for deploy verification.
+
+## Anchor declarations
+
+| Program | Source |
+| --- | --- |
+| `policy_vault` | `programs/policy-vault/src/lib.rs` |
+| `trustgate` | `programs/trustgate/src/lib.rs` |
+| `validation_registry` | `programs/validation-registry/src/lib.rs` |

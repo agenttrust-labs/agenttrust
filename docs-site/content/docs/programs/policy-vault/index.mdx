@@ -1,0 +1,68 @@
+---
+title: PolicyVault
+description: The policy composer that returns Allow, Deny, or RequireValidation.
+---
+
+PolicyVault is the decision engine for AgentTrust. It reads payer, payee, policy, velocity, kill-switch, and optional attestation data, then returns a `GateDecision`.
+
+## Composer order
+
+The order is fixed and fail-fast:
+
+| Order | Policy | Why it runs there |
+| --- | --- | --- |
+| 1 | `KillSwitch` | cheapest global stop |
+| 2 | `Spending` | pure amount and calendar bounds |
+| 3 | `Velocity` | sliding-window spend bound keyed by payer tier |
+| 4 | `CounterpartyTier` | reads payee AtomStats trust data |
+| 5 | `RequireValidation` | reads the attestation PDA last |
+
+```rust
+pub fn compose_decision(input: ComposerInput) -> ComposerResult {
+    // KillSwitch -> Spending -> Velocity -> CounterpartyTier -> RequireValidation
+    // On Allow, deltas are returned for the Anchor wrapper to apply.
+    // On Deny or RequireValidation, deltas are None.
+}
+```
+
+## Decision shape
+
+```rust
+pub enum GateDecision {
+    Allow,
+    Deny(DenyReason),
+    RequireValidation([u8; 32]),
+}
+```
+
+`DenyReason::code()` is stable for clients even though the Borsh enum order is internal to Anchor.
+
+## Policy kinds
+
+| Policy | Inputs | State mutation on Allow |
+| --- | --- | --- |
+| Spending | `amount`, UTC day, ISO week | daily and weekly counters |
+| Velocity | `amount`, slot window, payer tier | `VelocityLedger.cumulative_amount` |
+| CounterpartyTier | payee tier, risk, confidence | none |
+| RequireValidation | subject, capability hash, attestor, expiry | none |
+| KillSwitch | per-agent paused flag | none |
+
+## Safety rule
+
+The Anchor handler snapshots all accounts before composing, then applies returned deltas only when the decision is `Allow`.
+
+```rust
+match result.decision {
+    GateDecision::Allow => {
+        spending::apply_deltas(&mut ctx.accounts.policy_account, d);
+        velocity::apply_deltas(&mut ctx.accounts.velocity_ledger, d);
+    }
+    GateDecision::Deny(_) | GateDecision::RequireValidation(_) => {}
+}
+```
+
+## Formal checks
+
+<KaniProofBadge />
+
+Source: `programs/policy-vault/src/policies/composer.rs`.

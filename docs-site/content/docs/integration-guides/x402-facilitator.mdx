@@ -1,0 +1,76 @@
+---
+title: x402 facilitator
+description: Add AgentTrust decisions to a Solana x402 service.
+---
+
+This guide is for a facilitator that already accepts x402 payment requests and wants AgentTrust decisions before settlement.
+
+## Integration points
+
+| Step | Facilitator action | AgentTrust call |
+| --- | --- | --- |
+| 1 | parse payer, payee, mint, and amount | none |
+| 2 | check policy | `POST /verify` or `gatePayment()` |
+| 3 | return x402 denial or validation need | TrustGate header builder |
+| 4 | settle payment | single Solana transaction |
+| 5 | emit feedback | TrustGate `emit_feedback` |
+
+## Minimal Express mount
+
+```ts
+import express from "express";
+import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+
+const app = express();
+app.use(express.json());
+
+await mountTrustGate(app, {
+  rpcUrl: process.env.SOLANA_RPC_URL!,
+  facilitatorKeypair,
+  defaultPolicyId: 1,
+  network: "solana-devnet",
+  atomicityEnforced: true,
+});
+```
+
+## Verify request
+
+```http
+POST /verify
+Content-Type: application/json
+
+{
+  "payerAgentAsset": "payer-agent-asset-pubkey",
+  "payeeAgentAsset": "payee-agent-asset-pubkey",
+  "amount": "1000000",
+  "mint": "mint-pubkey",
+  "policyId": 1
+}
+```
+
+## Denial response
+
+```http
+HTTP/1.1 402 Payment Required
+X-Payment-Network: solana-devnet
+X-Agent-Trust-Decision: Deny
+X-Payment-Required: denied
+X-Payment-Reason-Code: 6
+X-Payment-Reason-Name: CounterpartyTierBelowMin
+```
+
+## Validation response
+
+```http
+HTTP/1.1 402 Payment Required
+X-Payment-Network: solana-devnet
+X-Agent-Trust-Decision: RequireValidation
+X-Payment-Required: validation
+X-Capability-Required: <32-byte-capability-hash>
+```
+
+## Settlement rule
+
+The facilitator must keep the policy gate, token transfer, and feedback emission in one Solana transaction once the settlement builder is wired. The SDK makes that requirement explicit with `atomicityEnforced: true`.
+
+Source: `trustgate/server/src/x402.ts`, `trustgate/sdk/src/express.ts`.

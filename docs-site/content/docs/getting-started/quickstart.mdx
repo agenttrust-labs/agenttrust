@@ -1,0 +1,98 @@
+---
+title: Quickstart
+description: Install the SDK, run a read-only gate, and mount the Express x402 routes.
+---
+
+This page gets a facilitator from zero to a read-only `gatePayment()` check against devnet.
+
+## Install
+
+```bash
+pnpm add @agenttrust-sdk/trustgate express @solana/web3.js
+```
+
+The public package is `@agenttrust-sdk/trustgate`. The source lives at `github.com/mohit-1710/agenttrust`.
+
+## Read a decision
+
+`gatePayment()` simulates PolicyVault and returns one of three decision shapes. It does not settle funds.
+
+```ts
+import { Keypair, PublicKey } from "@solana/web3.js";
+import { gatePayment } from "@agenttrust-sdk/trustgate/client";
+
+const facilitator = Keypair.fromSecretKey(secretKey);
+
+const decision = await gatePayment({
+  rpcUrl: "https://api.devnet.solana.com",
+  caller: facilitator,
+  payerAgentAsset: new PublicKey("payer-agent-asset-pubkey"),
+  payeeAgentAsset: new PublicKey("payee-agent-asset-pubkey"),
+  amount: 1_000_000n,
+  mint: new PublicKey("mint-pubkey"),
+  policyId: 1,
+});
+
+switch (decision.kind) {
+  case "Allow":
+    break;
+  case "Deny":
+    console.error(decision.reasonCode, decision.reasonName);
+    break;
+  case "RequireValidation":
+    console.error(decision.capabilityHash);
+    break;
+}
+```
+
+## Mount the x402 routes
+
+`mountTrustGate()` binds four endpoints to an Express app:
+
+| Route | Purpose |
+| --- | --- |
+| `POST /verify` | read-only PolicyVault simulation |
+| `GET /receipt/:paymentIdHashHex` | feedback log lookup |
+| `POST /settle` | atomic settlement surface |
+| `POST /dispute` | negative feedback surface |
+
+```ts
+import express from "express";
+import { Keypair } from "@solana/web3.js";
+import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+
+const app = express();
+app.use(express.json());
+
+await mountTrustGate(app, {
+  rpcUrl: "https://api.devnet.solana.com",
+  facilitatorKeypair: Keypair.fromSecretKey(secretKey),
+  defaultPolicyId: 1,
+  network: "solana-devnet",
+  atomicityEnforced: true,
+});
+
+app.listen(3000);
+```
+
+## Headers returned by `/verify`
+
+TrustGate maps PolicyVault decisions into x402-compatible headers.
+
+```http
+X-Payment-Network: solana-devnet
+X-Agent-Trust-Decision: Deny
+X-Payment-Required: denied
+X-Payment-Reason-Code: 6
+X-Payment-Reason-Name: CounterpartyTierBelowMin
+```
+
+## Pinned devnet IDs
+
+<ProgramIdsTable />
+
+## Source references
+
+- SDK package: `@agenttrust-sdk/trustgate`
+- Repository: `github.com/mohit-1710/agenttrust`
+- SDK source: `trustgate/sdk/src/client.ts`, `trustgate/sdk/src/express.ts`

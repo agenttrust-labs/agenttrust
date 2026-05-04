@@ -1,13 +1,61 @@
 ---
-title: Hello World
-description: Your first document
+title: Introduction
+description: AgentTrust completes the Foundation's ERC-8004 trust stack.
 ---
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
+AgentTrust completes the Foundation's ERC-8004 trust stack.
 
-## What is Next?
+AgentTrust adds a payment-time trust path for Solana agents: policies decide whether a payment can proceed, TrustGate translates that decision into x402 responses, and attestations fill the validation leg Quantu archived.
+
+<KaniProofBadge />
+
+## What AgentTrust ships
+
+AgentTrust is three Anchor programs plus a TypeScript SDK.
+
+| Part | Reads | Writes | Result |
+| --- | --- | --- | --- |
+| PolicyVault | payer and payee trust data | policy counters and velocity ledgers | `Allow`, `Deny`, or `RequireValidation` |
+| TrustGate | PolicyVault decisions | Quantu feedback logs | x402 status and ERC-8004 feedback |
+| ValidationRegistry | attestor profiles and attestations | capability attestations | reusable validation evidence |
+
+## Devnet deployment
+
+The current Frontier build is deployed on Solana devnet.
+
+<ProgramIdsTable />
+
+## The shortest path
+
+Install the SDK, mount TrustGate in your facilitator, then call `/verify` before payment settlement.
+
+```bash
+pnpm add @agenttrust-sdk/trustgate
+```
+
+```ts
+import express from "express";
+import { Keypair } from "@solana/web3.js";
+import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+
+const app = express();
+app.use(express.json());
+
+await mountTrustGate(app, {
+  rpcUrl: "https://api.devnet.solana.com",
+  facilitatorKeypair: Keypair.fromSecretKey(secretKey),
+  network: "solana-devnet",
+  atomicityEnforced: true,
+});
+```
+
+## Read next
 
 <Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
+  <Card title="Quickstart" href="/docs/getting-started/quickstart">
+    Install the SDK and make the first gatePayment call.
+  </Card>
+  <Card title="Architecture overview" href="/docs/getting-started/architecture-overview">
+    Follow the three-program flow from request to feedback.
+  </Card>
 </Cards>

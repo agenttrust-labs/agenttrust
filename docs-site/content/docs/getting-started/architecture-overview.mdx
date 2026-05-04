@@ -1,0 +1,61 @@
+---
+title: Architecture overview
+description: The three-program AgentTrust flow from x402 request to ERC-8004 feedback.
+---
+
+AgentTrust has three on-chain programs and one TypeScript surface.
+
+## Flow
+
+```txt
+agent request
+  -> x402 facilitator
+  -> TrustGate /verify
+  -> PolicyVault gate_payment
+  -> Allow | Deny | RequireValidation
+  -> settlement + TrustGate emit_feedback
+  -> Quantu agent_registry_8004 give_feedback
+```
+
+## Components
+
+| Component | Location | Responsibility |
+| --- | --- | --- |
+| PolicyVault | `programs/policy-vault` | compose five policy kinds and return a decision |
+| TrustGate | `programs/trustgate` | sign feedback CPI as the facilitator PDA |
+| ValidationRegistry | `programs/validation-registry` | store capability attestations read by PolicyVault |
+| SDK | `trustgate/sdk` | expose client helpers and Express routes |
+
+## Decision path
+
+PolicyVault is deliberately fail-fast:
+
+1. `KillSwitch`
+2. `Spending`
+3. `Velocity`
+4. `CounterpartyTier`
+5. `RequireValidation`
+
+State changes are applied only on `Allow`. `Deny` and `RequireValidation` return a decision without mutating spending or velocity counters.
+
+## Trust reads
+
+PolicyVault reads foreign PDAs defensively:
+
+| Data | Parser | Locked offset |
+| --- | --- | --- |
+| Quantu `AtomStats.risk_score` | `policy-vault/src/ext/atom_engine.rs` | byte `549` |
+| Quantu `AtomStats.trust_tier` | `policy-vault/src/ext/atom_engine.rs` | byte `551` |
+| Quantu `AtomStats.confidence` | `policy-vault/src/ext/atom_engine.rs` | bytes `557..558` |
+| AgentTrust attestation subject | `policy-vault/src/ext/validation_registry.rs` | byte `8` |
+| AgentTrust attestation expiry | `policy-vault/src/ext/validation_registry.rs` | byte `208` |
+
+## Verification boundary
+
+<KaniProofBadge />
+
+The Kani harnesses target the pure Rust policy/composer layer rather than the Anchor wrappers. That keeps proofs short, deterministic, and tied to the code that makes decisions.
+
+## Deployment boundary
+
+The docs and SDK default to devnet program IDs. Quantu mainnet IDs are used for local validator cloning and reference-grade byte layouts.
