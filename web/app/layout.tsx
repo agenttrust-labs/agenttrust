@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import CookieConsent from "@/components/CookieConsent";
 import { ScrollRuntime } from "./scroll-runtime";
 import "./globals.css";
 
@@ -40,6 +41,7 @@ export default function RootLayout({
     >
       <body>
         <ScrollRuntime>{children}</ScrollRuntime>
+        <CookieConsent />
       </body>
     </html>
   );
