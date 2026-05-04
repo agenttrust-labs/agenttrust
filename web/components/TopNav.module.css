@@ -71,6 +71,18 @@
   transition: color 300ms var(--ease-out-strong), background-color 300ms var(--ease-out-strong), transform 300ms var(--ease-out-strong);
 }
 
+.scrambleChar,
+.scrambleCharActive {
+  display: inline-block;
+  min-width: 0.62ch;
+  color: currentColor;
+  transition: color 90ms var(--ease-out-strong);
+}
+
+.scrambleCharActive {
+  color: var(--accent);
+}
+
 @media (min-width: 940px) {
   .nav {
     display: flex;

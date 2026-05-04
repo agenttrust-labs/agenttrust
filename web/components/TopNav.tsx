@@ -1,5 +1,6 @@
 import AgentTrustLogo from "@/components/AgentTrustLogo";
 import TopNavDropdown from "@/components/TopNavDropdown";
+import TopNavLink from "@/components/TopNavLink";
 import styles from "@/components/TopNav.module.css";
 import PillLink from "@/components/ui/PillLink";
 import { PRIMARY_NAV_CTA, PRIMARY_NAV_LINKS } from "@/data/navigation";
@@ -15,9 +16,7 @@ export default function TopNav() {
             <ul className={styles.list}>
               {PRIMARY_NAV_LINKS.map((link) => (
                 <li className={styles.item} key={link.label}>
-                  <a href={link.href} className={styles.link}>
-                    <span className={styles.label}>{link.label}</span>
-                  </a>
+                  <TopNavLink href={link.href} label={link.label} />
                   {link.menu ? (
                     <TopNavDropdown columns={link.menu} label={link.label} />
                   ) : null}
