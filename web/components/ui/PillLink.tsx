@@ -1,4 +1,5 @@
 import styles from "@/components/ui/PillLink.module.css";
+import { getExternalLinkAttributes } from "@/lib/linkAttributes";
 
 export interface PillLinkProps {
   readonly children: string;
@@ -67,6 +68,7 @@ export default function PillLink({
   size,
   variant,
 }: PillLinkProps) {
+  const externalAttributes = getExternalLinkAttributes(href);
   const className = [
     styles.link,
     styles[variant],
@@ -76,7 +78,7 @@ export default function PillLink({
     .join(" ");
 
   return (
-    <a href={href} className={className}>
+    <a href={href} className={className} {...externalAttributes}>
       {icon ? <PillIcon icon={icon} /> : null}
       <span className={styles.label}>{children}</span>
     </a>

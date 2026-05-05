@@ -1,3 +1,5 @@
+import { PUBLIC_LINKS } from "@/data/links";
+
 export interface HeroSdkLink {
   readonly href: string;
   readonly icon: "github" | "package";
@@ -25,13 +27,13 @@ export const HERO_SDK_COPY = {
 
 export const HERO_SDK_LINKS: readonly HeroSdkLink[] = [
   {
-    href: "https://www.npmjs.com/package/@agenttrust-sdk/trustgate",
+    href: PUBLIC_LINKS.npm,
     icon: "package",
     label: "NPM Package",
     meta: "@agenttrust-sdk/trustgate",
   },
   {
-    href: "https://github.com/agenttrust-labs/agenttrust",
+    href: PUBLIC_LINKS.github,
     icon: "github",
     label: "GitHub",
     meta: "agenttrust-labs/agenttrust",

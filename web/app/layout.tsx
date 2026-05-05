@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import CookieConsent from "@/components/CookieConsent";
+import { PUBLIC_LINKS } from "@/data/links";
 import { ScrollRuntime } from "./scroll-runtime";
 import "./globals.css";
 
@@ -24,9 +25,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(PUBLIC_LINKS.site),
   title: "AgentTrust",
   description:
     "AgentTrust gates AI-agent payments on counterparty identity and reputation.",
+  alternates: {
+    canonical: PUBLIC_LINKS.site,
+  },
+  openGraph: {
+    description:
+      "AgentTrust gates AI-agent payments on counterparty identity and reputation.",
+    siteName: "AgentTrust",
+    title: "AgentTrust",
+    type: "website",
+    url: PUBLIC_LINKS.site,
+  },
+  twitter: {
+    card: "summary_large_image",
+    description:
+      "AgentTrust gates AI-agent payments on counterparty identity and reputation.",
+    title: "AgentTrust",
+  },
 };
 
 export default function RootLayout({

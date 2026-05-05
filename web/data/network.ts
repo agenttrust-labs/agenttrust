@@ -1,3 +1,5 @@
+import { PUBLIC_LINKS } from "@/data/links";
+
 export interface NetworkLabel {
   readonly text: string;
 }
@@ -24,6 +26,6 @@ export const NETWORK_COPY: readonly NetworkCopySegment[] = [
 ] as const;
 
 export const NETWORK_CTA = {
-  href: "#events",
+  href: PUBLIC_LINKS.docsValidationRegistry,
   label: "Learn About The Network",
 } as const;

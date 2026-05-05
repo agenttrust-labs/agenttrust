@@ -1,3 +1,5 @@
+import { PUBLIC_LINKS, SOCIAL_LINKS } from "@/data/links";
+
 export interface FooterLink {
   readonly href: string;
   readonly label: string;
@@ -8,9 +10,7 @@ export interface FooterLinkGroup {
   readonly links: readonly FooterLink[];
 }
 
-export interface FooterUtilityLink extends FooterLink {
-  readonly isExternal?: boolean;
-}
+export type FooterUtilityLink = FooterLink;
 
 export interface FooterSocialLink extends FooterLink {
   readonly icon: "discord" | "linkedin" | "x" | "youtube";
@@ -35,39 +35,39 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
   {
     title: "Build",
     links: [
-      { href: "#plug-and-play", label: "Documentation" },
-      { href: "#explore", label: "Integration Guide" },
-      { href: "#network", label: "Trust Operators" },
-      { href: "#explore", label: "Integrations" },
+      { href: PUBLIC_LINKS.docs, label: "Documentation" },
+      { href: PUBLIC_LINKS.docsX402, label: "Integration Guide" },
+      { href: PUBLIC_LINKS.docsValidationRegistry, label: "Trust Operators" },
+      { href: PUBLIC_LINKS.docsQuickstart, label: "Integrations" },
     ],
   },
   {
     title: "Proofs",
     links: [
       { href: "#benchmark", label: "Benchmark" },
-      { href: "#trilemma", label: "Kani Checks" },
+      { href: PUBLIC_LINKS.docsFormalVerification, label: "Kani Checks" },
       { href: "#events", label: "Operator Briefings" },
-      { href: "#media", label: "Field Notes" },
+      { href: PUBLIC_LINKS.docsChangelog, label: "Field Notes" },
     ],
   },
   {
     title: "Legal",
     links: [
-      { href: "#footer", label: "MIT License" },
-      { href: "#footer", label: "Privacy" },
-      { href: "#footer", label: "Terms" },
+      { href: PUBLIC_LINKS.githubLicense, label: "MIT License" },
+      { href: PUBLIC_LINKS.privacy, label: "Privacy" },
+      { href: PUBLIC_LINKS.terms, label: "Terms" },
     ],
   },
 ];
 
 export const FOOTER_UTILITY_LINKS: readonly FooterUtilityLink[] = [
-  { href: "#footer", label: "Privacy Policy" },
-  { href: "#footer", label: "Terms of Service" },
+  { href: PUBLIC_LINKS.privacy, label: "Privacy Policy" },
+  { href: PUBLIC_LINKS.terms, label: "Terms of Service" },
 ];
 
 export const FOOTER_SOCIAL_LINKS: readonly FooterSocialLink[] = [
-  { href: "#footer", icon: "x", label: "X" },
-  { href: "#footer", icon: "discord", label: "Discord" },
-  { href: "#footer", icon: "youtube", label: "YouTube" },
-  { href: "#footer", icon: "linkedin", label: "LinkedIn" },
+  { href: SOCIAL_LINKS.x, icon: "x", label: "X" },
+  { href: SOCIAL_LINKS.discord, icon: "discord", label: "Discord" },
+  { href: SOCIAL_LINKS.youtube, icon: "youtube", label: "YouTube" },
+  { href: SOCIAL_LINKS.linkedin, icon: "linkedin", label: "LinkedIn" },
 ];

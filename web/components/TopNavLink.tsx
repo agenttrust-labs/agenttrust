@@ -2,6 +2,7 @@
 
 import styles from "@/components/TopNav.module.css";
 import { useScrambleText } from "@/hooks/useScrambleText";
+import { getExternalLinkAttributes } from "@/lib/linkAttributes";
 
 interface TopNavLinkProps {
   readonly href: string;
@@ -11,6 +12,7 @@ interface TopNavLinkProps {
 export default function TopNavLink({ href, label }: TopNavLinkProps) {
   const { activeIndexes, displayCharacters, startScramble } =
     useScrambleText(label);
+  const externalAttributes = getExternalLinkAttributes(href);
 
   return (
     <a
@@ -19,6 +21,7 @@ export default function TopNavLink({ href, label }: TopNavLinkProps) {
       href={href}
       onFocus={startScramble}
       onPointerEnter={startScramble}
+      {...externalAttributes}
     >
       <span aria-hidden="true" className={styles.label}>
         {displayCharacters.map((character, index) => (

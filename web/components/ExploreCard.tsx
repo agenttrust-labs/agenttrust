@@ -1,14 +1,22 @@
 import Image from "next/image";
 import styles from "@/components/ExploreCard.module.css";
 import type { ExploreCard as ExploreCardData } from "@/data/explore";
+import { getExternalLinkAttributes } from "@/lib/linkAttributes";
 
 export interface ExploreCardProps {
   readonly card: ExploreCardData;
 }
 
 export default function ExploreCard({ card }: ExploreCardProps) {
+  const externalAttributes = getExternalLinkAttributes(card.href);
+
   return (
-    <a className={styles.cardLink} href={card.href} data-explore-card>
+    <a
+      className={styles.cardLink}
+      href={card.href}
+      data-explore-card
+      {...externalAttributes}
+    >
       <span className={styles.greebles} aria-hidden="true">
         <span className={styles.greebleTopLeft} />
         <span className={styles.greebleTopRight} />

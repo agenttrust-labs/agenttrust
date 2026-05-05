@@ -2,6 +2,7 @@ import type { MouseEvent } from "react";
 import EventVisual from "@/components/EventVisual";
 import styles from "@/components/EventRow.module.css";
 import type { EventItem } from "@/data/events";
+import { getExternalLinkAttributes } from "@/lib/linkAttributes";
 
 interface EventRowProps {
   readonly event: EventItem;
@@ -25,6 +26,7 @@ export default function EventRow({
   const className = [styles.row, isDimmed ? styles.rowDimmed : ""]
     .filter(Boolean)
     .join(" ");
+  const externalAttributes = getExternalLinkAttributes(event.href);
 
   function handleFocus(): void {
     onEnter(event);
@@ -48,6 +50,7 @@ export default function EventRow({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={onLeave}
         onMouseMove={handleMouseMove}
+        {...externalAttributes}
       >
         <div className={styles.date}>
           <p>{event.date}</p>

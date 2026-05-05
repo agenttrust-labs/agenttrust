@@ -1,3 +1,5 @@
+import { PUBLIC_LINKS } from "@/data/links";
+
 export interface NavigationLink {
   readonly label: string;
   readonly href: string;
@@ -55,7 +57,7 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           {
             label: "Program IDs",
             description: "Devnet addresses for every trust gate component.",
-            href: "#plug-and-play",
+            href: PUBLIC_LINKS.docsProgramIds,
             icon: "file",
           },
         ],
@@ -87,7 +89,7 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
   },
   {
     label: "Build",
-    href: "#plug-and-play",
+    href: PUBLIC_LINKS.docsQuickstart,
     menu: [
       {
         title: "Start Building",
@@ -95,19 +97,19 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           {
             label: "Integrate SDK",
             description: "Install the client and call trust gates in minutes.",
-            href: "#plug-and-play",
+            href: PUBLIC_LINKS.docsQuickstart,
             icon: "code",
           },
           {
             label: "Developer Brief",
             description: "Read exact accounts, checks, and return states.",
-            href: "#media",
+            href: PUBLIC_LINKS.docsArchitecture,
             icon: "book",
           },
           {
             label: "Builder Notes",
             description: "Follow integration updates and proof writeups.",
-            href: "#media",
+            href: PUBLIC_LINKS.docsChangelog,
             icon: "file",
           },
         ],
@@ -118,19 +120,19 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           {
             label: "Policy Vault",
             description: "Thresholds, pausing, and signer controls.",
-            href: "#plug-and-play",
+            href: PUBLIC_LINKS.docsPolicyVault,
             icon: "shield",
           },
           {
             label: "Trust Gate",
             description: "Payment allow or deny checks.",
-            href: "#plug-and-play",
+            href: PUBLIC_LINKS.docsTrustGate,
             icon: "terminal",
           },
           {
             label: "Registry",
             description: "Validation expiry and counterparty status.",
-            href: "#network",
+            href: PUBLIC_LINKS.docsValidationRegistry,
             icon: "grid",
           },
         ],
@@ -139,7 +141,7 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
   },
   {
     label: "Resources",
-    href: "#media",
+    href: PUBLIC_LINKS.docs,
     menu: [
       {
         title: "References",
@@ -147,19 +149,19 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           {
             label: "Documentation",
             description: "Implementation notes and account layouts.",
-            href: "#plug-and-play",
+            href: PUBLIC_LINKS.docs,
             icon: "book",
           },
           {
             label: "SDK Brief",
             description: "Payment-gate client usage for TypeScript apps.",
-            href: "#plug-and-play",
+            href: PUBLIC_LINKS.docsSdk,
             icon: "box",
           },
           {
             label: "MIT License",
             description: "Open-source grant-friendly license surface.",
-            href: "#footer",
+            href: PUBLIC_LINKS.githubLicense,
             icon: "file",
           },
         ],
@@ -170,19 +172,19 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           {
             label: "Kani Harnesses",
             description: "Paused, velocity, tier, expiry, and threshold checks.",
-            href: "#trilemma",
+            href: PUBLIC_LINKS.docsFormalVerification,
             icon: "shield",
           },
           {
             label: "Test Matrix",
             description: "Program and SDK checks for payment gates.",
-            href: "#performance",
+            href: PUBLIC_LINKS.docsGatePayment,
             icon: "grid",
           },
           {
             label: "Contact",
             description: "Reach the maintainers for integration review.",
-            href: "#events",
+            href: PUBLIC_LINKS.githubIssues,
             icon: "users",
           },
         ],

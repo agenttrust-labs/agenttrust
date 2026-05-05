@@ -1,3 +1,5 @@
+import { PUBLIC_LINKS } from "@/data/links";
+
 export interface PerformanceBar {
   readonly height: number;
 }
@@ -38,7 +40,7 @@ export const PERFORMANCE_STATEMENT =
 
 export const PERFORMANCE_CTA = {
   label: "Learn About Trust Performance",
-  href: "#plug-and-play",
+  href: PUBLIC_LINKS.docsArchitecture,
 } as const;
 
 export const PERFORMANCE_STATS: readonly PerformanceStat[] = [

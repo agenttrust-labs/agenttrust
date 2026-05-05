@@ -1,3 +1,4 @@
+import { PUBLIC_LINKS } from "@/data/links";
 import type { StoryPanel } from "@/types/storytelling";
 
 export const STORYTELLING_SECTION_ID = "trust-stack";
@@ -9,7 +10,7 @@ export const STORYTELLING_PANELS: readonly StoryPanel[] = [
     body: "Resolve the agent, the recipient, and the freshest attestations before the payment route is allowed to open.",
     action: {
       label: "Read the Documentation",
-      href: "#plug-and-play",
+      href: PUBLIC_LINKS.docs,
     },
     visual: "identity",
   },
@@ -19,7 +20,7 @@ export const STORYTELLING_PANELS: readonly StoryPanel[] = [
     body: "Intent passes through limits, velocity caps, allowlists, and emergency stops before a transfer can settle.",
     action: {
       label: "View Devnet Programs",
-      href: "#plug-and-play",
+      href: PUBLIC_LINKS.docsProgramIds,
     },
     visual: "policy",
   },
@@ -29,7 +30,7 @@ export const STORYTELLING_PANELS: readonly StoryPanel[] = [
     body: "Every decision emits invariant checks, byte-precise reads, and the exact reason a payment passed or stopped.",
     action: {
       label: "Inspect Proofs",
-      href: "#trilemma",
+      href: PUBLIC_LINKS.docsFormalVerification,
     },
     visual: "proofs",
   },

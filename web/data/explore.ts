@@ -1,3 +1,5 @@
+import { PUBLIC_LINKS } from "@/data/links";
+
 export interface ExploreCard {
   readonly description: string;
   readonly href: string;
@@ -20,7 +22,7 @@ export const EXPLORE_CARDS: readonly ExploreCard[] = [
   {
     description:
       "Install the SDK, wire a payment gate, and test the devnet programs with verified constraints.",
-    href: "#plug-and-play",
+    href: PUBLIC_LINKS.docsQuickstart,
     imageAlt: "",
     imageSrc: "/media/explore-builder-kit.svg",
     title: "Start Building",

@@ -1,3 +1,5 @@
+import { PUBLIC_LINKS } from "@/data/links";
+
 export interface PlugChipRow {
   readonly duration: string;
   readonly labels: readonly string[];
@@ -18,7 +20,7 @@ export const PLUG_COPY: readonly PlugCopySegment[] = [
 ] as const;
 
 export const PLUG_CTA = {
-  href: "#events",
+  href: PUBLIC_LINKS.docsX402,
   label: "Check Integration Briefing",
 } as const;
 

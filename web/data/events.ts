@@ -1,3 +1,5 @@
+import { PUBLIC_LINKS } from "@/data/links";
+
 export interface EventItem {
   readonly date: string;
   readonly description: string;
@@ -19,7 +21,7 @@ export const EVENTS: readonly EventItem[] = [
     description:
       "Wire identity, reputation, and velocity checks into an AI-agent payment route before settlement.",
     event: "Trust gate walkthrough",
-    href: "#trust-stack",
+    href: PUBLIC_LINKS.docsGatePayment,
     imageAlt: "Abstract trust gate route diagram",
     imageSrc: "/media/event-trust-gate.svg",
     location: "Remote",
@@ -29,7 +31,7 @@ export const EVENTS: readonly EventItem[] = [
     description:
       "Review the five Kani harnesses and the invariants that keep policy state readable.",
     event: "Formal review session",
-    href: "#performance",
+    href: PUBLIC_LINKS.docsFormalVerification,
     imageAlt: "Proof grid with verified check paths",
     imageSrc: "/media/event-proof-review.svg",
     location: "GitHub",
@@ -39,7 +41,7 @@ export const EVENTS: readonly EventItem[] = [
     description:
       "Install the package, add the payment gate, and inspect the counterparty response shape.",
     event: "Builder integration lab",
-    href: "#plug-and-play",
+    href: PUBLIC_LINKS.docsQuickstart,
     imageAlt: "SDK integration cards connected by purple lines",
     imageSrc: "/media/event-sdk-lab.svg",
     location: "Solana builders",
@@ -49,7 +51,7 @@ export const EVENTS: readonly EventItem[] = [
     description:
       "Map lightweight verification roles for teams that want trust checks close to payment flow.",
     event: "Operator briefing",
-    href: "#network",
+    href: PUBLIC_LINKS.docsValidationRegistry,
     imageAlt: "Verifier nodes around an AgentTrust triangle",
     imageSrc: "/media/event-operator-briefing.svg",
     location: "Partner call",

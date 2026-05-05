@@ -1,3 +1,5 @@
+import { PUBLIC_LINKS } from "@/data/links";
+
 export interface MediaCard {
   readonly href: string;
   readonly imageAlt: string;
@@ -12,19 +14,19 @@ export const MEDIA_COPY =
 
 export const MEDIA_CARDS: readonly MediaCard[] = [
   {
-    href: "#trilemma",
+    href: PUBLIC_LINKS.docsFormalVerification,
     imageAlt: "Purple proof notes layered over a verification grid",
     imageSrc: "/media/media-proof-notes.svg",
     title: "Proof Notes",
   },
   {
-    href: "#plug-and-play",
+    href: PUBLIC_LINKS.docsChangelog,
     imageAlt: "Builder log panels connected by trust-gate routes",
     imageSrc: "/media/media-builder-log.svg",
     title: "Builder Log",
   },
   {
-    href: "#events",
+    href: PUBLIC_LINKS.docsX402,
     imageAlt: "AgentTrust field notes arranged around the triangle mark",
     imageSrc: "/media/media-field-notes.svg",
     title: "Field Notes",
