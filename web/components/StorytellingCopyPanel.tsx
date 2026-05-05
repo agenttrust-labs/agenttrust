@@ -24,11 +24,21 @@ export default function StorytellingCopyPanel({
       data-story-copy-panel
       data-story-index={index}
     >
-      <p className={styles.eyebrow}>{panel.eyebrow}</p>
-      <h2 className={styles.title}>{panel.title}</h2>
-      <p className={styles.body}>{panel.body}</p>
-      <div className={styles.copyRule} aria-hidden="true" />
-      <div className={styles.action}>
+      <p className={styles.eyebrow} data-story-copy-eyebrow>
+        {panel.eyebrow}
+      </p>
+      <h2 className={styles.title} data-story-copy-title>
+        {panel.title}
+      </h2>
+      <p className={styles.body} data-story-copy-body>
+        {panel.body}
+      </p>
+      <div
+        className={styles.copyRule}
+        aria-hidden="true"
+        data-story-copy-rule
+      />
+      <div className={styles.action} data-story-copy-action>
         <PillLink href={panel.action.href} icon="file" variant="secondary">
           {panel.action.label}
         </PillLink>

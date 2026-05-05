@@ -9,6 +9,13 @@ interface PointerParallaxConfig {
   readonly targetSelector: string;
 }
 
+function readFactor(target: Element, attribute: string): number {
+  const value = target.getAttribute(attribute);
+  const parsed = value === null ? Number.NaN : Number(value);
+
+  return Number.isFinite(parsed) ? parsed : 1;
+}
+
 export function createPointerParallax({
   duration = 0.8,
   maxRotation = 0,
@@ -17,7 +24,7 @@ export function createPointerParallax({
   root,
   targetSelector,
 }: PointerParallaxConfig): () => void {
-  const targets = Array.from(root.querySelectorAll<HTMLElement>(targetSelector));
+  const targets = Array.from(root.querySelectorAll<Element>(targetSelector));
 
   if (targets.length === 0) {
     return () => undefined;
@@ -30,7 +37,7 @@ export function createPointerParallax({
     gsap.quickTo(target, "y", { duration, ease: "power3.out" }),
   );
   const rotationSetters = targets.map((target) =>
-    gsap.quickTo(target, "rotateZ", { duration, ease: "power3.out" }),
+    gsap.quickTo(target, "rotation", { duration, ease: "power3.out" }),
   );
 
   const handlePointerMove = (event: PointerEvent) => {
@@ -38,11 +45,15 @@ export function createPointerParallax({
     const xRatio = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
     const yRatio = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
 
-    xSetters.forEach((setX) => setX(xRatio * maxX));
-    ySetters.forEach((setY) => setY(yRatio * maxY));
-    rotationSetters.forEach((setRotation) =>
-      setRotation(xRatio * maxRotation),
-    );
+    targets.forEach((target, index) => {
+      const xFactor = readFactor(target, "data-parallax-x");
+      const yFactor = readFactor(target, "data-parallax-y");
+      const rotationFactor = readFactor(target, "data-parallax-rotate");
+
+      xSetters[index](xRatio * maxX * xFactor);
+      ySetters[index](yRatio * maxY * yFactor);
+      rotationSetters[index](xRatio * maxRotation * rotationFactor);
+    });
   };
 
   const handlePointerLeave = () => {
@@ -57,6 +68,6 @@ export function createPointerParallax({
   return () => {
     root.removeEventListener("pointermove", handlePointerMove);
     root.removeEventListener("pointerleave", handlePointerLeave);
-    gsap.set(targets, { clearProps: "rotateZ,x,y" });
+    gsap.set(targets, { clearProps: "rotation,x,y" });
   };
 }

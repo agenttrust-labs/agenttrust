@@ -1,8 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
 import StorytellingCopyPanel from "@/components/StorytellingCopyPanel";
 import StorytellingGraphic from "@/components/StorytellingGraphic";
 import StorytellingMobileList from "@/components/StorytellingMobileList";
@@ -13,8 +11,7 @@ import {
   STORYTELLING_SECTION_ID,
 } from "@/data/storytelling";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { createPointerParallax } from "@/lib/animations/pointerParallax";
-import { createStorytellingScrollTrigger } from "@/lib/animations/storytellingScroll";
+import { useStorytellingMotion } from "@/hooks/useStorytellingMotion";
 
 export default function StorytellingScroll() {
   const rootRef = useRef<HTMLElement>(null);
@@ -31,44 +28,11 @@ export default function StorytellingScroll() {
     setActiveIndex(index);
   };
 
-  useGSAP(
-    () => {
-      const root = rootRef.current;
-
-      if (!root || shouldReduceMotion) {
-        return;
-      }
-
-      const media = gsap.matchMedia();
-
-      media.add("(min-width: 940px)", () => {
-        const graphics = root.querySelector<HTMLElement>("[data-story-graphics]");
-        const trigger = createStorytellingScrollTrigger({
-          count: STORYTELLING_PANELS.length,
-          root,
-          onActiveIndexChange: setStoryIndex,
-        });
-        const cleanupParallax = graphics
-          ? createPointerParallax({
-              duration: 0.88,
-              maxRotation: 0.3,
-              maxX: 18,
-              maxY: 12,
-              root: graphics,
-              targetSelector: "[data-story-motion-layer]",
-            })
-          : () => undefined;
-
-        return () => {
-          cleanupParallax();
-          trigger.kill();
-        };
-      });
-
-      return () => media.revert();
-    },
-    { dependencies: [shouldReduceMotion], scope: rootRef },
-  );
+  useStorytellingMotion({
+    rootRef,
+    shouldReduceMotion,
+    onActiveIndexChange: setStoryIndex,
+  });
 
   const handleSelectStory = (index: number) => {
     const root = rootRef.current;

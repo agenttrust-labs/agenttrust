@@ -244,267 +244,45 @@
   will-change: transform;
 }
 
-.visualIndex,
-.visualCornerLeft,
-.visualCornerRight {
-  position: absolute;
-  z-index: 2;
-}
-
-.visualIndex {
-  top: 22%;
-  right: 11%;
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--ink);
-  letter-spacing: 0.08em;
-}
-
-.visualCornerLeft,
-.visualCornerRight {
-  top: 27%;
-  width: 30px;
-  height: 30px;
-  border-color: var(--ink);
-  border-style: solid;
-}
-
-.visualCornerLeft {
-  left: 10%;
-  border-width: 2px 0 0 2px;
-}
-
-.visualCornerRight {
-  right: 10%;
-  border-width: 2px 2px 0 0;
-}
-
-.visualSvg {
-  position: relative;
-  z-index: 1;
-  width: min(82%, 640px);
-  max-height: 72dvh;
-  overflow: visible;
-}
-
-.visualLine,
-.visualFrame,
-.visualSoftRing,
-.visualDash,
-.visualAccent,
-.visualCheck,
-.visualMutedLine,
-.visualRoute,
-.visualBlocked,
-.visualDecision,
-.visualHalo,
-.visualStamp,
-.visualStopFill {
-  vector-effect: non-scaling-stroke;
-}
-
-.visualLine,
-.visualFrame,
-.visualSoftRing,
-.visualDash,
-.visualMutedLine,
-.visualDecision,
-.visualHalo,
-.visualStamp,
-.visualStopFill {
-  stroke: var(--ink);
-  stroke-width: 2;
-}
-
-.visualMutedLine,
-.visualHalo {
-  opacity: 0.18;
-}
-
-.visualDash,
-.visualSoftRing {
-  stroke-dasharray: 18 12;
-}
-
-.visualSoftRing,
-.visualFrame {
-  opacity: 0.72;
-}
-
-.visualNode {
-  fill: var(--bg-elev);
-  stroke: var(--ink);
-  stroke-width: 2;
-}
-
-.visualNodeDark {
-  fill: var(--ink);
-}
-
-.visualNodeAccent {
-  fill: var(--accent);
-  stroke: var(--accent);
-  stroke-width: 2;
-}
-
-.visualAccent,
-.visualCheck,
-.visualRoute {
-  stroke: var(--accent);
-  stroke-width: 2;
-}
-
-.visualRoute,
-.visualBlocked {
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.visualRoute {
-  stroke-width: 2.5;
-}
-
-.visualBlocked {
-  stroke: var(--ink);
-  stroke-width: 2.5;
-}
-
-.visualDecision {
-  fill: rgba(255, 255, 255, 0.44);
-}
-
-.visualDecision,
-.visualFrame,
-.visualStamp,
-.visualStopFill {
-  transform-box: fill-box;
+.visualDiagramLayer {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
   transform-origin: center;
+  will-change: transform;
 }
 
-.visualStopFill {
-  fill: rgba(111, 76, 255, 0.08);
+.lottieStack {
+  position: relative;
+  display: block;
+  width: min(100%, 672px);
+  aspect-ratio: 1;
 }
 
-.visualStamp {
-  fill: rgba(111, 76, 255, 0.12);
-  stroke: var(--accent);
+.lottieLayer {
+  position: absolute;
+  inset: 0;
+  display: block;
 }
 
-.visualHashLine {
-  fill: rgba(10, 10, 10, 0.16);
+.lottieLayer:first-child {
+  position: relative;
 }
 
-.visualText {
-  fill: rgba(10, 10, 10, 0.1);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 72px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
+.lottieLayer > div,
+.lottieLayer svg {
+  width: 100% !important;
+  height: 100% !important;
 }
 
-.visualLabel,
-.visualSmallLabel {
-  fill: var(--ink);
-  font-family: var(--font-geist-mono), monospace;
-  font-variant-numeric: tabular-nums;
-  text-transform: uppercase;
+.lottieDotted {
+  z-index: 10;
 }
 
-.visualLabel {
-  font-size: 14px;
-  letter-spacing: 0.12em;
-}
-
-.visualSmallLabel {
-  fill: rgba(10, 10, 10, 0.42);
-  font-size: 10px;
-  letter-spacing: 0.16em;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .visualRoute,
-  .visualAccent {
-    stroke-dasharray: 18 14;
-    animation: visual-dash-flow 6.8s linear infinite;
-  }
-
-  .visualDash {
-    animation: visual-dash-reverse 9s linear infinite;
-  }
-
-  .visualHalo {
-    animation: visual-halo-breathe 4.2s ease-in-out infinite;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .visualNodeAccent {
-    animation: visual-node-pulse 2.8s ease-in-out infinite;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .visualDecision,
-  .visualFrame,
-  .visualStamp,
-  .visualStopFill {
-    animation: visual-panel-drift 7.2s ease-in-out infinite;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .visualFrame,
-  .visualStamp {
-    animation-delay: -2.4s;
-  }
-}
-
-@keyframes visual-dash-flow {
-  to {
-    stroke-dashoffset: -128;
-  }
-}
-
-@keyframes visual-dash-reverse {
-  to {
-    stroke-dashoffset: 96;
-  }
-}
-
-@keyframes visual-halo-breathe {
-  0%,
-  100% {
-    opacity: 0.14;
-    transform: scale(0.96);
-  }
-
-  50% {
-    opacity: 0.26;
-    transform: scale(1.04);
-  }
-}
-
-@keyframes visual-node-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.18);
-  }
-}
-
-@keyframes visual-panel-drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-
-  50% {
-    transform: translate3d(0, -4px, 0);
-  }
+.lottieGreebles {
+  z-index: 20;
+  pointer-events: none;
 }
 
 @media (min-width: 940px) {
@@ -545,6 +323,7 @@
     position: relative;
     flex: 1;
     min-height: 360px;
+    overflow: hidden;
   }
 
   .graphics {

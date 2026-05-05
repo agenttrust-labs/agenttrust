@@ -51,26 +51,17 @@ export function createBenchmarkMotion({
       yPercent: 0,
     }, 0.08);
 
-  const cleanupHeadingParallax = createPointerParallax({
+  const cleanupParallax = createPointerParallax({
     duration: 0.78,
     maxRotation: 0.22,
     maxX: 14,
     maxY: 5,
     root,
-    targetSelector: "[data-benchmark-heading]",
-  });
-  const cleanupCornerParallax = createPointerParallax({
-    duration: 0.92,
-    maxRotation: 0.42,
-    maxX: 10,
-    maxY: 9,
-    root,
-    targetSelector: "[data-benchmark-corner]",
+    targetSelector: "[data-benchmark-heading], [data-benchmark-corner]",
   });
 
   return () => {
-    cleanupHeadingParallax();
-    cleanupCornerParallax();
+    cleanupParallax();
     timeline.scrollTrigger?.kill();
     timeline.kill();
   };

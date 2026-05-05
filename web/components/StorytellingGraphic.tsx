@@ -1,28 +1,10 @@
 import styles from "@/components/StorytellingSection.module.css";
-import StorytellingIdentityVisual from "@/components/StorytellingIdentityVisual";
-import StorytellingPolicyVisual from "@/components/StorytellingPolicyVisual";
-import StorytellingProofsVisual from "@/components/StorytellingProofsVisual";
-import type { StoryPanel, StoryVisualKind } from "@/types/storytelling";
+import MonadBenchmarkVisual from "@/components/MonadBenchmarkVisual";
+import type { StoryPanel } from "@/types/storytelling";
 
 interface StorytellingGraphicProps {
   readonly activeIndex: number;
   readonly panels: readonly StoryPanel[];
-}
-
-interface VisualProps {
-  readonly kind: StoryVisualKind;
-}
-
-function Visual({ kind }: VisualProps) {
-  if (kind === "policy") {
-    return <StorytellingPolicyVisual />;
-  }
-
-  if (kind === "proofs") {
-    return <StorytellingProofsVisual />;
-  }
-
-  return <StorytellingIdentityVisual />;
 }
 
 export default function StorytellingGraphic({
@@ -41,10 +23,12 @@ export default function StorytellingGraphic({
         return (
           <div className={className} data-story-visual-panel key={panel.title}>
             <div className={styles.visualMotionLayer} data-story-motion-layer>
-              <span className={styles.visualIndex}>{`/// 00${index + 1}`}</span>
-              <span className={styles.visualCornerLeft} />
-              <span className={styles.visualCornerRight} />
-              <Visual kind={panel.visual} />
+              <span className={styles.visualDiagramLayer} data-story-diagram-layer>
+                <MonadBenchmarkVisual
+                  isActive={index === activeIndex}
+                  kind={panel.visual}
+                />
+              </span>
             </div>
           </div>
         );
