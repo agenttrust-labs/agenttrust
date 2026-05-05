@@ -47,7 +47,7 @@ After DNS propagates:
 
 1. Confirm Vercel shows the domain as valid.
 2. Confirm HTTPS is active.
-3. Open `/docs`.
+3. Open `/`.
 4. Open the search dialog.
 5. Ask one Ask-AI question and confirm the response streams.
 6. Check Vercel function logs for `/api/ask`.

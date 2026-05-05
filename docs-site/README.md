@@ -11,7 +11,7 @@ pnpm --filter docs-site types:check
 pnpm --filter docs-site build
 ```
 
-Local dev runs at `http://localhost:3001/docs` when started with:
+Local dev runs at `http://localhost:3001` when started with:
 
 ```bash
 pnpm --filter docs-site exec next dev -p 3001
@@ -55,4 +55,4 @@ pnpm --filter docs-site types:check
 pnpm --filter docs-site build
 ```
 
-Then verify `/docs` and any touched pages in Playwright at desktop, tablet, and mobile widths.
+Then verify `/` and any touched pages in Playwright at desktop, tablet, and mobile widths.

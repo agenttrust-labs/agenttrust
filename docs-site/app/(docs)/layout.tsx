@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { baseOptions } from '@/lib/layout.shared';
 import { AskAIWidget } from '@/components/ask-ai/AskAIWidget';
 import { AgentTrustLogoMark } from '@/components/docs/AgentTrustLogoMark';
+import type { ReactNode } from 'react';
 
-export default function Layout({ children }: LayoutProps<'/docs'>) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       <header className="docs-topbar" aria-label="AgentTrust docs navigation">
@@ -15,11 +16,11 @@ export default function Layout({ children }: LayoutProps<'/docs'>) {
         </a>
         <nav aria-label="Docs links">
           <span className="docs-topbar-primary">
-            <Link aria-current="page" href="/docs">
+            <Link aria-current="page" href="/">
               Documentation
             </Link>
-            <Link href="/docs/programs/policy-vault">Programs</Link>
-            <Link href="/docs/sdk">SDK</Link>
+            <Link href="/programs/policy-vault">Programs</Link>
+            <Link href="/sdk">SDK</Link>
           </span>
           <span className="docs-topbar-secondary">
             <a href="https://github.com/mohit-1710/agenttrust">GitHub</a>

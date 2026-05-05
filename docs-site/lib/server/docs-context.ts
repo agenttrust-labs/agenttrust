@@ -22,11 +22,11 @@ async function collectMdxFiles(dir: string): Promise<string[]> {
 function pagePathForFile(filePath: string): string {
   const relativePath = path.relative(DOCS_ROOT, filePath);
   const withoutExtension = relativePath.replace(/\.mdx$/, '');
-  if (withoutExtension === 'index') return '/docs';
+  if (withoutExtension === 'index') return '/';
   if (withoutExtension.endsWith('/index')) {
-    return `/docs/${withoutExtension.slice(0, -'/index'.length)}`;
+    return `/${withoutExtension.slice(0, -'/index'.length)}`;
   }
-  return `/docs/${withoutExtension}`;
+  return `/${withoutExtension}`;
 }
 
 export async function loadDocsContext(): Promise<string> {
