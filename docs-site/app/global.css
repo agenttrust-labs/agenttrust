@@ -191,7 +191,22 @@ samp {
   .docs-topbar nav {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    width: 477px;
+  }
+
+  .docs-topbar-primary,
+  .docs-topbar-secondary {
+    display: flex;
+    align-items: center;
+  }
+
+  .docs-topbar-primary {
     gap: 28px;
+  }
+
+  .docs-topbar-secondary {
+    gap: 22px;
   }
 
   .docs-topbar nav a {

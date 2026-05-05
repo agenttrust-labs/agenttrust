@@ -13,11 +13,17 @@ export default function Layout({ children }: LayoutProps<'/docs'>) {
           <span>AgentTrust</span>
         </a>
         <nav aria-label="Docs links">
-          <Link aria-current="page" href="/docs">
-            Documentation
-          </Link>
-          <a href="https://agenttrust.tech">Home</a>
-          <a href="https://github.com/mohit-1710/agenttrust">GitHub</a>
+          <span className="docs-topbar-primary">
+            <Link aria-current="page" href="/docs">
+              Documentation
+            </Link>
+            <Link href="/docs/programs/policy-vault">Programs</Link>
+            <Link href="/docs/sdk">SDK</Link>
+          </span>
+          <span className="docs-topbar-secondary">
+            <a href="https://github.com/mohit-1710/agenttrust">GitHub</a>
+            <a href="https://agenttrust.tech">Launch app</a>
+          </span>
         </nav>
       </header>
       <DocsLayout tree={source.getPageTree()} {...baseOptions()}>
