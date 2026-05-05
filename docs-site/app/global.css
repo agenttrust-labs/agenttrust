@@ -259,7 +259,7 @@ samp {
     padding-inline: 65px 113px;
   }
 
-  [data-ask-ai-open='true'] #nd-page > div:nth-child(4) {
+  [data-ask-ai-open='true'] .docs-page-actions {
     right: 113px;
   }
 
@@ -306,19 +306,20 @@ samp {
     scrollbar-gutter: stable;
   }
 
-  #nd-page > div:nth-child(4) {
-    position: absolute;
+  .docs-page-actions {
+    position: absolute !important;
     top: 82px;
     right: 76px;
     width: auto;
     height: 34px;
+    margin-bottom: 0 !important;
     gap: 0;
     padding-bottom: 0;
     border-bottom: 0;
     border-color: transparent !important;
   }
 
-  #nd-page > div:nth-child(4) > button:first-child {
+  .docs-page-actions > button:first-child {
     width: 122px;
     height: 34px;
     border-color: rgb(226, 225, 230) !important;
@@ -332,7 +333,7 @@ samp {
     padding: 6px 12px;
   }
 
-  #nd-page > div:nth-child(4) > button:nth-child(2) {
+  .docs-page-actions > button:nth-child(2) {
     width: 34px;
     height: 34px;
     padding: 0;
@@ -346,7 +347,7 @@ samp {
     gap: 0;
   }
 
-  #nd-page > div:nth-child(4) > button:nth-child(2) svg {
+  .docs-page-actions > button:nth-child(2) svg {
     margin: 0;
   }
 
@@ -478,14 +479,15 @@ a:hover .agenttrust-brand,
 
 .agenttrust-brand-mark {
   display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 1px solid var(--accent);
-  border-radius: 4px;
-  background:
-    linear-gradient(90deg, transparent 48%, var(--accent) 48% 52%, transparent 52%),
-    linear-gradient(0deg, transparent 48%, var(--accent) 48% 52%, transparent 52%),
-    var(--bg);
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.docs-topbar-brand .agenttrust-brand-mark {
+  width: 24px;
+  height: 24px;
 }
 
 #nd-page {

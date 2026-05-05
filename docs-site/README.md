@@ -20,7 +20,13 @@ pnpm --filter docs-site exec next dev -p 3001
 ## Environment
 
 Ask-AI uses `OPENAI_API_KEY` on the server route at `app/api/ask/route.ts`.
-For local testing, create `docs-site/.env.local`:
+For local testing:
+
+```bash
+cp docs-site/.env.example docs-site/.env.local
+```
+
+Then edit `docs-site/.env.local`:
 
 ```bash
 OPENAI_API_KEY=sk-...

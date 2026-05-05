@@ -1,4 +1,5 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import { AgentTrustLogoMark } from '@/components/docs/AgentTrustLogoMark';
 import { appName, gitConfig } from './shared';
 
 export function baseOptions(): BaseLayoutProps {
@@ -6,7 +7,7 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: (
         <span className="agenttrust-brand">
-          <span aria-hidden="true" className="agenttrust-brand-mark" />
+          <AgentTrustLogoMark className="agenttrust-brand-mark" />
           <span>{appName}</span>
         </span>
       ),

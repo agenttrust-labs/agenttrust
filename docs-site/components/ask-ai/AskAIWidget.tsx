@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AssistantSparkleIcon } from './AssistantSparkleIcon';
 import { AskButton } from './AskButton';
+import { OPEN_ASSISTANT_EVENT, type OpenAssistantEventDetail } from './events';
 import styles from './AskAI.module.css';
 
 const ChatPanel = dynamic(() => import('./ChatPanel'), { ssr: false });
@@ -30,6 +31,25 @@ export function AskAIWidget(): JSX.Element {
       delete document.documentElement.dataset.askAiOpen;
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    function handleOpenAssistant(event: Event): void {
+      const detail = (event as CustomEvent<OpenAssistantEventDetail>).detail;
+
+      if (detail?.question) {
+        questionIdRef.current += 1;
+        setInitialQuestion({ id: questionIdRef.current, text: detail.question });
+      }
+
+      setIsOpen(true);
+    }
+
+    window.addEventListener(OPEN_ASSISTANT_EVENT, handleOpenAssistant);
+
+    return () => {
+      window.removeEventListener(OPEN_ASSISTANT_EVENT, handleOpenAssistant);
+    };
+  }, []);
 
   const handlePromptSubmit = useCallback((text: string): void => {
     questionIdRef.current += 1;
