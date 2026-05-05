@@ -232,7 +232,7 @@ samp {
     inset: 56px 8px 8px 272px;
     z-index: 0;
     border: 1px solid var(--border-strong);
-    border-radius: 18px;
+    border-radius: 16px;
     background: var(--bg);
     content: '';
   }
@@ -259,7 +259,7 @@ samp {
     padding-inline: 65px 113px;
   }
 
-  [data-ask-ai-open='true'] #nd-page > div:nth-child(3) {
+  [data-ask-ai-open='true'] #nd-page > div:nth-child(4) {
     right: 113px;
   }
 
@@ -282,7 +282,7 @@ samp {
   #nd-sidebar > div:first-child {
     height: 44px;
     gap: 0;
-    padding: 8px 16px 0 24px;
+    padding: 8px 16px 0 25px;
   }
 
   #nd-sidebar > div:first-child > div:first-child {
@@ -306,36 +306,52 @@ samp {
     scrollbar-gutter: stable;
   }
 
-  #nd-page > div:nth-child(3) {
+  #nd-page > div:nth-child(4) {
     position: absolute;
     top: 82px;
     right: 76px;
     width: auto;
     height: 34px;
+    gap: 0;
     padding-bottom: 0;
     border-bottom: 0;
+    border-color: transparent !important;
   }
 
-  #nd-page > div:nth-child(3) > button:first-child {
+  #nd-page > div:nth-child(4) > button:first-child {
     width: 122px;
     height: 34px;
+    border-color: rgb(226, 225, 230) !important;
+    border-right: 0 !important;
+    border-radius: 12px 0 0 12px !important;
+    background: var(--bg) !important;
+    color: var(--ink-dim) !important;
+    font-size: 16px;
+    font-weight: 400 !important;
+    line-height: 16px;
+    padding: 6px 12px;
   }
 
-  #nd-page > div:nth-child(3) > button:nth-child(2) {
+  #nd-page > div:nth-child(4) > button:nth-child(2) {
     width: 34px;
     height: 34px;
     padding: 0;
     overflow: hidden;
+    border-color: rgb(226, 225, 230) !important;
+    border-radius: 0 12px 12px 0 !important;
+    background: var(--bg) !important;
+    color: var(--ink-dim) !important;
     font-size: 0;
+    font-weight: 400 !important;
     gap: 0;
   }
 
-  #nd-page > div:nth-child(3) > button:nth-child(2) svg {
+  #nd-page > div:nth-child(4) > button:nth-child(2) svg {
     margin: 0;
   }
 
   #nd-page > div.prose {
-    margin-top: 32px;
+    margin-top: 0;
   }
 
   #nd-toc {
@@ -359,7 +375,20 @@ samp {
 }
 
 #nd-sidebar [data-radix-scroll-area-viewport] {
-  padding: 16px;
+  padding: 24px 16px;
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] > div::before {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  margin: 0 0 8px;
+  padding-left: 16px;
+  color: var(--ink);
+  content: 'Introduction';
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
 }
 
 #nd-sidebar header,
@@ -378,6 +407,8 @@ samp {
 #nd-sidebar a:not(.agenttrust-brand),
 #nd-sidebar button:not([data-search-full]) {
   min-height: 32px;
+  padding: 6px 12px 6px 16px !important;
+  color: var(--ink-dim);
   font-size: 14px;
   line-height: 20px;
 }
@@ -385,17 +416,24 @@ samp {
 #nd-sidebar a[data-active='true'] {
   background: var(--accent-soft);
   color: var(--accent);
+  text-shadow:
+    -0.2px 0 0 currentColor,
+    0.2px 0 0 currentColor;
 }
 
 #nd-sidebar a[data-active='true']::before {
-  background: var(--accent);
+  display: none;
 }
 
 #nd-sidebar a[data-active='false']:hover,
-#nd-sidebar button:hover,
+#nd-sidebar button:hover {
+  background: rgba(83, 83, 87, 0.05);
+  color: var(--ink);
+}
+
 [data-search-full]:hover {
-  background: var(--accent-soft);
-  color: var(--accent-deep);
+  background: var(--bg) !important;
+  color: var(--ink) !important;
 }
 
 [data-search-full] {
@@ -404,6 +442,8 @@ samp {
   border-color: var(--border-strong);
   background: var(--bg) !important;
   color: var(--ink-soft) !important;
+  line-height: 24px;
+  padding: 0 12px 0 14px !important;
   box-shadow: 0 0 0 1px var(--border-strong) !important;
 }
 
@@ -453,13 +493,13 @@ a:hover .agenttrust-brand,
   padding-top: 56px;
   padding-bottom: 112px;
   padding-inline: 32px;
-  gap: 16px;
+  gap: 0;
 }
 
 @media (min-width: 1024px) {
   #nd-page {
     max-width: 864px;
-    padding-top: 80px;
+    padding-top: 51px;
     padding-inline: 68px 76px;
   }
 }
@@ -483,6 +523,7 @@ a:hover .agenttrust-brand,
   line-height: 36px;
   font-weight: 720;
   letter-spacing: 0;
+  margin-bottom: 8px;
 }
 
 #nd-page h2 {
@@ -510,6 +551,23 @@ a:hover .agenttrust-brand,
 #nd-page > p:first-of-type,
 #nd-page [class*='DocsDescription'] {
   color: var(--ink-dim);
+}
+
+.docs-page-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+  margin-bottom: 10px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.docs-page-description {
+  min-height: 56px;
+  margin-bottom: 32px !important;
+  line-height: 28px !important;
 }
 
 #nd-page hr,
@@ -615,6 +673,10 @@ a:hover .agenttrust-brand,
 
 button[aria-label='Open Next.js Dev Tools'] {
   display: none !important;
+}
+
+html[data-ask-ai-open='true'] body {
+  overflow: hidden;
 }
 
 @media (min-width: 1024px) {

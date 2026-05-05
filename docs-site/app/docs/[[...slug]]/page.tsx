@@ -14,6 +14,28 @@ import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { gitConfig } from '@/lib/shared';
 import { DocsFooter } from '@/components/docs/DocsFooter';
 
+const sectionLabels: Record<string, string> = {
+  'getting-started': 'Getting started',
+  programs: 'Programs',
+  sdk: 'SDK',
+  'integration-guides': 'Integration guides',
+  reference: 'Reference',
+};
+
+const subsectionLabels: Record<string, string> = {
+  'policy-vault': 'PolicyVault',
+};
+
+function getPageKicker(slug: string[] | undefined): string[] {
+  if (!slug || slug.length === 0) return ['Introduction'];
+
+  const [section, subsection] = slug;
+  return [
+    sectionLabels[section] ?? section,
+    ...(subsection && subsectionLabels[subsection] ? [subsectionLabels[subsection]] : []),
+  ];
+}
+
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
   const page = source.getPage(params.slug);
@@ -21,13 +43,21 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
 
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;
+  const kicker = getPageKicker(params.slug);
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
+      <div className="docs-page-kicker" aria-label="Page section">
+        {kicker.map((item) => (
+          <span key={item}>{item}</span>
+        ))}
+      </div>
       <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
+      <DocsDescription className="docs-page-description mb-0">
+        {page.data.description}
+      </DocsDescription>
       <div className="flex flex-row gap-2 items-center border-b pb-6">
-        <MarkdownCopyButton markdownUrl={markdownUrl} />
+        <MarkdownCopyButton markdownUrl={markdownUrl}>Copy page</MarkdownCopyButton>
         <ViewOptionsPopover
           markdownUrl={markdownUrl}
           githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/content/docs/${page.path}`}

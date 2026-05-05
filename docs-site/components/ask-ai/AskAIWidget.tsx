@@ -3,7 +3,7 @@
 import type { JSX } from 'react';
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Bot } from 'lucide-react';
+import { AssistantSparkleIcon } from './AssistantSparkleIcon';
 import { AskButton } from './AskButton';
 import styles from './AskAI.module.css';
 
@@ -43,16 +43,16 @@ export function AskAIWidget(): JSX.Element {
 
   return (
     <>
-      {!isOpen ? (
-        <button
-          aria-label="Toggle assistant panel"
-          className={styles.sidebarToggle}
-          onClick={() => setIsOpen(true)}
-          type="button"
-        >
-          <Bot aria-hidden="true" size={16} strokeWidth={1.8} />
-        </button>
-      ) : null}
+      <button
+        aria-pressed={isOpen}
+        aria-label="Toggle assistant panel"
+        className={styles.sidebarToggle}
+        data-active={isOpen ? 'true' : 'false'}
+        onClick={() => setIsOpen((current) => !current)}
+        type="button"
+      >
+        <AssistantSparkleIcon className={styles.sparkleIcon} size={18} />
+      </button>
       {!isOpen ? <AskButton onSubmit={handlePromptSubmit} /> : null}
       <ChatPanel
         initialQuestion={initialQuestion}

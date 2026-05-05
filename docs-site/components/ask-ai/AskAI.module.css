@@ -1,23 +1,23 @@
 .prompt {
   position: fixed;
   z-index: 35;
-  left: calc(var(--fd-sidebar-width) + ((100vw - var(--fd-sidebar-width) - var(--fd-toc-width) - 900px) / 2) + 72px);
-  bottom: 34px;
+  left: calc(var(--fd-sidebar-width) + ((100vw - var(--fd-sidebar-width) - var(--fd-toc-width) - 900px) / 2) + 70px);
+  bottom: 33px;
   display: flex;
   align-items: center;
   gap: 8px;
-  width: min(718px, calc(100vw - var(--fd-sidebar-width) - var(--fd-toc-width) - 144px));
-  min-height: 60px;
+  width: min(720px, calc(100vw - var(--fd-sidebar-width) - var(--fd-toc-width) - 140px));
+  min-height: 62px;
   padding: 9px 10px 9px 14px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-control);
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  border: 1px solid rgb(226, 225, 230);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
   color: var(--ink-soft);
   font-size: 14px;
   line-height: 20px;
   text-align: left;
-  box-shadow: 0 8px 18px rgba(16, 16, 22, 0.08);
-  backdrop-filter: blur(14px);
+  box-shadow: none;
+  backdrop-filter: blur(20px);
 }
 
 .prompt::before {
@@ -107,18 +107,34 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--border-strong);
+  border: 0;
   border-radius: var(--radius-control);
   background: var(--bg);
   color: var(--ink-soft);
+  box-shadow:
+    rgb(255, 255, 255) 0 0 0 0,
+    var(--border-strong) 0 0 0 1px,
+    rgba(0, 0, 0, 0.05) 0 1px 2px 0;
 }
 
 .sidebarToggle:hover,
+.sidebarToggle:focus-visible,
+.sidebarToggle[data-active='true'] {
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow:
+    rgb(255, 255, 255) 0 0 0 0,
+    rgba(83, 83, 87, 0.3) 0 0 0 1px,
+    rgba(0, 0, 0, 0.05) 0 1px 2px 0;
+}
+
 .sidebarToggle:focus-visible {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent-deep);
   outline: none;
+}
+
+.sparkleIcon {
+  width: 18px;
+  height: 18px;
 }
 
 .panel {
@@ -128,13 +144,18 @@
   right: 8px;
   display: flex;
   flex-direction: column;
-  width: min(358px, calc(100vw - 16px));
+  width: min(360px, calc(100vw - 16px));
   height: calc(100dvh - 16px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-control);
+  overflow: hidden;
+  border: 1px solid rgba(226, 225, 230, 0.7);
+  border-radius: 16px;
   background: var(--bg);
   color: var(--ink);
-  box-shadow: 0 8px 18px rgba(16, 16, 22, 0.08);
+  box-shadow: none;
+}
+
+.panel[data-expanded='true'] {
+  width: min(720px, calc(100vw - 16px));
 }
 
 .panelHeader {
@@ -143,56 +164,76 @@
   justify-content: space-between;
   gap: 16px;
   min-height: 52px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
+  padding: 12px 16px 12px;
 }
 
-.panelHeader strong,
-.panelHeader span {
-  display: block;
+.panelTitle,
+.panelActions {
+  display: flex;
+  align-items: center;
 }
 
-.panelHeader strong {
-  font-size: 15px;
-  line-height: 22px;
+.panelTitle {
+  gap: 8px;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
 }
 
-.panelHeader span {
-  color: var(--ink-soft);
-  font-size: 12px;
-  line-height: 18px;
+.panelSparkleIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
 }
 
-.iconButton,
-.form button {
+.panelActions {
+  gap: 4px;
+}
+
+.iconButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 34px;
-  height: 34px;
-  border: 1px solid var(--border);
+  width: 28px;
+  height: 28px;
+  border: 0;
   border-radius: var(--radius-small);
-  background: var(--bg-subtle);
-  color: var(--ink);
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.iconButton:first-child {
+  width: 26px;
+  height: 26px;
 }
 
 .iconButton:hover,
-.form button:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+.iconButton:focus-visible {
+  background: var(--bg-subtle);
+  color: var(--ink);
+  outline: none;
 }
 
 .panelBody {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 18px;
+  padding: 0 20px;
+  border-top: 1px solid var(--border);
+}
+
+.empty {
+  margin-top: 16px;
 }
 
 .empty p {
-  margin: 0 0 14px;
-  color: var(--ink-dim);
-  font-size: 14px;
-  line-height: 22px;
+  width: min(254px, 100%);
+  margin: 0 auto;
+  color: rgb(162, 161, 166);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
 }
 
 .suggestionGrid {
@@ -261,31 +302,84 @@
 }
 
 .form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  padding: 14px;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
+  display: block;
+  flex: 0 0 auto;
+  padding: 0 16px 16px;
+  background: transparent;
+}
+
+.formShell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 84px;
+  overflow: hidden;
+  border: 1px solid rgb(226, 225, 230);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(20px);
+  transition: border-color 120ms ease;
+}
+
+.formShell:focus-within {
+  border-color: var(--accent);
 }
 
 .form textarea {
-  min-height: 44px;
-  max-height: 132px;
-  resize: vertical;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-control);
-  background: var(--bg-subtle);
+  width: 100%;
+  height: 50px;
+  min-height: 50px;
+  max-height: 120px;
+  resize: none;
+  border: 0;
+  background: transparent;
   color: var(--ink);
   font: inherit;
   font-size: 14px;
-  line-height: 22px;
-  padding: 10px 12px;
+  line-height: 20px;
+  padding: 10px 40px 0 14px;
 }
 
 .form textarea:focus {
-  border-color: var(--accent);
   outline: none;
+}
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 32px;
+  padding: 0 8px 8px;
+}
+
+.sendButton,
+.stopButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.stopButton {
+  padding: 0 8px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.sendButton:not(:disabled),
+.stopButton {
+  color: var(--accent);
+}
+
+.sendButton:not(:disabled):hover,
+.stopButton:hover {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
 }
 
 .form button:disabled {

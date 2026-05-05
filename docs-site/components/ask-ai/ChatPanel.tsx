@@ -4,11 +4,10 @@ import type { FormEvent, JSX } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DefaultChatTransport } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { Send, X } from 'lucide-react';
-import { ASK_AI_SUGGESTIONS } from '@/data/ask-ai-suggestions';
+import { Maximize2, Send, X } from 'lucide-react';
+import { AssistantSparkleIcon } from './AssistantSparkleIcon';
 import type { InitialQuestion } from './AskAIWidget';
 import { MessageList } from './MessageList';
-import { SuggestionChip } from './SuggestionChip';
 import styles from './AskAI.module.css';
 
 export interface ChatPanelProps {
@@ -25,7 +24,9 @@ export default function ChatPanel({
   onInitialQuestionHandled,
 }: ChatPanelProps): JSX.Element | null {
   const [input, setInput] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const handledInitialQuestionRef = useRef<number | null>(null);
   const transport = useMemo(() => new DefaultChatTransport({ api: '/api/ask' }), []);
   const { messages, sendMessage, status, error, stop } = useChat({ transport });
@@ -43,12 +44,20 @@ export default function ChatPanel({
   useEffect(() => {
     if (!isOpen) return undefined;
 
+    const frame = requestAnimationFrame(() => textareaRef.current?.focus());
+
     function handleKeyDown(event: KeyboardEvent): void {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') {
+        setIsExpanded(false);
+        onClose();
+      }
     }
 
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, onClose]);
 
   useEffect(() => {
@@ -61,6 +70,11 @@ export default function ChatPanel({
 
   if (!isOpen) return null;
 
+  function handleClose(): void {
+    setIsExpanded(false);
+    onClose();
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     const text = input.trim();
@@ -70,32 +84,41 @@ export default function ChatPanel({
   }
 
   return (
-    <aside className={styles.panel} aria-label="Ask AgentTrust docs">
+    <aside
+      aria-label="Ask AgentTrust docs"
+      className={styles.panel}
+      data-expanded={isExpanded ? 'true' : 'false'}
+    >
       <header className={styles.panelHeader}>
-        <div>
-          <strong>Ask AgentTrust docs</strong>
-          <span>Answers are constrained to the current docs.</span>
+        <div className={styles.panelTitle}>
+          <AssistantSparkleIcon className={styles.panelSparkleIcon} size={18} />
+          <span>Assistant</span>
         </div>
-        <button className={styles.iconButton} type="button" aria-label="Close Ask AI" onClick={onClose}>
-          <X aria-hidden="true" size={18} />
-        </button>
+        <div className={styles.panelActions}>
+          <button
+            aria-label="Expand assistant panel"
+            aria-pressed={isExpanded}
+            className={styles.iconButton}
+            onClick={() => setIsExpanded((current) => !current)}
+            type="button"
+          >
+            <Maximize2 aria-hidden="true" size={14} />
+          </button>
+          <button
+            aria-label="Close assistant panel"
+            className={styles.iconButton}
+            onClick={handleClose}
+            type="button"
+          >
+            <X aria-hidden="true" size={18} />
+          </button>
+        </div>
       </header>
 
       <div className={styles.panelBody}>
         {messages.length === 0 ? (
           <div className={styles.empty}>
-            <p>Start with a docs question.</p>
-            <div className={styles.suggestionGrid}>
-              {ASK_AI_SUGGESTIONS.map((question) => (
-                <SuggestionChip
-                  key={question}
-                  question={question}
-                  onSelect={(nextQuestion) => {
-                    void sendQuestion(nextQuestion);
-                  }}
-                />
-              ))}
-            </div>
+            <p>Responses are generated using AI and may contain mistakes.</p>
           </div>
         ) : (
           <MessageList messages={messages} />
@@ -104,28 +127,39 @@ export default function ChatPanel({
       </div>
 
       <form className={styles.form} ref={formRef} onSubmit={handleSubmit}>
-        <textarea
-          aria-label="Ask a question"
-          maxLength={500}
-          placeholder="Ask a question..."
-          value={input}
-          onChange={(event) => setInput(event.currentTarget.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault();
-              formRef.current?.requestSubmit();
-            }
-          }}
-        />
-        {isBusy ? (
-          <button type="button" onClick={() => void stop()}>
-            Stop
-          </button>
-        ) : (
-          <button type="submit" aria-label="Send question" disabled={!input.trim()}>
-            <Send aria-hidden="true" size={16} />
-          </button>
-        )}
+        <div className={styles.formShell}>
+          <textarea
+            aria-label="Ask a question..."
+            maxLength={500}
+            onChange={(event) => setInput(event.currentTarget.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                formRef.current?.requestSubmit();
+              }
+            }}
+            placeholder="Ask a question..."
+            ref={textareaRef}
+            value={input}
+          />
+          <div className={styles.formFooter}>
+            <span aria-hidden="true" />
+            {isBusy ? (
+              <button className={styles.stopButton} type="button" onClick={() => void stop()}>
+                Stop
+              </button>
+            ) : (
+              <button
+                aria-label="Send question"
+                className={styles.sendButton}
+                disabled={!input.trim()}
+                type="submit"
+              >
+                <Send aria-hidden="true" size={14} />
+              </button>
+            )}
+          </div>
+        </div>
       </form>
     </aside>
   );
