@@ -1,45 +1,52 @@
-# docs-site
+# AgentTrust docs site
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+Fumadocs + Next.js docs site for `docs.agenttrust.tech`.
 
-Run development server:
+## Commands
 
 ```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
+pnpm --filter docs-site dev
+pnpm --filter docs-site lint
+pnpm --filter docs-site types:check
+pnpm --filter docs-site build
 ```
 
-Open http://localhost:3000 with your browser to see the result.
+Local dev runs at `http://localhost:3001/docs` when started with:
 
-## Explore
+```bash
+pnpm --filter docs-site exec next dev -p 3001
+```
 
-In the project, you can see:
+## Environment
 
-- `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
-- `lib/layout.shared.tsx`: Shared options for layouts, optional but preferred to keep.
+Ask-AI uses `OPENAI_API_KEY` on the server route at `app/api/ask/route.ts`.
+For local testing, create `docs-site/.env.local`:
 
-| Route                     | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `app/(home)`              | The route group for your landing page and other pages. |
-| `app/docs`                | The documentation layout and pages.                    |
-| `app/api/search/route.ts` | The Route Handler for search.                          |
+```bash
+OPENAI_API_KEY=sk-...
+```
 
-### Fumadocs MDX
+Do not commit `.env.local`. It is ignored by `docs-site/.gitignore`.
 
-A `source.config.ts` config file has been included, you can customise different options like frontmatter schema.
+Cost-monitor note: ~$0.003 per question at gpt-4o-mini pricing; ~$3 per 1000 questions.
 
-Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
+## Content
 
-## Learn More
+Docs pages live in `content/docs`. The current IA has 25 MDX pages:
 
-To learn more about Next.js and Fumadocs, take a look at the following
-resources:
+- 9 full pages: introduction, quickstart, architecture overview, 3 program pages, SDK overview, x402 facilitator guide, devnet program IDs.
+- 16 source-linked stubs for policy subpages, SDK details, integration guides, and reference pages.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Fumadocs](https://fumadocs.dev) - learn about Fumadocs
+Shared facts live in `lib/constants.ts`. MDX components are registered in `components/mdx.tsx`.
+
+## Verification
+
+Before committing docs-site changes:
+
+```bash
+pnpm --filter docs-site lint
+pnpm --filter docs-site types:check
+pnpm --filter docs-site build
+```
+
+Then verify `/docs` and any touched pages in Playwright at desktop, tablet, and mobile widths.

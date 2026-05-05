@@ -429,20 +429,6 @@ a:hover .agenttrust-brand,
   border-color: var(--border);
 }
 
-@media (max-width: 767px) {
-  #nd-page table {
-    min-width: 100% !important;
-    table-layout: fixed;
-    font-size: 12px;
-  }
-
-  #nd-page td,
-  #nd-page th {
-    overflow-wrap: anywhere;
-    white-space: normal;
-  }
-}
-
 #nd-page :not(pre) > code {
   border: 1px solid var(--border);
   border-radius: 6px;
