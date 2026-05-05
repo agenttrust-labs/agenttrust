@@ -13,9 +13,11 @@
 }
 
 .stage {
-  position: relative;
+  position: sticky;
+  top: 116px;
   display: flex;
-  min-height: 100dvh;
+  height: calc(100dvh - 116px);
+  min-height: 0;
   max-width: 1920px;
   padding: 0 20px;
   margin: 0 auto;
@@ -56,14 +58,14 @@
 }
 
 .lead {
-  top: 80px;
+  top: clamp(42px, 8dvh, 80px);
   left: 20px;
 }
 
 .resolve {
   left: 20px;
   right: 20px;
-  bottom: 96px;
+  bottom: clamp(48px, 7dvh, 96px);
   max-width: 35ch;
 }
 
@@ -125,6 +127,7 @@
     position: sticky;
     top: 0;
     height: 100dvh;
+    min-height: 100dvh;
     padding: 0 40px;
   }
 

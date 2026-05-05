@@ -24,7 +24,7 @@ export default function PlugAndPlayContent() {
         return;
       }
 
-      createPlugAndPlayReveal({ isReducedMotion, root });
+      return createPlugAndPlayReveal({ isReducedMotion, root });
     },
     { dependencies: [isReducedMotion], revertOnUpdate: true, scope: rootRef },
   );

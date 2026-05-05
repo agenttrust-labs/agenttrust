@@ -28,7 +28,7 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -37,7 +37,7 @@
 .link {
   display: inline-flex;
   width: fit-content;
-  min-height: 28px;
+  min-height: 40px;
   align-items: center;
   font-family: var(--font-geist-mono), monospace;
   font-size: 13px;

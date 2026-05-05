@@ -38,7 +38,7 @@ export const PERFORMANCE_STATEMENT =
 
 export const PERFORMANCE_CTA = {
   label: "Learn About Trust Performance",
-  href: "#build",
+  href: "#plug-and-play",
 } as const;
 
 export const PERFORMANCE_STATS: readonly PerformanceStat[] = [

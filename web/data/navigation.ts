@@ -49,13 +49,13 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           {
             label: "Proof Matrix",
             description: "Five verified invariants with harness names visible.",
-            href: "#proofs",
+            href: "#trilemma",
             icon: "grid",
           },
           {
             label: "Program IDs",
             description: "Devnet addresses for every trust gate component.",
-            href: "#programs",
+            href: "#plug-and-play",
             icon: "file",
           },
         ],
@@ -87,7 +87,7 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
   },
   {
     label: "Build",
-    href: "#build",
+    href: "#plug-and-play",
     menu: [
       {
         title: "Start Building",
@@ -95,19 +95,19 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           {
             label: "Integrate SDK",
             description: "Install the client and call trust gates in minutes.",
-            href: "#build",
+            href: "#plug-and-play",
             icon: "code",
           },
           {
             label: "Developer Brief",
             description: "Read exact accounts, checks, and return states.",
-            href: "#docs",
+            href: "#media",
             icon: "book",
           },
           {
-            label: "GitHub Repo",
-            description: "Review source, tests, proofs, and license.",
-            href: "#github",
+            label: "Builder Notes",
+            description: "Follow integration updates and proof writeups.",
+            href: "#media",
             icon: "file",
           },
         ],
@@ -118,19 +118,19 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           {
             label: "Policy Vault",
             description: "Thresholds, pausing, and signer controls.",
-            href: "#programs",
+            href: "#plug-and-play",
             icon: "shield",
           },
           {
             label: "Trust Gate",
             description: "Payment allow or deny checks.",
-            href: "#programs",
+            href: "#plug-and-play",
             icon: "terminal",
           },
           {
             label: "Registry",
             description: "Validation expiry and counterparty status.",
-            href: "#programs",
+            href: "#network",
             icon: "grid",
           },
         ],
@@ -139,7 +139,7 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
   },
   {
     label: "Resources",
-    href: "#resources",
+    href: "#media",
     menu: [
       {
         title: "References",
@@ -147,19 +147,19 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           {
             label: "Documentation",
             description: "Implementation notes and account layouts.",
-            href: "#docs",
+            href: "#plug-and-play",
             icon: "book",
           },
           {
-            label: "NPM Package",
-            description: "@agenttrust-sdk/trustgate for TypeScript apps.",
-            href: "#npm",
+            label: "SDK Brief",
+            description: "Payment-gate client usage for TypeScript apps.",
+            href: "#plug-and-play",
             icon: "box",
           },
           {
             label: "MIT License",
             description: "Open-source grant-friendly license surface.",
-            href: "#license",
+            href: "#footer",
             icon: "file",
           },
         ],
@@ -170,19 +170,19 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           {
             label: "Kani Harnesses",
             description: "Paused, velocity, tier, expiry, and threshold checks.",
-            href: "#proofs",
+            href: "#trilemma",
             icon: "shield",
           },
           {
             label: "Test Matrix",
             description: "Program and SDK checks for payment gates.",
-            href: "#tests",
+            href: "#performance",
             icon: "grid",
           },
           {
             label: "Contact",
             description: "Reach the maintainers for integration review.",
-            href: "#contact",
+            href: "#events",
             icon: "users",
           },
         ],

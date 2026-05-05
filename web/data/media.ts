@@ -12,13 +12,13 @@ export const MEDIA_COPY =
 
 export const MEDIA_CARDS: readonly MediaCard[] = [
   {
-    href: "#proofs",
+    href: "#trilemma",
     imageAlt: "Purple proof notes layered over a verification grid",
     imageSrc: "/media/media-proof-notes.svg",
     title: "Proof Notes",
   },
   {
-    href: "#build",
+    href: "#plug-and-play",
     imageAlt: "Builder log panels connected by trust-gate routes",
     imageSrc: "/media/media-builder-log.svg",
     title: "Builder Log",

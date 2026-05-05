@@ -26,7 +26,7 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
   {
     title: "Product",
     links: [
-      { href: "#monad", label: "Home" },
+      { href: "#home", label: "Home" },
       { href: "#trust-stack", label: "Trust Stack" },
       { href: "#performance", label: "Performance" },
       { href: "#network", label: "Network" },
@@ -36,16 +36,16 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
     title: "Build",
     links: [
       { href: "#plug-and-play", label: "Documentation" },
-      { href: "https://www.npmjs.com/package/@agenttrust-sdk/trustgate", label: "SDK Package" },
-      { href: "https://github.com/mohit-1710/agenttrust", label: "GitHub" },
+      { href: "#explore", label: "Integration Guide" },
+      { href: "#network", label: "Trust Operators" },
       { href: "#explore", label: "Integrations" },
     ],
   },
   {
     title: "Proofs",
     links: [
-      { href: "#a-new-benchmark", label: "Benchmark" },
-      { href: "#the-trilemma", label: "Kani Checks" },
+      { href: "#benchmark", label: "Benchmark" },
+      { href: "#trilemma", label: "Kani Checks" },
       { href: "#events", label: "Operator Briefings" },
       { href: "#media", label: "Field Notes" },
     ],
@@ -53,7 +53,7 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
   {
     title: "Legal",
     links: [
-      { href: "https://github.com/mohit-1710/agenttrust/blob/main/LICENSE", label: "MIT License" },
+      { href: "#footer", label: "MIT License" },
       { href: "#footer", label: "Privacy" },
       { href: "#footer", label: "Terms" },
     ],

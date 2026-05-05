@@ -33,11 +33,11 @@ export const HERO_BODY =
   "AgentTrust gates payment intent on counterparty identity, reputation, policy, and verification proofs for Solana builders.";
 
 export const HERO_ACTIONS: readonly HeroAction[] = [
-  { icon: "globe", label: "Integrate SDK", href: "#build", variant: "primary" },
+  { icon: "globe", label: "Integrate SDK", href: "#plug-and-play", variant: "primary" },
   {
     icon: "file",
     label: "Read the Documentation",
-    href: "#resources",
+    href: "#plug-and-play",
     variant: "secondary",
   },
 ];

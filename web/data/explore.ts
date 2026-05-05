@@ -20,7 +20,7 @@ export const EXPLORE_CARDS: readonly ExploreCard[] = [
   {
     description:
       "Install the SDK, wire a payment gate, and test the devnet programs with verified constraints.",
-    href: "#build",
+    href: "#plug-and-play",
     imageAlt: "",
     imageSrc: "/media/explore-builder-kit.svg",
     title: "Start Building",

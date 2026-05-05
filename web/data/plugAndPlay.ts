@@ -18,7 +18,7 @@ export const PLUG_COPY: readonly PlugCopySegment[] = [
 ] as const;
 
 export const PLUG_CTA = {
-  href: "#resources",
+  href: "#events",
   label: "Check Integration Briefing",
 } as const;
 

@@ -9,7 +9,7 @@ export const STORYTELLING_PANELS: readonly StoryPanel[] = [
     body: "Resolve the agent, the recipient, and the freshest attestations before the payment route is allowed to open.",
     action: {
       label: "Read the Documentation",
-      href: "#resources",
+      href: "#plug-and-play",
     },
     visual: "identity",
   },
@@ -19,7 +19,7 @@ export const STORYTELLING_PANELS: readonly StoryPanel[] = [
     body: "Intent passes through limits, velocity caps, allowlists, and emergency stops before a transfer can settle.",
     action: {
       label: "View Devnet Programs",
-      href: "#programs",
+      href: "#plug-and-play",
     },
     visual: "policy",
   },
@@ -29,7 +29,7 @@ export const STORYTELLING_PANELS: readonly StoryPanel[] = [
     body: "Every decision emits invariant checks, byte-precise reads, and the exact reason a payment passed or stopped.",
     action: {
       label: "Inspect Proofs",
-      href: "#proofs",
+      href: "#trilemma",
     },
     visual: "proofs",
   },

@@ -63,8 +63,13 @@
 
 @media (max-width: 639px) {
   .radar {
-    right: -22%;
-    bottom: 20%;
-    width: 86vw;
+    right: -10%;
+    bottom: 16%;
+    width: min(72vw, 300px);
+  }
+
+  .radarGlow {
+    inset: -12%;
+    filter: blur(7px);
   }
 }

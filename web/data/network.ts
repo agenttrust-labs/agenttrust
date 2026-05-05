@@ -24,6 +24,6 @@ export const NETWORK_COPY: readonly NetworkCopySegment[] = [
 ] as const;
 
 export const NETWORK_CTA = {
-  href: "#build",
+  href: "#events",
   label: "Learn About The Network",
 } as const;
