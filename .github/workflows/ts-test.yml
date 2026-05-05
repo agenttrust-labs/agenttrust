@@ -5,15 +5,22 @@ on:
     paths:
       - 'trustgate/**'
       - 'web/**'
+      - 'docs-site/**'
       - 'tests/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/ts-test.yml'
   push:
     branches: [main]
     paths:
       - 'trustgate/**'
       - 'web/**'
+      - 'docs-site/**'
       - 'tests/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/ts-test.yml'
   workflow_dispatch:
 
 jobs:
@@ -21,9 +28,6 @@ jobs:
     name: '@agenttrust-sdk/trustgate — build + unit tests'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: trustgate/sdk
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -31,18 +35,18 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-          cache-dependency-path: trustgate/sdk/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run build
-      - run: pnpm test
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install workspace deps
+        run: pnpm install --frozen-lockfile
+      - name: Build SDK
+        run: pnpm --filter ./trustgate/sdk run build
+      - name: SDK unit tests
+        run: pnpm --filter ./trustgate/sdk test
 
   server:
     name: trustgate/server — unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: trustgate/server
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -50,18 +54,18 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-          cache-dependency-path: trustgate/server/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec tsc --noEmit
-      - run: pnpm test
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install workspace deps
+        run: pnpm install --frozen-lockfile
+      - name: Type-check server
+        run: pnpm --filter ./trustgate/server exec tsc --noEmit
+      - name: Server unit tests
+        run: pnpm --filter ./trustgate/server test
 
   web:
     name: web — Next.js production build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -69,6 +73,8 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-          cache-dependency-path: web/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec next build
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install workspace deps
+        run: pnpm install --frozen-lockfile
+      - name: Next.js production build
+        run: pnpm --filter ./web exec next build
