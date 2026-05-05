@@ -59,3 +59,8 @@ export {
   sameNetwork,
   DEFAULT_FEEDBACK_SCORE,
 } from "./pay-sh";
+
+export { NotImplementedAdapter } from "./stubs/_base";
+export { Dexter } from "./stubs/dexter";
+export { Atxp }   from "./stubs/atxp";
+export { McPay }  from "./stubs/mcpay";
