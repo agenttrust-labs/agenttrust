@@ -1,0 +1,19 @@
+---
+title: Formal verification
+description: Kani proof harnesses that guard PolicyVault invariants.
+---
+
+`In progress`
+
+AgentTrust runs five Kani harnesses for the current PolicyVault safety surface.
+
+| Harness | Property |
+| --- | --- |
+| `paused_implies_no_allow` | paused KillSwitch cannot allow |
+| `velocity_counter_le_limit` | allow-path counter stays within limit |
+| `counterparty_tier_monotone` | looser tier requirement cannot fail after tighter pass |
+| `validation_expiry_correct` | expired attestation cannot allow |
+| `multisig_threshold_enforced` | threshold requires distinct signing members |
+
+Sources: [`programs/policy-vault/src/proofs`](https://github.com/mohit-1710/agenttrust/tree/main/programs/policy-vault/src/proofs), [`.github/workflows/kani-prove.yml`](https://github.com/mohit-1710/agenttrust/blob/main/.github/workflows/kani-prove.yml)
+

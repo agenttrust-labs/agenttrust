@@ -1,0 +1,15 @@
+---
+title: mountTrustGate
+description: Express middleware that mounts AgentTrust x402 routes.
+---
+
+`In progress`
+
+`mountTrustGate(app, config)` adds `/verify`, `/receipt`, `/settle`, and `/dispute` handlers to an Express service. The SDK enforces the atomicity config before binding routes.
+
+| Source | Path |
+| --- | --- |
+| Express middleware | [`trustgate/sdk/src/express.ts`](https://github.com/mohit-1710/agenttrust/blob/main/trustgate/sdk/src/express.ts) |
+| x402 helpers | [`trustgate/sdk/src/x402.ts`](https://github.com/mohit-1710/agenttrust/blob/main/trustgate/sdk/src/x402.ts) |
+| atomicity tests | [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/mohit-1710/agenttrust/blob/main/trustgate/sdk/test/atomicity.test.ts) |
+

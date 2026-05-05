@@ -1,5 +1,13 @@
 {
   "title": "Reference",
-  "pages": ["devnet-program-ids"],
+  "pages": [
+    "devnet-program-ids",
+    "mainnet-program-ids",
+    "byte-offset-reference",
+    "discriminator-constants",
+    "formal-verification",
+    "changelog",
+    "quantu-agent-registry"
+  ],
   "defaultOpen": false
 }

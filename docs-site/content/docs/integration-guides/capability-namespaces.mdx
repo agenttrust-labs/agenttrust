@@ -1,0 +1,15 @@
+---
+title: Capability namespaces
+description: Naming and hashing convention for validation capabilities.
+---
+
+`In progress`
+
+Capability namespaces let facilitators ask for a specific validation artifact without coupling the payment route to one attestor. The ValidationRegistry stores the namespace and the attestation PDA stores the capability hash.
+
+| Source | Path |
+| --- | --- |
+| namespace state | [`programs/validation-registry/src/state/capability_namespace.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/validation-registry/src/state/capability_namespace.rs) |
+| register instruction | [`programs/validation-registry/src/instructions/register_namespace.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/validation-registry/src/instructions/register_namespace.rs) |
+| x402 header | [`trustgate/sdk/src/x402.ts`](https://github.com/mohit-1710/agenttrust/blob/main/trustgate/sdk/src/x402.ts) |
+

@@ -1,0 +1,15 @@
+---
+title: KillSwitch policy
+description: Multisig-gated pause control for PolicyVault decisions.
+---
+
+`In progress`
+
+KillSwitch is the first policy in the composer. When it is paused, the composer cannot return `Allow`.
+
+| Source | Path |
+| --- | --- |
+| evaluator | [`programs/policy-vault/src/policies/killswitch.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/policies/killswitch.rs) |
+| pause instruction | [`programs/policy-vault/src/instructions/set_killswitch.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/instructions/set_killswitch.rs) |
+| proof | [`programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs) |
+

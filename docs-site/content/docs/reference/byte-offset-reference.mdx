@@ -1,0 +1,20 @@
+---
+title: Byte-offset reference
+description: Fixed offsets used by AgentTrust cross-program readers.
+---
+
+`In progress`
+
+| Account | Field | Offset |
+| --- | --- | --- |
+| `AtomStats` | `risk_score` | `549` |
+| `AtomStats` | `trust_tier` | `551` |
+| `AtomStats` | `confidence` | `557..558` |
+| `ValidationAttestation` | `subject` | `8` |
+| `ValidationAttestation` | `capability` | `40` |
+| `ValidationAttestation` | `attestor` | `72` |
+| `ValidationAttestation` | `expires` | `208` |
+| `ValidationAttestation` | `revoked` | `216` |
+
+Sources: [`programs/policy-vault/src/ext/atom_engine.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/ext/atom_engine.rs), [`programs/policy-vault/src/ext/validation_registry.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs)
+

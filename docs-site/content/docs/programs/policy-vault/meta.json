@@ -1,5 +1,12 @@
 {
   "title": "PolicyVault",
-  "pages": ["index"],
+  "pages": [
+    "index",
+    "spending-policy",
+    "counterparty-tier-policy",
+    "velocity-policy",
+    "require-validation-policy",
+    "kill-switch-policy"
+  ],
   "defaultOpen": true
 }

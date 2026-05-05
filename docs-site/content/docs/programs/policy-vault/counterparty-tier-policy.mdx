@@ -1,0 +1,15 @@
+---
+title: Counterparty tier policy
+description: Quantu AtomStats trust-tier and risk checks used by the PolicyVault composer.
+---
+
+`In progress`
+
+The CounterpartyTier policy reads Quantu AtomStats fields through a manual byte parser, then checks trust tier, risk score, and confidence before payment release.
+
+| Source | Path |
+| --- | --- |
+| evaluator | [`programs/policy-vault/src/policies/counterparty_tier.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/policies/counterparty_tier.rs) |
+| AtomStats parser | [`programs/policy-vault/src/ext/atom_engine.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/ext/atom_engine.rs) |
+| proof | [`programs/policy-vault/src/proofs/inv_counterparty_tier_monotone.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_counterparty_tier_monotone.rs) |
+

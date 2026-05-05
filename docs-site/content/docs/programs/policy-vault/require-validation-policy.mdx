@@ -1,0 +1,15 @@
+---
+title: RequireValidation policy
+description: Capability-attestation checks for payments that need validation evidence.
+---
+
+`In progress`
+
+RequireValidation returns `RequireValidation` when the required capability is missing, and returns `Deny` when the supplied attestation is expired, revoked, or not issued by an accepted attestor.
+
+| Source | Path |
+| --- | --- |
+| evaluator | [`programs/policy-vault/src/policies/require_validation.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/policies/require_validation.rs) |
+| attestation parser | [`programs/policy-vault/src/ext/validation_registry.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs) |
+| proof | [`programs/policy-vault/src/proofs/inv_validation_expiry_correct.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_validation_expiry_correct.rs) |
+

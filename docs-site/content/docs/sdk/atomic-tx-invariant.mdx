@@ -1,0 +1,15 @@
+---
+title: Atomic-tx invariant
+description: SDK and facilitator rules that keep policy checks tied to settlement.
+---
+
+`In progress`
+
+AgentTrust treats a policy check as useful only when the facilitator enforces the same payment context through settlement. The SDK keeps that invariant explicit in config and tests.
+
+| Source | Path |
+| --- | --- |
+| SDK invariant guard | [`trustgate/sdk/src/atomicity.ts`](https://github.com/mohit-1710/agenttrust/blob/main/trustgate/sdk/src/atomicity.ts) |
+| tests | [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/mohit-1710/agenttrust/blob/main/trustgate/sdk/test/atomicity.test.ts) |
+| facilitator routes | [`trustgate/server/src/routes/settle.ts`](https://github.com/mohit-1710/agenttrust/blob/main/trustgate/server/src/routes/settle.ts) |
+

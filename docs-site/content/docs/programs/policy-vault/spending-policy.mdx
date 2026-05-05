@@ -1,0 +1,15 @@
+---
+title: Spending policy
+description: Per-transaction, daily, and weekly limits enforced before payment settlement.
+---
+
+`In progress`
+
+The Spending policy gates a payment against configured per-transaction, daily, and weekly limits. Allow-path deltas are applied only after the full PolicyVault composer returns `Allow`.
+
+| Source | Path |
+| --- | --- |
+| evaluator | [`programs/policy-vault/src/policies/spending.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/policies/spending.rs) |
+| composer | [`programs/policy-vault/src/policies/composer.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/policies/composer.rs) |
+| policy init | [`programs/policy-vault/src/instructions/init_policy.rs`](https://github.com/mohit-1710/agenttrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs) |
+
