@@ -9,12 +9,14 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
+    "lint": "tsc --noEmit",
     "test": "ts-mocha -p ./tsconfig.json -t 30000 test/**/*.test.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
     "@solana/web3.js": "^1.98.0",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/chai": "^4.3.0",
