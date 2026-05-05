@@ -2,13 +2,13 @@
   position: fixed;
   z-index: 35;
   left: calc(var(--fd-sidebar-width) + ((100vw - var(--fd-sidebar-width) - var(--fd-toc-width) - 900px) / 2) + 72px);
-  bottom: 20px;
-  display: inline-flex;
+  bottom: 16px;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  width: min(756px, calc(100vw - var(--fd-sidebar-width) - var(--fd-toc-width) - 144px));
-  min-height: 44px;
-  padding: 0 12px 0 14px;
+  gap: 8px;
+  width: min(718px, calc(100vw - var(--fd-sidebar-width) - var(--fd-toc-width) - 144px));
+  min-height: 60px;
+  padding: 9px 10px 9px 14px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-control);
   background: color-mix(in srgb, var(--bg) 92%, transparent);
@@ -21,17 +21,33 @@
 }
 
 .prompt:hover,
-.prompt:focus-visible {
+.prompt:focus-within {
   border-color: var(--accent);
   color: var(--accent-deep);
   outline: none;
 }
 
-.prompt span {
+.prompt textarea {
   flex: 1;
+  height: 40px;
+  min-height: 40px;
+  max-height: 84px;
+  resize: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  line-height: 22px;
+  padding: 9px 0;
+  outline: none;
+}
+
+.prompt textarea::placeholder {
+  color: var(--ink-soft);
 }
 
 .prompt kbd {
+  flex: 0 0 auto;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg-subtle);
@@ -42,19 +58,47 @@
   padding: 1px 6px;
 }
 
+.prompt button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.prompt button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.prompt[data-filled='true'] button {
+  color: var(--accent);
+}
+
+.prompt[data-filled='true'] button:hover {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
 .panel {
   position: fixed;
   z-index: 50;
-  top: 0;
-  right: 0;
+  top: 8px;
+  right: 8px;
   display: flex;
   flex-direction: column;
-  width: min(480px, 100vw);
-  height: 100dvh;
-  border-left: 1px solid var(--border);
+  width: min(358px, calc(100vw - 16px));
+  height: calc(100dvh - 16px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
   background: var(--bg);
   color: var(--ink);
-  box-shadow: -14px 0 44px rgba(16, 16, 22, 0.12);
+  box-shadow: 0 8px 18px rgba(16, 16, 22, 0.08);
 }
 
 .panelHeader {
@@ -62,8 +106,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 72px;
-  padding: 16px 18px;
+  min-height: 52px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -216,16 +260,23 @@
 @media (max-width: 1023px) {
   .prompt {
     left: 16px;
+    right: 16px;
     width: auto;
   }
 }
 
 @media (max-width: 640px) {
   .prompt {
+    left: 12px;
+    right: 12px;
     bottom: 12px;
+    min-height: 56px;
   }
 
   .panel {
+    inset: 0;
     width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
   }
 }

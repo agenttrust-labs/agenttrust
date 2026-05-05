@@ -1,26 +1,44 @@
 'use client';
 
 import type { FormEvent, JSX } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DefaultChatTransport } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { Send, X } from 'lucide-react';
 import { ASK_AI_SUGGESTIONS } from '@/data/ask-ai-suggestions';
+import type { InitialQuestion } from './AskAIWidget';
 import { MessageList } from './MessageList';
 import { SuggestionChip } from './SuggestionChip';
 import styles from './AskAI.module.css';
 
 export interface ChatPanelProps {
+  initialQuestion: InitialQuestion | null;
   isOpen: boolean;
   onClose: () => void;
+  onInitialQuestionHandled: (id: number) => void;
 }
 
-export default function ChatPanel({ isOpen, onClose }: ChatPanelProps): JSX.Element | null {
+export default function ChatPanel({
+  initialQuestion,
+  isOpen,
+  onClose,
+  onInitialQuestionHandled,
+}: ChatPanelProps): JSX.Element | null {
   const [input, setInput] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
+  const handledInitialQuestionRef = useRef<number | null>(null);
   const transport = useMemo(() => new DefaultChatTransport({ api: '/api/ask' }), []);
   const { messages, sendMessage, status, error, stop } = useChat({ transport });
   const isBusy = status === 'submitted' || status === 'streaming';
+
+  const sendQuestion = useCallback(
+    async (question: string): Promise<void> => {
+      const text = question.trim();
+      if (!text || text.length > 500) return;
+      await sendMessage({ text });
+    },
+    [sendMessage],
+  );
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -33,13 +51,15 @@ export default function ChatPanel({ isOpen, onClose }: ChatPanelProps): JSX.Elem
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen || !initialQuestion || handledInitialQuestionRef.current === initialQuestion.id) return;
 
-  async function sendQuestion(question: string): Promise<void> {
-    const text = question.trim();
-    if (!text || text.length > 500) return;
-    await sendMessage({ text });
-  }
+    handledInitialQuestionRef.current = initialQuestion.id;
+    onInitialQuestionHandled(initialQuestion.id);
+    void sendQuestion(initialQuestion.text);
+  }, [initialQuestion, isOpen, onInitialQuestionHandled, sendQuestion]);
+
+  if (!isOpen) return null;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();

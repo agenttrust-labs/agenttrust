@@ -2,18 +2,52 @@
 
 import type { JSX } from 'react';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AskButton } from './AskButton';
 
 const ChatPanel = dynamic(() => import('./ChatPanel'), { ssr: false });
 
+export interface InitialQuestion {
+  id: number;
+  text: string;
+}
+
 export function AskAIWidget(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
+  const [initialQuestion, setInitialQuestion] = useState<InitialQuestion | null>(null);
+  const questionIdRef = useRef(0);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.documentElement.dataset.askAiOpen = 'true';
+    } else {
+      delete document.documentElement.dataset.askAiOpen;
+    }
+
+    return () => {
+      delete document.documentElement.dataset.askAiOpen;
+    };
+  }, [isOpen]);
+
+  const handlePromptSubmit = useCallback((text: string): void => {
+    questionIdRef.current += 1;
+    setInitialQuestion({ id: questionIdRef.current, text });
+    setIsOpen(true);
+  }, []);
+
+  const handleInitialQuestionHandled = useCallback((id: number): void => {
+    setInitialQuestion((current) => (current?.id === id ? null : current));
+  }, []);
 
   return (
     <>
-      {!isOpen ? <AskButton onClick={() => setIsOpen(true)} /> : null}
-      <ChatPanel isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      {!isOpen ? <AskButton onSubmit={handlePromptSubmit} /> : null}
+      <ChatPanel
+        initialQuestion={initialQuestion}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onInitialQuestionHandled={handleInitialQuestionHandled}
+      />
     </>
   );
 }

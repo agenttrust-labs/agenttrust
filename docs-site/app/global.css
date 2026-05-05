@@ -229,6 +229,22 @@ samp {
     position: relative;
     z-index: 1;
   }
+
+  [data-ask-ai-open='true'] .docs-topbar {
+    right: 368px;
+  }
+
+  [data-ask-ai-open='true'] #nd-docs-layout {
+    width: calc(100vw - 368px);
+  }
+
+  [data-ask-ai-open='true'] #nd-toc {
+    display: none !important;
+  }
+
+  [data-ask-ai-open='true'] #nd-docs-layout::before {
+    right: 8px;
+  }
 }
 
 @media (max-width: 1023px) {
