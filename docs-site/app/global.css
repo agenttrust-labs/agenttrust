@@ -214,7 +214,7 @@ samp {
 
   #nd-docs-layout::before {
     position: absolute;
-    inset: 56px 16px 12px 264px;
+    inset: 56px 8px 8px 272px;
     z-index: 0;
     border: 1px solid var(--border-strong);
     border-radius: 18px;
@@ -238,12 +238,93 @@ samp {
     width: calc(100vw - 368px);
   }
 
+  [data-ask-ai-open='true'] #nd-page {
+    width: 792px;
+    max-width: 792px;
+    padding-inline: 65px 113px;
+  }
+
+  [data-ask-ai-open='true'] #nd-page > div:nth-child(3) {
+    right: 113px;
+  }
+
   [data-ask-ai-open='true'] #nd-toc {
     display: none !important;
   }
 
   [data-ask-ai-open='true'] #nd-docs-layout::before {
     right: 8px;
+  }
+
+  #nd-sidebar {
+    position: fixed !important;
+    top: 56px !important;
+    bottom: 0 !important;
+    width: 264px !important;
+    height: calc(100dvh - 56px) !important;
+  }
+
+  #nd-sidebar > div:first-child {
+    height: 44px;
+    gap: 0;
+    padding: 8px 16px 0 24px;
+  }
+
+  #nd-sidebar > div:first-child > div:first-child {
+    display: none !important;
+  }
+
+  #nd-sidebar [data-search-full] {
+    width: 178px;
+  }
+
+  #nd-sidebar > div:nth-child(2) {
+    flex: 1 1 auto;
+  }
+
+  #nd-page {
+    height: calc(100dvh - 64px);
+    margin-top: 20px;
+    margin-right: auto;
+    margin-left: 8px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
+  #nd-page > div:nth-child(3) {
+    position: absolute;
+    top: 82px;
+    right: 76px;
+    width: auto;
+    height: 34px;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  #nd-page > div:nth-child(3) > button:first-child {
+    width: 122px;
+    height: 34px;
+  }
+
+  #nd-page > div:nth-child(3) > button:nth-child(2) {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
+    gap: 0;
+  }
+
+  #nd-page > div:nth-child(3) > button:nth-child(2) svg {
+    margin: 0;
+  }
+
+  #nd-page > div.prose {
+    margin-top: 32px;
+  }
+
+  #nd-toc {
+    transform: translateX(-28px);
   }
 }
 
@@ -362,13 +443,15 @@ a:hover .agenttrust-brand,
 
 @media (min-width: 1024px) {
   #nd-page {
-    padding-top: 102px;
+    max-width: 864px;
+    padding-top: 80px;
+    padding-inline: 68px 76px;
   }
 }
 
 @media (min-width: 1280px) {
   #nd-page {
-    padding-inline: 72px;
+    padding-inline: 68px 76px;
   }
 }
 
@@ -517,6 +600,20 @@ a:hover .agenttrust-brand,
 
 button[aria-label='Open Next.js Dev Tools'] {
   display: none !important;
+}
+
+@media (min-width: 1024px) {
+  body:has(#nd-docs-layout) {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  body:has(#nd-docs-layout) #nd-docs-layout {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
 }
 
 .docs-footer {

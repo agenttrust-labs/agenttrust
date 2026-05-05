@@ -3,7 +3,9 @@
 import type { JSX } from 'react';
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Bot } from 'lucide-react';
 import { AskButton } from './AskButton';
+import styles from './AskAI.module.css';
 
 const ChatPanel = dynamic(() => import('./ChatPanel'), { ssr: false });
 
@@ -41,6 +43,16 @@ export function AskAIWidget(): JSX.Element {
 
   return (
     <>
+      {!isOpen ? (
+        <button
+          aria-label="Toggle assistant panel"
+          className={styles.sidebarToggle}
+          onClick={() => setIsOpen(true)}
+          type="button"
+        >
+          <Bot aria-hidden="true" size={16} strokeWidth={1.8} />
+        </button>
+      ) : null}
       {!isOpen ? <AskButton onSubmit={handlePromptSubmit} /> : null}
       <ChatPanel
         initialQuestion={initialQuestion}
