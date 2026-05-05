@@ -28,6 +28,39 @@ import { makeReceiptRoute } from "./routes/receipt";
 import { makeSettleRoute } from "./routes/settle";
 import { makeVerifyRoute } from "./routes/verify";
 
+// Public re-exports — let demo / consumer code import the full facilitator
+// surface from the package root rather than reaching into subpaths.
+export * from "./facilitators";
+export {
+  GateDecision,
+  DenyReasonCode,
+  VerifyRequest,
+  VerifyResponse,
+  ReceiptResponse,
+} from "./types";
+export {
+  POLICY_VAULT_ID,
+  TRUSTGATE_ID,
+  derivePolicyPda,
+  deriveVelocityPda,
+  deriveKillSwitchPda,
+  deriveFeedbackLogPda,
+  loadPolicyVault,
+  loadTrustGate,
+  makeProvider,
+  simulateGatePayment,
+} from "./chain";
+export {
+  buildHeadersForDecision,
+  denyReasonName,
+  X_AGENT_TRUST_DECISION,
+  X_CAPABILITY_REQUIRED,
+  X_PAYMENT_NETWORK,
+  X_PAYMENT_REASON_CODE,
+  X_PAYMENT_REASON_NAME,
+  X_PAYMENT_REQUIRED,
+} from "./x402";
+
 export interface ServerConfig {
   rpcUrl:             string;
   facilitatorKeypair: Keypair;

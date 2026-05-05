@@ -3,3 +3,4 @@ packages:
   - "docs-site"
   - "trustgate/sdk"
   - "trustgate/server"
+  - "examples/*"
