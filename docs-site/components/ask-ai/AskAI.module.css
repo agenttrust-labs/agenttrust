@@ -1,0 +1,231 @@
+.prompt {
+  position: fixed;
+  z-index: 35;
+  left: calc(var(--fd-sidebar-width) + ((100vw - var(--fd-sidebar-width) - var(--fd-toc-width) - 900px) / 2) + 72px);
+  bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: min(756px, calc(100vw - var(--fd-sidebar-width) - var(--fd-toc-width) - 144px));
+  min-height: 44px;
+  padding: 0 12px 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  box-shadow: 0 8px 18px rgba(16, 16, 22, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.prompt:hover,
+.prompt:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent-deep);
+  outline: none;
+}
+
+.prompt span {
+  flex: 1;
+}
+
+.prompt kbd {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--ink-soft);
+  font-family: var(--font-geist-mono);
+  font-size: 11px;
+  line-height: 16px;
+  padding: 1px 6px;
+}
+
+.panel {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(480px, 100vw);
+  height: 100dvh;
+  border-left: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: -14px 0 44px rgba(16, 16, 22, 0.12);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 72px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panelHeader strong,
+.panelHeader span {
+  display: block;
+}
+
+.panelHeader strong {
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.panelHeader span {
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.iconButton,
+.form button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--bg-subtle);
+  color: var(--ink);
+}
+
+.iconButton:hover,
+.form button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.panelBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+}
+
+.empty p {
+  margin: 0 0 14px;
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.suggestionGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.suggestion {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--bg-subtle);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+}
+
+.suggestion:hover {
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
+
+.messages {
+  display: grid;
+  gap: 12px;
+}
+
+.message {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: 12px;
+}
+
+.message[data-role='user'] {
+  background: var(--accent-soft);
+}
+
+.message[data-role='assistant'] {
+  background: var(--bg-subtle);
+}
+
+.messageLabel {
+  margin-bottom: 6px;
+  color: var(--ink-soft);
+  font-family: var(--font-geist-mono);
+  font-size: 11px;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.message p {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.error {
+  margin: 14px 0 0;
+  color: var(--err);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.form textarea {
+  min-height: 44px;
+  max-height: 132px;
+  resize: vertical;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--bg-subtle);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  padding: 10px 12px;
+}
+
+.form textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+@media (max-width: 1023px) {
+  .prompt {
+    left: 16px;
+    width: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .prompt {
+    bottom: 12px;
+  }
+
+  .panel {
+    width: 100vw;
+  }
+}

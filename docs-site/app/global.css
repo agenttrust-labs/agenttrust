@@ -35,6 +35,7 @@
 
 :root {
   --bg: #ffffff;
+  --bg-shell: #f7f7f9;
   --bg-rail: #fbfbfd;
   --bg-subtle: #f8f8fb;
   --bg-code: #fafafc;
@@ -73,6 +74,7 @@
   --color-fd-ring: rgba(141, 116, 255, 0.48);
   --color-fd-overlay: rgba(0, 0, 0, 0.52);
   --bg: #0a0a0c;
+  --bg-shell: #08080a;
   --bg-rail: #101014;
   --bg-subtle: #15151a;
   --bg-code: #111116;
@@ -93,7 +95,7 @@
 
 html {
   scrollbar-gutter: stable;
-  background: var(--bg);
+  background: var(--bg-shell);
   color: var(--ink);
   font-family: var(--font-geist-sans);
   letter-spacing: 0;
@@ -101,7 +103,7 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--bg-shell);
   color: var(--ink);
   font-family: var(--font-geist-sans);
   letter-spacing: 0;
@@ -131,11 +133,16 @@ samp {
 }
 
 #nd-docs-layout {
-  background: var(--bg);
+  position: relative;
+  background: var(--bg-shell);
   color: var(--ink);
   --fd-layout-width: 1440px;
   --fd-sidebar-width: 0px;
   --fd-toc-width: 0px;
+}
+
+.docs-topbar {
+  display: none;
 }
 
 @media (min-width: 1024px) {
@@ -151,9 +158,77 @@ samp {
 }
 
 #nd-sidebar {
-  background: var(--bg-rail);
+  background: var(--bg-shell);
   border-color: var(--border);
   color: var(--ink-soft);
+}
+
+@media (min-width: 1024px) {
+  .docs-topbar {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    padding: 0 30px;
+    background: color-mix(in srgb, var(--bg-shell) 94%, transparent);
+    backdrop-filter: blur(10px);
+  }
+
+  .docs-topbar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    font-size: 17px;
+    font-weight: 760;
+    line-height: 24px;
+    text-decoration: none;
+  }
+
+  .docs-topbar nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .docs-topbar nav a {
+    color: var(--ink-dim);
+    font-size: 15px;
+    font-weight: 520;
+    line-height: 24px;
+    text-decoration: none;
+  }
+
+  .docs-topbar nav a[aria-current='page'] {
+    color: var(--ink);
+    font-weight: 720;
+  }
+
+  .docs-topbar nav a:hover,
+  .docs-topbar-brand:hover {
+    color: var(--accent);
+  }
+
+  #nd-docs-layout::before {
+    position: absolute;
+    inset: 56px 16px 12px 264px;
+    z-index: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    background: var(--bg);
+    content: '';
+  }
+
+  #nd-page,
+  #nd-toc,
+  [data-sidebar-placeholder],
+  [data-sidebar-panel] {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -264,8 +339,15 @@ a:hover .agenttrust-brand,
 #nd-page {
   max-width: 900px;
   padding-top: 56px;
+  padding-bottom: 112px;
   padding-inline: 32px;
   gap: 16px;
+}
+
+@media (min-width: 1024px) {
+  #nd-page {
+    padding-top: 102px;
+  }
 }
 
 @media (min-width: 1280px) {
@@ -376,6 +458,12 @@ a:hover .agenttrust-brand,
 #nd-toc {
   color: var(--ink-soft);
   padding-top: 56px;
+}
+
+@media (min-width: 1024px) {
+  #nd-toc {
+    padding-top: 108px;
+  }
 }
 
 #toc-title {
