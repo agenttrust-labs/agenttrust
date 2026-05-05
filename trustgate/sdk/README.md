@@ -5,7 +5,7 @@
 > invariant enforcement.
 >
 > npm: [`@agenttrust-sdk/trustgate`](https://www.npmjs.com/package/@agenttrust-sdk/trustgate) ·
-> repo: [`mohit-1710/agenttrust`](https://github.com/mohit-1710/agenttrust)
+> repo: [`agenttrust-labs/agenttrust`](https://github.com/agenttrust-labs/agenttrust)
 >
 > Component of the **AgentTrust** project (PolicyVault + TrustGate +
 > ValidationRegistry). This SDK ships the TrustGate component.
@@ -143,7 +143,7 @@ PolicyVault's five core safety properties are machine-checked by Kani:
 5. `multisig_threshold_enforced` — distinct signer count ≥ threshold
 
 CI runs all 5 on every PR. See `.github/workflows/kani-prove.yml` in the
-[main repo](https://github.com/mohit-1710/agenttrust).
+[main repo](https://github.com/agenttrust-labs/agenttrust).
 
 ## License
 

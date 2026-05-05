@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <Link href="/sdk">SDK</Link>
           </span>
           <span className="docs-topbar-secondary">
-            <a href="https://github.com/mohit-1710/agenttrust">GitHub</a>
+            <a href="https://github.com/agenttrust-labs/agenttrust">GitHub</a>
             <a href="https://agenttrust.tech">Launch app</a>
           </span>
         </nav>

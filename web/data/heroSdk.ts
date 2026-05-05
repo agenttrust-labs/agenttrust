@@ -31,10 +31,10 @@ export const HERO_SDK_LINKS: readonly HeroSdkLink[] = [
     meta: "@agenttrust-sdk/trustgate",
   },
   {
-    href: "https://github.com/mohit-1710/agenttrust",
+    href: "https://github.com/agenttrust-labs/agenttrust",
     icon: "github",
     label: "GitHub",
-    meta: "mohit-1710/agenttrust",
+    meta: "agenttrust-labs/agenttrust",
   },
 ];
 

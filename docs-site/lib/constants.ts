@@ -23,7 +23,7 @@ export const KANI_HARNESSES = [
 ] as const;
 
 export const SDK_PACKAGE = '@agenttrust-sdk/trustgate';
-export const GITHUB_REPO = 'github.com/mohit-1710/agenttrust';
+export const GITHUB_REPO = 'github.com/agenttrust-labs/agenttrust';
 export const LICENSE = 'MIT';
 
 export const POLICY_ORDER = [

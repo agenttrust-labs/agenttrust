@@ -189,7 +189,7 @@ function makeSettleRoute(deps: {
         "atomic gate_payment+transfer+emit_feedback assembly ships in a follow-up. " +
         "Implement using `client.settle({ ..., atomicityEnforced: true })` once " +
         "your facilitator has registered Quantu agents on-chain.",
-      reference: "https://github.com/mohit-1710/agenttrust/blob/main/docs/plan/research/02-anchor-token2022-cpi-class.md#a2",
+      reference: "https://github.com/agenttrust-labs/agenttrust/blob/main/docs/plan/research/02-anchor-token2022-cpi-class.md#a2",
     });
   });
   return router;

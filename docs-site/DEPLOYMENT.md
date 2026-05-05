@@ -4,7 +4,7 @@ Target: `docs.agenttrust.tech`
 
 ## Vercel
 
-1. Import `mohit-1710/agenttrust` into Vercel.
+1. Import `agenttrust-labs/agenttrust` into Vercel.
 2. Set Root Directory to `docs-site`.
 3. Keep Framework Preset as `Next.js`.
 4. Set the build command to:

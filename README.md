@@ -188,7 +188,7 @@ pnpm add @agenttrust-sdk/trustgate
 cat node_modules/@agenttrust-sdk/trustgate/package.json | jq '{ name, version, exports }'
 
 # clone and run the Kani proofs
-git clone https://github.com/mohit-1710/agenttrust && cd agenttrust
+git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
 cargo install --locked kani-verifier
 cargo kani --manifest-path programs/policy-vault/Cargo.toml \
   --harness paused_killswitch_implies_no_allow
@@ -260,4 +260,4 @@ MIT for everything in `programs/`, `trustgate/sdk/`, `trustgate/server/`, `tests
 
 ## Contact
 
-Built solo by Mohit ([@mohit-1710](https://github.com/mohit-1710)) for the Solana Frontier 2026 hackathon. Issues / questions: [open an issue](https://github.com/mohit-1710/agenttrust/issues).
+Built solo by Mohit ([@mohit-1710](https://github.com/mohit-1710)) for the Solana Frontier 2026 hackathon. Issues / questions: [open an issue](https://github.com/agenttrust-labs/agenttrust/issues).

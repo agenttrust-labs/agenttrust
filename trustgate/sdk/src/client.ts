@@ -91,7 +91,7 @@ export async function settle(req: SettleRequest): Promise<TransactionSignature> 
     "settle: transaction builder ships in v0.2. Phase 7 of AgentTrust ships " +
     "the atomicity-guard surface; the SPL-token + emit_feedback assembly " +
     "needs real Quantu integration which is wired in Phase 9 E2E. Track at " +
-    "https://github.com/mohit-1710/agenttrust",
+    "https://github.com/agenttrust-labs/agenttrust",
   );
 }
 

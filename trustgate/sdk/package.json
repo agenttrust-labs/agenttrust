@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "description": "Drop-in TrustGate middleware for x402 facilitators on Solana — adds gate_payment + emit_feedback to any Express app with atomic-tx invariant enforcement",
   "license": "MIT",
-  "homepage": "https://github.com/mohit-1710/agenttrust#readme",
+  "homepage": "https://github.com/agenttrust-labs/agenttrust#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mohit-1710/agenttrust.git",
+    "url": "git+https://github.com/agenttrust-labs/agenttrust.git",
     "directory": "trustgate/sdk"
   },
   "main": "dist/index.js",
