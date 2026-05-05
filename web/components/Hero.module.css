@@ -131,12 +131,7 @@
   letter-spacing: -0.02em;
 }
 
-.statLabel,
-.proofTitle,
-.harnesses,
-.programHeader,
-.programs,
-.references {
+.statLabel {
   font-family: var(--font-geist-mono), monospace;
   font-variant-numeric: tabular-nums;
 }
@@ -147,33 +142,6 @@
   color: var(--ink-dim);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-.proof {
-  padding-top: 18px;
-  margin-top: 22px;
-  border-top: 1px solid var(--border);
-}
-
-.proofTitle {
-  margin: 0 0 12px;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.harnesses {
-  display: grid;
-  gap: 7px;
-  padding: 0;
-  margin: 0;
-  overflow-wrap: anywhere;
-  font-size: 11px;
-  line-height: 14px;
-  color: var(--ink-dim);
-  list-style: none;
 }
 
 .videoWrap {
@@ -216,69 +184,6 @@
   transform-origin: center bottom;
 }
 
-.programPanel {
-  position: relative;
-  z-index: 4;
-  width: calc(100% - 40px);
-  padding: 16px;
-  margin: 20px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.programHeader,
-.programRow,
-.references {
-  display: grid;
-  gap: 8px;
-}
-
-.programHeader {
-  grid-template-columns: 1fr auto;
-  margin-bottom: 12px;
-  font-size: 11px;
-  line-height: 14px;
-  color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.programs {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  font-size: 11px;
-  line-height: 15px;
-}
-
-.programRow {
-  grid-template-columns: minmax(132px, 0.35fr) minmax(0, 1fr);
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
-}
-
-.programRow dt {
-  color: var(--ink);
-}
-
-.programRow dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-  color: var(--ink-dim);
-}
-
-.references {
-  grid-template-columns: 1fr;
-  padding-top: 12px;
-  margin-top: 12px;
-  overflow-wrap: anywhere;
-  font-size: 11px;
-  line-height: 15px;
-  color: var(--ink);
-  border-top: 1px solid var(--border);
-}
-
 @media (min-width: 640px) {
   .shell {
     padding: 0 32px;
@@ -288,10 +193,8 @@
     padding: 0 32px;
   }
 
-  .actions,
-  .references {
+  .actions {
     flex-direction: row;
-    grid-template-columns: auto auto;
   }
 }
 
@@ -355,17 +258,6 @@
     margin-top: 59px;
   }
 
-  .programPanel {
-    position: relative;
-    bottom: auto;
-    left: 40px;
-    width: min(680px, calc(100% - 80px));
-    margin: 24px 0 0;
-  }
-
-  .references {
-    grid-template-columns: auto auto;
-  }
 }
 
 @media (max-width: 939px) {

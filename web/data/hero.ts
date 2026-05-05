@@ -47,9 +47,3 @@ export const HERO_MEDIA = {
   poster: "/media/agenttrust-hero-poster.png",
   label: "Abstract AgentTrust payment verification loop",
 } as const;
-
-export const HERO_REFERENCES = {
-  github: "github.com/mohit-1710/agenttrust",
-  npm: "@agenttrust-sdk/trustgate",
-  license: "MIT",
-} as const;

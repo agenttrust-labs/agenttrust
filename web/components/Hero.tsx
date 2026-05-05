@@ -1,8 +1,8 @@
 import HeroActions from "@/components/HeroActions";
 import HeroHeadline from "@/components/HeroHeadline";
 import HeroMedia from "@/components/HeroMedia";
-import HeroProgramPanel from "@/components/HeroProgramPanel";
 import HeroReveal from "@/components/HeroReveal";
+import HeroSdkPanel from "@/components/HeroSdkPanel";
 import HeroStatsPanel from "@/components/HeroStatsPanel";
 import styles from "@/components/Hero.module.css";
 import {
@@ -35,7 +35,7 @@ export default function Hero() {
 
             <HeroStatsPanel />
             <HeroMedia />
-            <HeroProgramPanel />
+            <HeroSdkPanel />
           </div>
         </div>
       </HeroReveal>
