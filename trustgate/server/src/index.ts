@@ -38,8 +38,12 @@ export interface ServerConfig {
 
 /**
  * Build the default facilitator registry. Includes the `mock` adapter for
- * tests + dev. Production callers add concrete adapters (e.g., `PaySh`) and
- * call `setDefault('pay-sh')` after this.
+ * tests + dev. Production callers add concrete adapters (e.g., `PaySh` from
+ * `./facilitators/pay-sh`) and call `setDefault('pay-sh')` after this.
+ *
+ * `MockFacilitator` is registered first so `getActiveAdapter` can fall
+ * through to it when no header / env / programmatic default is set — useful
+ * for early-boot smoke checks before Pay.sh deps are wired.
  */
 export function createDefaultRegistry(): FacilitatorRegistry {
   const registry = new FacilitatorRegistry();

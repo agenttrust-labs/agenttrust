@@ -33,3 +33,29 @@ export {
 } from "./registry";
 
 export { MockFacilitator, MockFacilitatorOptions } from "./mock";
+
+export {
+  PaySh,
+  ReplayCache,
+  type PayShDeps,
+  type ValidateOnChainTxFn,
+  type OnChainTxValidation,
+  type PriorEmissionLookup,
+  type EmitFeedbackFn,
+  type EmitFeedbackInput,
+  type FeedbackFields,
+  PayShFacilitatorBodySchema,
+  PayShPaymentPayloadSchema,
+  PayShPaymentRequirementsSchema,
+  AgentTrustExtraSchema,
+  AmountString,
+  PubkeyString,
+  type PayShFacilitatorBody,
+  type PayShPaymentPayload,
+  type PayShPaymentRequirements,
+  type AgentTrustExtra,
+  deriveMemoHash,
+  bytesToHex,
+  sameNetwork,
+  DEFAULT_FEEDBACK_SCORE,
+} from "./pay-sh";
