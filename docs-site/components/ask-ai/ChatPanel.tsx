@@ -4,7 +4,7 @@ import type { FormEvent, JSX } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DefaultChatTransport } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { Maximize2, Send, X } from 'lucide-react';
+import { ArrowUp, Maximize2, Trash2, X } from 'lucide-react';
 import { AssistantSparkleIcon } from './AssistantSparkleIcon';
 import type { InitialQuestion } from './AskAIWidget';
 import { MessageList } from './MessageList';
@@ -29,7 +29,16 @@ export default function ChatPanel({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const handledInitialQuestionRef = useRef<number | null>(null);
   const transport = useMemo(() => new DefaultChatTransport({ api: '/api/ask' }), []);
-  const { messages, sendMessage, status, error, stop } = useChat({ transport });
+  const {
+    clearError,
+    error,
+    messages,
+    regenerate,
+    sendMessage,
+    setMessages,
+    status,
+    stop,
+  } = useChat({ transport });
   const isBusy = status === 'submitted' || status === 'streaming';
 
   const sendQuestion = useCallback(
@@ -39,6 +48,26 @@ export default function ChatPanel({
       await sendMessage({ text });
     },
     [sendMessage],
+  );
+
+  const handleClear = useCallback((): void => {
+    if (isBusy) {
+      void stop();
+    }
+
+    setInput('');
+    setMessages([]);
+    clearError();
+    handledInitialQuestionRef.current = null;
+  }, [clearError, isBusy, setMessages, stop]);
+
+  const handleRegenerate = useCallback(
+    (messageId: string): void => {
+      if (isBusy) return;
+      clearError();
+      void regenerate({ messageId });
+    },
+    [clearError, isBusy, regenerate],
   );
 
   useEffect(() => {
@@ -105,6 +134,15 @@ export default function ChatPanel({
             <Maximize2 aria-hidden="true" size={14} />
           </button>
           <button
+            aria-label="Clear chat"
+            className={styles.iconButton}
+            disabled={messages.length === 0 && !error}
+            onClick={handleClear}
+            type="button"
+          >
+            <Trash2 aria-hidden="true" size={15} />
+          </button>
+          <button
             aria-label="Close assistant panel"
             className={styles.iconButton}
             onClick={handleClose}
@@ -121,15 +159,16 @@ export default function ChatPanel({
             <p>Responses are generated using AI and may contain mistakes.</p>
           </div>
         ) : (
-          <MessageList messages={messages} />
+          <MessageList isBusy={isBusy} messages={messages} onRegenerate={handleRegenerate} />
         )}
         {error ? <p className={styles.error}>{error.message}</p> : null}
       </div>
 
-      <form className={styles.form} ref={formRef} onSubmit={handleSubmit}>
+      <form aria-busy={isBusy} className={styles.form} ref={formRef} onSubmit={handleSubmit}>
         <div className={styles.formShell}>
           <textarea
             aria-label="Ask a question..."
+            autoComplete="off"
             maxLength={500}
             onChange={(event) => setInput(event.currentTarget.value)}
             onKeyDown={(event) => {
@@ -155,7 +194,7 @@ export default function ChatPanel({
                 disabled={!input.trim()}
                 type="submit"
               >
-                <Send aria-hidden="true" size={14} />
+                <ArrowUp aria-hidden="true" size={14} />
               </button>
             )}
           </div>
