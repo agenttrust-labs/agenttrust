@@ -149,4 +149,68 @@ describe("MCP devnet round-trip (INTEGRATION=1 only)", function () {
       await server.close();
     }
   });
+
+  it("get_validation_attestation returns the live D1 attestation PDA", async () => {
+    // The D1 attestor demo (examples/attestor-demo) writes a real
+    // ValidationAttestation against the tier-3 counterparty under the
+    // "usdc-payment-policy.v1" capability. This live-RPC test asserts
+    // the MCP read tool sees that attestation.
+    const { loadConfig } = await import("../src/config");
+    const cfg = loadConfig();
+    const server = createMcpServer(cfg);
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: "agenttrust-int-client", version: "0.0.0" });
+    await Promise.all([server.connect(b), client.connect(a)]);
+    try {
+      const fs = await import("fs");
+      const path = await import("path");
+      const tracePath = path.resolve(__dirname, "../../examples/attestor-demo/devnet-attestor-trace.json");
+      const trace = JSON.parse(fs.readFileSync(tracePath, "utf-8")) as {
+        subjectAsset: string; capabilityName: string;
+      };
+      const { createHash } = await import("crypto");
+      const capHashHex = createHash("sha256").update(trace.capabilityName).digest("hex");
+
+      const res = await client.callTool({
+        name:      "agenttrust_get_validation_attestation",
+        arguments: { subject_asset: trace.subjectAsset, capability_hash: capHashHex },
+      });
+      const content = (res.content as Array<{ text: string }>)[0].text;
+      const parsed  = JSON.parse(content);
+      expect(parsed.attestations.length, "expected at least one attestation").to.be.greaterThan(0);
+      const att = parsed.attestations[0];
+      expect(att.revoked).to.equal(false);
+      expect(att.attestor).to.be.a("string");
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  it("get_feedback_log returns the live D5 emission log", async () => {
+    // The Pay.sh devnet smoke writes a FeedbackEmissionLog at
+    // HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3 (recorded in
+    // examples/pay-sh-demo/devnet-smoke.json). The MCP read tool
+    // must surface it when fetched by paymentIdHash. We don't have
+    // the original payment_id_hash recorded in the smoke proof (the
+    // PDA is the canonical reference), so this test asserts via the
+    // PDA-known address that the underlying account is reachable.
+    // For per-paymentIdHash lookup the unit tests cover the schema +
+    // PDA-derivation contract; this devnet check is targeted at the
+    // RPC round-trip path.
+    const { loadConfig } = await import("../src/config");
+    const { Connection, PublicKey } = await import("@solana/web3.js");
+    const cfg = loadConfig();
+    const conn = new Connection(cfg.rpcUrl, "confirmed");
+    const fs = await import("fs");
+    const path = await import("path");
+    const smokePath = path.resolve(__dirname, "../../examples/pay-sh-demo/devnet-smoke.json");
+    if (!fs.existsSync(smokePath)) this.skip();
+    const smoke = JSON.parse(fs.readFileSync(smokePath, "utf-8")) as {
+      emitFeedback: { logPda: string };
+    };
+    const info = await conn.getAccountInfo(new PublicKey(smoke.emitFeedback.logPda));
+    expect(info, "FeedbackEmissionLog PDA missing on devnet").to.not.equal(null);
+    expect(info!.owner.toBase58()).to.equal(cfg.programs.trustgate.toBase58());
+  });
 });

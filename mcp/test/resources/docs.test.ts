@@ -34,6 +34,21 @@ describe("docs resources", () => {
     const r = readDocsResource("agenttrust://devnet/programs");
     expect(r).to.equal(null);
   });
+
+  it("readDocsResource rejects path-traversal URIs", () => {
+    // Path-traversal style URIs must not resolve to anything outside the
+    // docs-site corpus. The corpus-membership lookup is the load-bearing
+    // guard: any URI not in the indexed corpus → null.
+    const candidates = [
+      "agenttrust://docs/../../etc/passwd",
+      "agenttrust://docs/../../../package.json",
+      "agenttrust://docs/..%2F..%2Fetc%2Fpasswd",
+      "agenttrust://docs/foo/../../bar",
+    ];
+    for (const uri of candidates) {
+      expect(readDocsResource(uri), `traversal accepted: ${uri}`).to.equal(null);
+    }
+  });
 });
 
 describe("example resources", () => {
