@@ -17,34 +17,34 @@ function readNumberAttribute(
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function animateCounters(root: HTMLElement): void {
+function formatCounterValue(
+  value: number,
+  decimals: number,
+  suffix: string,
+): string {
+  return `${value.toFixed(decimals)}${suffix}`;
+}
+
+function setCounterProgress(counter: HTMLElement, progress: number): void {
+  const from = readNumberAttribute(counter, "data-count-from");
+  const target = readNumberAttribute(counter, "data-count-target");
+  const decimals = readNumberAttribute(counter, "data-count-decimals") ?? 0;
+  const suffix = counter.getAttribute("data-count-suffix") ?? "";
+
+  if (from === null || target === null) {
+    return;
+  }
+
+  const clampedProgress = gsap.utils.clamp(0, 1, progress);
+  const current = gsap.utils.interpolate(from, target, clampedProgress);
+  counter.textContent = formatCounterValue(current, decimals, suffix);
+}
+
+function setCountersProgress(root: HTMLElement, progress: number): void {
   const counters = root.querySelectorAll<HTMLElement>("[data-performance-count]");
 
   counters.forEach((counter) => {
-    const from = readNumberAttribute(counter, "data-count-from");
-    const target = readNumberAttribute(counter, "data-count-target");
-    const decimals = readNumberAttribute(counter, "data-count-decimals") ?? 0;
-    const suffix = counter.getAttribute("data-count-suffix") ?? "";
-
-    if (from === null || target === null) {
-      return;
-    }
-
-    const value = { current: from };
-
-    gsap.to(value, {
-      current: target,
-      duration: 1.5,
-      ease: "sine.inOut",
-      onUpdate: () => {
-        counter.textContent = `${value.current.toFixed(decimals)}${suffix}`;
-      },
-      scrollTrigger: {
-        trigger: root,
-        start: "top 70%",
-        once: true,
-      },
-    });
+    setCounterProgress(counter, progress);
   });
 }
 
@@ -68,6 +68,7 @@ export function createPerformanceScrollAnimation({
       clearProps: "transform",
     });
     gsap.set(bars, { autoAlpha: 1, clearProps: "transform" });
+    setCountersProgress(root, 1);
 
     if (radar) {
       gsap.set(radar, { autoAlpha: 1, clearProps: "transform" });
@@ -79,13 +80,48 @@ export function createPerformanceScrollAnimation({
   }
 
   media.add("(min-width: 940px)", () => {
-    ScrollTrigger.create({
+    const pinTrigger = ScrollTrigger.create({
       trigger: root,
       start: "top top",
       end: "bottom bottom",
       pin: stage,
       pinSpacing: true,
     });
+
+    const counterTrigger = ScrollTrigger.create({
+      trigger: root,
+      start: "top top",
+      end: "bottom bottom",
+      scrub: 1,
+      onUpdate: (self) => {
+        setCountersProgress(root, self.progress);
+      },
+    });
+
+    setCountersProgress(root, 0);
+
+    return () => {
+      pinTrigger.kill();
+      counterTrigger.kill();
+    };
+  });
+
+  media.add("(max-width: 939px)", () => {
+    const counterTrigger = ScrollTrigger.create({
+      trigger: root,
+      start: "top 72%",
+      end: "bottom 38%",
+      scrub: 1,
+      onUpdate: (self) => {
+        setCountersProgress(root, self.progress);
+      },
+    });
+
+    setCountersProgress(root, 0);
+
+    return () => {
+      counterTrigger.kill();
+    };
   });
 
   gsap.fromTo(
@@ -139,8 +175,6 @@ export function createPerformanceScrollAnimation({
       },
     );
   }
-
-  animateCounters(root);
 
   return () => {
     media.revert();

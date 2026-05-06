@@ -5,6 +5,7 @@ export interface TrilemmaPillar {
 
 export interface TrilemmaCopy {
   readonly center: string;
+  readonly centerLines: readonly string[];
   readonly leadLines: readonly string[];
   readonly pillars: readonly TrilemmaPillar[];
   readonly resolvePrefix: string;
@@ -14,16 +15,17 @@ export interface TrilemmaCopy {
 
 export const TRILEMMA_COPY: TrilemmaCopy = {
   center: "All before settlement.",
+  centerLines: ["All before", "settlement."],
   leadLines: [
-    "AI-agent payments used to choose between",
-    "speed, identity confidence, and settlement certainty.",
+    "x402 services used to split policy checks,",
+    "token transfer, and feedback into separate trust moments.",
   ],
   pillars: [
-    { label: "Rules", caption: "Spend control" },
-    { label: "Identity", caption: "Counterparty signal" },
-    { label: "Validation", caption: "Fresh reputation" },
+    { label: "Pay.sh", caption: "Facilitator path" },
+    { label: "Policy", caption: "Gate decision" },
+    { label: "Feedback", caption: "ERC-8004 record" },
   ],
-  resolveEmphasis: "before",
-  resolvePrefix: "AgentTrust connects all three",
-  resolveSuffix: "value moves.",
+  resolveEmphasis: "atomically",
+  resolvePrefix: "AgentTrust composes all three",
+  resolveSuffix: "on Solana.",
 };

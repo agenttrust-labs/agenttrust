@@ -63,9 +63,10 @@
 
 @media (max-width: 639px) {
   .radar {
-    right: -10%;
-    bottom: 16%;
-    width: min(72vw, 300px);
+    right: -16%;
+    bottom: -7%;
+    width: min(58vw, 226px);
+    opacity: 0.86;
   }
 
   .radarGlow {

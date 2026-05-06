@@ -4,10 +4,10 @@ export interface HeroStat {
 }
 
 export const HERO_STATS: readonly HeroStat[] = [
+  { value: "Pay.sh", label: "Live facilitator" },
+  { value: "<2h", label: "Adapter target" },
+  { value: "1 tx", label: "Atomic settlement" },
   { value: "5 / 5", label: "Invariants verified" },
-  { value: "3", label: "Devnet programs" },
-  { value: "168", label: "Test cases" },
-  { value: "MIT", label: "Open-source license" },
 ];
 
 export const KANI_HARNESS_NAMES: readonly string[] = [

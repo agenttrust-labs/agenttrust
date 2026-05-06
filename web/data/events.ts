@@ -10,48 +10,48 @@ export interface EventItem {
   readonly location: string;
 }
 
-export const EVENTS_HEADING = "Trust work happens onchain - and in review.";
+export const EVENTS_HEADING = "Facilitator work happens onchain - and in review.";
 
 export const EVENTS_COPY =
-  "Join integration walkthroughs, proof reviews, and builder sessions for teams routing AI-agent payments through AgentTrust.";
+  "Follow Pay.sh walkthroughs, adapter reviews, and atomic settlement sessions for teams routing x402 payments through AgentTrust.";
 
 export const EVENTS: readonly EventItem[] = [
   {
-    date: "Devnet",
+    date: "Pay.sh",
     description:
-      "Wire identity, reputation, and velocity checks into an AI-agent payment route before settlement.",
-    event: "Trust gate walkthrough",
-    href: PUBLIC_LINKS.docsGatePayment,
+      "Run the Express demo, emit the 402 envelope, retry with PAYMENT-SIGNATURE, and inspect the decision.",
+    event: "Pay.sh adapter walkthrough",
+    href: PUBLIC_LINKS.docsPayShAdapter,
     imageAlt: "Abstract trust gate route diagram",
     imageSrc: "/media/event-trust-gate.svg",
     location: "Remote",
   },
   {
-    date: "Proofs",
+    date: "Atomic",
     description:
-      "Review the five Kani harnesses and the invariants that keep policy state readable.",
-    event: "Formal review session",
-    href: PUBLIC_LINKS.docsFormalVerification,
+      "Review how policy, transfer, and feedback stay in one signed settlement path.",
+    event: "Settlement review session",
+    href: PUBLIC_LINKS.docsAtomicSettlement,
     imageAlt: "Proof grid with verified check paths",
     imageSrc: "/media/event-proof-review.svg",
     location: "GitHub",
   },
   {
-    date: "SDK",
+    date: "Adapter",
     description:
-      "Install the package, add the payment gate, and inspect the counterparty response shape.",
-    event: "Builder integration lab",
-    href: PUBLIC_LINKS.docsQuickstart,
+      "Implement the five-method FacilitatorAdapter shape and keep protocol quirks out of the routes.",
+    event: "New facilitator lab",
+    href: PUBLIC_LINKS.docsFacilitatorAdapters,
     imageAlt: "SDK integration cards connected by purple lines",
     imageSrc: "/media/event-sdk-lab.svg",
     location: "Solana builders",
   },
   {
-    date: "Network",
+    date: "Roadmap",
     description:
-      "Map lightweight verification roles for teams that want trust checks close to payment flow.",
-    event: "Operator briefing",
-    href: PUBLIC_LINKS.docsValidationRegistry,
+      "Track Pay.sh live status, Dexter integration work, and atxp_ai / MCPay placeholders honestly.",
+    event: "Facilitator map",
+    href: PUBLIC_LINKS.docsFacilitatorAdapters,
     imageAlt: "Verifier nodes around an AgentTrust triangle",
     imageSrc: "/media/event-operator-briefing.svg",
     location: "Partner call",

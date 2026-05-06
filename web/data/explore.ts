@@ -8,23 +8,23 @@ export interface ExploreCard {
   readonly title: string;
 }
 
-export const EXPLORE_HEADING = "Explore the AgentTrust trust layer";
+export const EXPLORE_HEADING = "Explore the x402 trust layer";
 
 export const EXPLORE_CARDS: readonly ExploreCard[] = [
   {
     description:
-      "See how counterparty checks, velocity rules, and validation freshness combine before settlement.",
-    href: "#trust-stack",
+      "Run the Pay.sh route, inspect the SERVICE-signed challenge, and see the allow or deny branch.",
+    href: PUBLIC_LINKS.docsPayShAdapter,
     imageAlt: "",
     imageSrc: "/media/explore-trust-layer.svg",
-    title: "Explore the Trust Layer",
+    title: "Pay.sh Integration",
   },
   {
     description:
-      "Install the SDK, wire a payment gate, and test the devnet programs with verified constraints.",
-    href: PUBLIC_LINKS.docsQuickstart,
+      "Copy the adapter contract, keep the routes untouched, and bring the next facilitator online.",
+    href: PUBLIC_LINKS.docsFacilitatorAdapters,
     imageAlt: "",
     imageSrc: "/media/explore-builder-kit.svg",
-    title: "Start Building",
+    title: "Adapter Playbook",
   },
 ];

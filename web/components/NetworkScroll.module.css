@@ -5,25 +5,27 @@
 .stage {
   display: grid;
   min-height: 100dvh;
+  overflow: hidden;
   border-right: 1px solid var(--border);
   border-left: 1px solid var(--border);
+  background: var(--bg-elev);
 }
 
 .copy {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  padding: 78px 32px 40px;
+  justify-content: center;
+  padding: 78px 24px 40px;
 }
 
 .body {
-  max-width: 27ch;
+  max-width: 28ch;
   margin: 0;
-  font-size: clamp(1.55rem, 2vw, 1.75rem);
+  font-size: clamp(1.7rem, 2.4vw, 2.35rem);
   font-weight: 400;
-  line-height: 1.28;
+  line-height: 1.16;
   color: var(--ink);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.045em;
 }
 
 .dim {
@@ -40,7 +42,7 @@
   min-height: 720px;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
   border-top: 1px solid var(--border);
   background:
     linear-gradient(135deg, #fff 0%, transparent 24%),
@@ -49,26 +51,70 @@
   background-size: auto, auto, 17.5px 17.5px;
 }
 
+.visual::before,
+.visual::after {
+  position: absolute;
+  pointer-events: none;
+  content: "";
+}
+
+.visual::before {
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(90deg, var(--bg-elev) 0%, transparent 16%, transparent 84%, var(--bg-elev) 100%),
+    linear-gradient(180deg, var(--bg-elev) 0%, transparent 18%, transparent 82%, var(--bg-elev) 100%);
+}
+
+.visual::after {
+  inset: 14% 5%;
+  z-index: 0;
+  opacity: 0.72;
+  background: radial-gradient(circle at 50% 46%, rgba(111, 76, 255, 0.12), transparent 58%);
+}
+
+.visual > * {
+  z-index: 1;
+}
+
 @media (min-width: 940px) {
   .pinArea {
-    min-height: 220dvh;
+    min-height: 250dvh;
   }
 
   .stage {
     position: sticky;
     top: 0;
-    grid-template-columns: 31% 38% 31%;
+    grid-template-columns: 31% 42% 27%;
     min-height: 100dvh;
   }
 
   .copy {
-    padding: 100px 32px 40px;
+    align-self: stretch;
+    padding: clamp(88px, 12vh, 116px) clamp(28px, 3.2vw, 56px) 64px;
+    border-right: 1px solid var(--border);
   }
 
   .visual {
     min-height: 100dvh;
     border-top: 0;
-    border-right: 1px solid var(--border);
-    border-left: 1px solid var(--border);
+    border-right: 1px solid rgba(10, 10, 10, 0.08);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 939px) {
+  .body {
+    max-width: 34ch;
+  }
+}
+
+@media (max-width: 639px) {
+  .copy {
+    padding: 64px 20px 32px;
+  }
+
+  .visual {
+    min-height: 560px;
   }
 }

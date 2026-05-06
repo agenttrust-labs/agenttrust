@@ -32,7 +32,11 @@ export default function MediaCard({ card }: MediaCardProps) {
           <span />
           <span />
         </span>
-        <h3>{card.title}</h3>
+        <div className={styles.copy}>
+          <p className={styles.eyebrow}>{card.eyebrow}</p>
+          <h3>{card.title}</h3>
+          <p className={styles.summary}>{card.summary}</p>
+        </div>
       </div>
     </a>
   );

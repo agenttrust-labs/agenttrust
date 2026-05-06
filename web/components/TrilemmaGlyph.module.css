@@ -24,11 +24,19 @@
 
 .webLine {
   stroke: rgba(10, 10, 10, 0.14);
+  stroke-dasharray: 16 18;
   stroke-width: 1.4;
+  animation: trilemmaWebDrift 9s linear infinite;
+}
+
+.webLine:nth-of-type(odd) {
+  animation-direction: reverse;
+  animation-duration: 11s;
 }
 
 .coreDot {
   fill: var(--accent);
+  filter: drop-shadow(0 0 16px rgba(111, 76, 255, 0.28));
 }
 
 .node {
@@ -63,6 +71,18 @@
   font-size: 14px;
   letter-spacing: 1.4px;
   fill: rgba(10, 10, 10, 0.42);
+}
+
+@keyframes trilemmaWebDrift {
+  to {
+    stroke-dashoffset: -68;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .webLine {
+    animation: none;
+  }
 }
 
 @media (max-width: 639px) {

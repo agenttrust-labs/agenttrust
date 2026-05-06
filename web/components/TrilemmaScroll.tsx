@@ -51,8 +51,16 @@ export default function TrilemmaScroll() {
             {TRILEMMA_COPY.resolveSuffix}
           </p>
         </div>
-        <p className={styles.center} data-trilemma-center>
-          {TRILEMMA_COPY.center}
+        <p
+          className={styles.center}
+          data-trilemma-center
+          aria-label={TRILEMMA_COPY.center}
+        >
+          {TRILEMMA_COPY.centerLines.map((line) => (
+            <span className={styles.centerLine} key={line}>
+              {line}
+            </span>
+          ))}
         </p>
       </div>
     </div>

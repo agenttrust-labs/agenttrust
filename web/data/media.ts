@@ -1,34 +1,42 @@
 import { PUBLIC_LINKS } from "@/data/links";
 
 export interface MediaCard {
+  readonly eyebrow: string;
   readonly href: string;
   readonly imageAlt: string;
   readonly imageSrc: string;
+  readonly summary: string;
   readonly title: string;
 }
 
 export const MEDIA_HEADING = "AgentTrust Media";
 
 export const MEDIA_COPY =
-  "Follow proof notes, builder updates, and payment-gating writeups from the AgentTrust team.";
+  "Follow Pay.sh integration notes, adapter updates, and settlement writeups from the AgentTrust team.";
 
 export const MEDIA_CARDS: readonly MediaCard[] = [
   {
-    href: PUBLIC_LINKS.docsFormalVerification,
-    imageAlt: "Purple proof notes layered over a verification grid",
+    eyebrow: "Pay.sh integration",
+    href: PUBLIC_LINKS.docsPayShAdapter,
+    imageAlt: "AgentTrust and Pay.sh integration cover art with x402 challenge notes",
     imageSrc: "/media/media-proof-notes.svg",
-    title: "Proof Notes",
+    summary: "Service-signed challenge envelopes, adapter calls, and devnet wiring.",
+    title: "Pay.sh Notes",
   },
   {
-    href: PUBLIC_LINKS.docsChangelog,
-    imageAlt: "Builder log panels connected by trust-gate routes",
+    eyebrow: "Facilitator adapters",
+    href: PUBLIC_LINKS.docsFacilitatorAdapters,
+    imageAlt: "Adapter playbook cover showing facilitator files connected to AgentTrust",
     imageSrc: "/media/media-builder-log.svg",
-    title: "Builder Log",
+    summary: "One adapter file for Pay.sh today and the next x402 facilitators later.",
+    title: "Adapter Log",
   },
   {
-    href: PUBLIC_LINKS.docsX402,
-    imageAlt: "AgentTrust field notes arranged around the triangle mark",
+    eyebrow: "Atomic settlement",
+    href: PUBLIC_LINKS.docsAtomicSettlement,
+    imageAlt: "Atomic settlement cover showing gate, transfer, and feedback in one route",
     imageSrc: "/media/media-field-notes.svg",
-    title: "Field Notes",
+    summary: "Gate payment, SPL transfer, and feedback composed into one signed transaction.",
+    title: "Settlement Notes",
   },
 ];

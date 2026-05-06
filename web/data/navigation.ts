@@ -43,15 +43,15 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         title: "Explore AgentTrust",
         items: [
           {
-            label: "Trust Layer",
-            description: "Counterparty checks before AI-agent payments settle.",
-            href: "#benchmark",
+            label: "Pay.sh Live",
+            description: "Foundation-aligned x402 route with AgentTrust policy.",
+            href: PUBLIC_LINKS.docsPayShAdapter,
             icon: "shield",
           },
           {
-            label: "Proof Matrix",
-            description: "Five verified invariants with harness names visible.",
-            href: "#trilemma",
+            label: "Atomic Settlement",
+            description: "Policy check, SPL transfer, and feedback in one path.",
+            href: PUBLIC_LINKS.docsAtomicSettlement,
             icon: "grid",
           },
           {
@@ -63,18 +63,18 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         ],
       },
       {
-        title: "Trust Signals",
+        title: "Facilitator Signals",
         items: [
           {
-            label: "Policy Gates",
-            description: "Read payment limits, pauses, and reputation status.",
-            href: "#performance",
+            label: "Adapter Contract",
+            description: "Five methods, one file, no route rewrites.",
+            href: PUBLIC_LINKS.docsFacilitatorAdapters,
             icon: "box",
           },
           {
-            label: "Identity Reads",
-            description: "Check counterparty identity before release.",
-            href: "#network",
+            label: "SERVICE Signatures",
+            description: "Signed challenges close the forged-requirements race.",
+            href: PUBLIC_LINKS.docsPayShAdapter,
             icon: "users",
           },
           {
@@ -95,8 +95,8 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         title: "Start Building",
         items: [
           {
-            label: "Integrate SDK",
-            description: "Install the client and call trust gates in minutes.",
+            label: "Run Pay.sh",
+            description: "Start the demo server and drive the Pay.sh flow.",
             href: PUBLIC_LINKS.docsQuickstart,
             icon: "code",
           },
@@ -107,9 +107,9 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
             icon: "book",
           },
           {
-            label: "Builder Notes",
-            description: "Follow integration updates and proof writeups.",
-            href: PUBLIC_LINKS.docsChangelog,
+            label: "Adapter Notes",
+            description: "See Pay.sh live, Dexter in flight, and roadmap stubs.",
+            href: PUBLIC_LINKS.docsFacilitatorAdapters,
             icon: "file",
           },
         ],
@@ -118,14 +118,14 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         title: "Devnet Surface",
         items: [
           {
-            label: "Policy Vault",
+            label: "Policy Program",
             description: "Thresholds, pausing, and signer controls.",
             href: PUBLIC_LINKS.docsPolicyVault,
             icon: "shield",
           },
           {
-            label: "Trust Gate",
-            description: "Payment allow or deny checks.",
+            label: "Feedback Program",
+            description: "Receipt-grade feedback after settlement.",
             href: PUBLIC_LINKS.docsTrustGate,
             icon: "terminal",
           },
@@ -153,9 +153,9 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
             icon: "book",
           },
           {
-            label: "SDK Brief",
-            description: "Payment-gate client usage for TypeScript apps.",
-            href: PUBLIC_LINKS.docsSdk,
+            label: "Pay.sh Adapter",
+            description: "Worked x402 route with Pay.sh and AgentTrust.",
+            href: PUBLIC_LINKS.docsPayShAdapter,
             icon: "box",
           },
           {
@@ -167,12 +167,12 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         ],
       },
       {
-        title: "Verification",
+        title: "Integration",
         items: [
           {
-            label: "Kani Harnesses",
-            description: "Paused, velocity, tier, expiry, and threshold checks.",
-            href: PUBLIC_LINKS.docsFormalVerification,
+            label: "Facilitator Adapters",
+            description: "Pay.sh today, Dexter next, atxp_ai and MCPay marked roadmap.",
+            href: PUBLIC_LINKS.docsFacilitatorAdapters,
             icon: "shield",
           },
           {
@@ -194,6 +194,6 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
 ];
 
 export const PRIMARY_NAV_CTA: NavigationCta = {
-  label: "Explore Trust Layer",
-  href: "#explore",
+  label: "Read Pay.sh Guide",
+  href: PUBLIC_LINKS.docsPayShAdapter,
 };

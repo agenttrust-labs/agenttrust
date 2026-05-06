@@ -28,13 +28,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(PUBLIC_LINKS.site),
   title: "AgentTrust",
   description:
-    "AgentTrust gates AI-agent payments on counterparty identity and reputation.",
+    "AgentTrust brings Pay.sh and x402 facilitators a Solana policy and feedback layer for agent payments.",
   alternates: {
     canonical: PUBLIC_LINKS.site,
   },
   openGraph: {
     description:
-      "AgentTrust gates AI-agent payments on counterparty identity and reputation.",
+      "AgentTrust brings Pay.sh and x402 facilitators a Solana policy and feedback layer for agent payments.",
     siteName: "AgentTrust",
     title: "AgentTrust",
     type: "website",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     description:
-      "AgentTrust gates AI-agent payments on counterparty identity and reputation.",
+      "AgentTrust brings Pay.sh and x402 facilitators a Solana policy and feedback layer for agent payments.",
     title: "AgentTrust",
   },
 };

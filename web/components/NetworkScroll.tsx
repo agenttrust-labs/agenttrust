@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import NetworkGlobe from "@/components/NetworkGlobe";
+import NetworkSignalRail from "@/components/NetworkSignalRail";
 import styles from "@/components/NetworkScroll.module.css";
 import PillLink from "@/components/ui/PillLink";
 import { NETWORK_COPY, NETWORK_CTA } from "@/data/network";
@@ -21,13 +22,13 @@ export default function NetworkScroll() {
         return;
       }
 
-      createNetworkReveal({ isReducedMotion, root });
+      return createNetworkReveal({ isReducedMotion, root });
     },
     { dependencies: [isReducedMotion], revertOnUpdate: true, scope: rootRef },
   );
 
   return (
-    <div className={styles.pinArea} ref={rootRef}>
+    <div className={styles.pinArea} data-network-pin ref={rootRef}>
       <div className={styles.stage}>
         <div className={styles.copy}>
           <p className={styles.body} data-network-reveal>
@@ -49,7 +50,7 @@ export default function NetworkScroll() {
         <div className={styles.visual}>
           <NetworkGlobe />
         </div>
-        <div aria-hidden="true" />
+        <NetworkSignalRail />
       </div>
     </div>
   );

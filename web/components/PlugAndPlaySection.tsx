@@ -11,10 +11,10 @@ export default function PlugAndPlaySection() {
     >
       <div className={styles.topSpacer} aria-hidden="true" />
       <div className={styles.inner}>
-        <div className={styles.panel}>
+        <div className={styles.panel} data-plug-panel>
           <FloatingChipField />
           <PlugAndPlayContent />
-          <div className={styles.glow} aria-hidden="true" />
+          <div className={styles.glow} data-plug-purple aria-hidden="true" />
         </div>
       </div>
     </section>

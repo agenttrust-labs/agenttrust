@@ -7,11 +7,14 @@ function docsPath(path: string): string {
 
 export const PUBLIC_LINKS = {
   docs: DOCS_URL,
+  docsAtomicSettlement: docsPath("/sdk/atomic-tx-invariant"),
   docsArchitecture: docsPath("/getting-started/architecture-overview"),
   docsChangelog: docsPath("/reference/changelog"),
   docsFormalVerification: docsPath("/reference/formal-verification"),
+  docsFacilitatorAdapters: docsPath("/integration-guides/facilitator-adapters"),
   docsGatePayment: docsPath("/sdk/gate-payment"),
   docsMountTrustGate: docsPath("/sdk/mount-trustgate"),
+  docsPayShAdapter: docsPath("/integration-guides/pay-sh-adapter"),
   docsPolicyVault: docsPath("/programs/policy-vault"),
   docsProgramIds: docsPath("/reference/devnet-program-ids"),
   docsQuickstart: docsPath("/getting-started/quickstart"),

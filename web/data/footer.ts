@@ -36,9 +36,9 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
     title: "Build",
     links: [
       { href: PUBLIC_LINKS.docs, label: "Documentation" },
-      { href: PUBLIC_LINKS.docsX402, label: "Integration Guide" },
-      { href: PUBLIC_LINKS.docsValidationRegistry, label: "Trust Operators" },
-      { href: PUBLIC_LINKS.docsQuickstart, label: "Integrations" },
+      { href: PUBLIC_LINKS.docsPayShAdapter, label: "Pay.sh Guide" },
+      { href: PUBLIC_LINKS.docsFacilitatorAdapters, label: "Adapter Pattern" },
+      { href: PUBLIC_LINKS.docsQuickstart, label: "Quickstart" },
     ],
   },
   {

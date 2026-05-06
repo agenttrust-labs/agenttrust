@@ -16,13 +16,13 @@ export interface HeroTerminalLine {
 export const HERO_SDK_COMMAND = "npm install @agenttrust-sdk/trustgate";
 
 export const HERO_SDK_COPY = {
-  eyebrow: "SDK Quickstart",
-  title: "Gate an agent payment before settlement.",
+  eyebrow: "Pay.sh Quickstart",
+  title: "Put AgentTrust in the x402 path.",
   body:
-    "Install the TrustGate SDK, resolve the counterparty, and return an allow or deny decision before your agent moves value.",
+    "Run the Pay.sh demo, emit a SERVICE-signed challenge, and keep the policy check tied to settlement.",
   commandLabel: "Copy SDK install command",
   copiedLabel: "Copied",
-  terminalTitle: "trustgate.ts",
+  terminalTitle: "pay-sh-demo",
 } as const;
 
 export const HERO_SDK_LINKS: readonly HeroSdkLink[] = [
@@ -43,15 +43,15 @@ export const HERO_SDK_LINKS: readonly HeroSdkLink[] = [
 export const HERO_TERMINAL_LINES: readonly HeroTerminalLine[] = [
   { prompt: "$", text: HERO_SDK_COMMAND, tone: "default" },
   {
-    text: 'import { gatePayment } from "@agenttrust-sdk/trustgate";',
+    text: "pnpm --filter ./examples/pay-sh-demo dev",
     tone: "muted",
   },
   {
-    text: "const decision = await gatePayment({ agent, recipient, amount });",
+    text: "pay --sandbox curl http://localhost:3402/protected",
     tone: "muted",
   },
-  { text: "identity        verified", tone: "success" },
-  { text: "policy          velocity_counter_le_limit", tone: "accent" },
-  { text: "validation      reputation fresh", tone: "success" },
-  { text: "settlement      allowed before value moves", tone: "accent" },
+  { text: "adapter         PaySh.parseRequest -> VerifyContext", tone: "success" },
+  { text: "policy          gate_payment returned Allow", tone: "accent" },
+  { text: "challenge       SERVICE signature verified", tone: "success" },
+  { text: "settlement      SPL transfer + emit_feedback, one tx", tone: "accent" },
 ];

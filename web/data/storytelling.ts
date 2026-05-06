@@ -5,32 +5,32 @@ export const STORYTELLING_SECTION_ID = "trust-stack";
 
 export const STORYTELLING_PANELS: readonly StoryPanel[] = [
   {
-    eyebrow: "01 / Identity",
-    title: "Identify every counterparty",
-    body: "Resolve the agent, the recipient, and the freshest attestations before the payment route is allowed to open.",
+    eyebrow: "01 / Pay.sh",
+    title: "Start with the Foundation path",
+    body: "Pay.sh is live as the first concrete adapter, with AgentTrust policy hints embedded in the x402 challenge before payment retry.",
     action: {
-      label: "Read the Documentation",
-      href: PUBLIC_LINKS.docs,
+      label: "Open Pay.sh Guide",
+      href: PUBLIC_LINKS.docsPayShAdapter,
     },
     visual: "identity",
   },
   {
-    eyebrow: "02 / Policy",
-    title: "Route payments through policy",
-    body: "Intent passes through limits, velocity caps, allowlists, and emergency stops before a transfer can settle.",
+    eyebrow: "02 / Adapters",
+    title: "Swap facilitators in one file",
+    body: "Routes, policy logic, and feedback stay untouched. Pay.sh ships today; Dexter proves the next adapter path; atxp_ai and MCPay stay explicit roadmap.",
     action: {
-      label: "View Devnet Programs",
-      href: PUBLIC_LINKS.docsProgramIds,
+      label: "Read Adapter Contract",
+      href: PUBLIC_LINKS.docsFacilitatorAdapters,
     },
     visual: "policy",
   },
   {
-    eyebrow: "03 / Proofs",
-    title: "Leave an audit trail",
-    body: "Every decision emits invariant checks, byte-precise reads, and the exact reason a payment passed or stopped.",
+    eyebrow: "03 / Atomic",
+    title: "Settle or revert together",
+    body: "The policy check, SPL transfer, and feedback emission share one signed transaction, so there is no split-brain payment state.",
     action: {
-      label: "Inspect Proofs",
-      href: PUBLIC_LINKS.docsFormalVerification,
+      label: "Inspect Atomicity",
+      href: PUBLIC_LINKS.docsAtomicSettlement,
     },
     visual: "proofs",
   },

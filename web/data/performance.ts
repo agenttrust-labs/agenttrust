@@ -23,45 +23,44 @@ export interface PerformanceHeadline {
 }
 
 export const PERFORMANCE_SECTION_LABELS = [
-  "/ Unparalleled performance",
-  "/ Plug and play",
-  "/ True decentralization",
+  "/ Pay.sh live",
+  "/ Adapter contract",
+  "/ Atomic settlement",
 ] as const;
 
 export const PERFORMANCE_HEADLINE: PerformanceHeadline = {
-  firstLine: "Build trust gates.",
-  secondPrefix: "Settle",
-  secondEmphasis: "without",
-  secondSuffix: "doubt.",
+  firstLine: "One trust layer.",
+  secondPrefix: "Every",
+  secondEmphasis: "x402",
+  secondSuffix: "route.",
 };
 
 export const PERFORMANCE_STATEMENT =
-  "AgentTrust verifies identity, reputation, and policy before AI-agent payments settle.";
+  "Pay.sh works today. The same adapter contract keeps Dexter, atxp_ai, MCPay, and the next facilitator from touching AgentTrust policy logic.";
 
 export const PERFORMANCE_CTA = {
-  label: "Learn About Trust Performance",
-  href: PUBLIC_LINKS.docsArchitecture,
+  label: "Read The Adapter Pattern",
+  href: PUBLIC_LINKS.docsFacilitatorAdapters,
 } as const;
 
 export const PERFORMANCE_STATS: readonly PerformanceStat[] = [
   {
+    label: "Live facilitator",
+    value: "Pay.sh",
+  },
+  {
+    label: "Adapter target",
+    value: "<2h",
+  },
+  {
+    label: "Settlement path",
+    value: "1 tx",
+    count: { from: 0, target: 1, suffix: " tx" },
+  },
+  {
     label: "Invariants verified",
     value: "5 / 5",
     count: { from: 0, target: 5, suffix: " / 5" },
-  },
-  {
-    label: "Devnet programs",
-    value: "3",
-    count: { from: 0, target: 3 },
-  },
-  {
-    label: "Test cases",
-    value: "168",
-    count: { from: 0, target: 168 },
-  },
-  {
-    label: "Open-source license",
-    value: "MIT",
   },
 ] as const;
 

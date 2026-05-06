@@ -91,18 +91,23 @@
 }
 
 .center {
-  top: 50%;
-  left: 50%;
-  width: min(88vw, 520px);
+  top: 48%;
+  left: 20px;
+  width: min(86vw, 640px);
   margin: 0;
-  font-family: var(--font-display), serif;
-  font-size: clamp(2.3rem, 5.4vw, 4.25rem);
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: clamp(3.3rem, 12vw, 5.25rem);
   font-weight: 560;
-  line-height: 1.05;
+  line-height: 0.9;
   color: var(--ink);
-  text-align: center;
-  letter-spacing: -0.04em;
-  transform: translate(-50%, -50%);
+  text-align: left;
+  letter-spacing: -0.075em;
+  transform: translateY(-34%);
+}
+
+.centerLine {
+  display: block;
+  white-space: nowrap;
 }
 
 .visuallyHidden {
@@ -133,10 +138,30 @@
 
   .lead {
     left: 40px;
+    max-width: min(56vw, 920px);
   }
 
   .resolve {
     left: auto;
-    right: 32px;
+    right: clamp(64px, 7vw, 132px);
+    max-width: 32ch;
+  }
+
+  .glyphLayer {
+    transform: translateX(clamp(72px, 7.4vw, 148px));
+  }
+
+  .center {
+    top: 48%;
+    left: clamp(48px, 4.8vw, 92px);
+    width: min(44vw, 720px);
+    font-size: clamp(4.7rem, 7vw, 8rem);
+  }
+}
+
+@media (max-width: 939px) {
+  .center {
+    top: 66%;
+    font-size: clamp(2.8rem, 12vw, 3.4rem);
   }
 }

@@ -13,32 +13,32 @@ export interface HeroAction {
 }
 
 export const HERO_FOUNDATION_LINE =
-  "AgentTrust completes the Foundation's ERC-8004 trust stack.";
+  "Pay.sh integration live on Solana devnet - foundation-aligned, mainnet-ready x402 trust.";
 
 export const HERO_HEADLINE_LINES: readonly (readonly HeadlineWord[])[] = [
   [
     { text: "Trust" },
-    { text: "AI-agent" },
-    { text: "payments" },
-    { text: "before", isEmphasized: true },
+    { text: "any" },
+    { text: "x402" },
+    { text: "payment" },
   ],
   [
-    { text: "they" },
-    { text: "settle." },
+    { text: "before", isEmphasized: true },
+    { text: "settlement." },
   ],
 ];
 
 export const HERO_HEADLINE =
-  "Trust AI-agent payments before they settle.";
+  "Trust any x402 payment before settlement.";
 
 export const HERO_BODY =
-  "AgentTrust gates payment intent on counterparty identity, reputation, policy, and verification proofs for Solana builders.";
+  "AgentTrust plugs into Pay.sh today and any x402 facilitator next. Policy, SPL transfer, and feedback compose into one signed Solana transaction.";
 
 export const HERO_ACTIONS: readonly HeroAction[] = [
   {
     icon: "globe",
-    label: "Integrate SDK",
-    href: "#plug-and-play",
+    label: "Run Pay.sh Demo",
+    href: PUBLIC_LINKS.docsQuickstart,
     variant: "primary",
   },
   {
