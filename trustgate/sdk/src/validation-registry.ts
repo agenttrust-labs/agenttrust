@@ -95,17 +95,65 @@ export function deriveValidationAttestationPda(
   )[0];
 }
 
-/** Compute the 32-byte SHA-256 hash a `register_namespace` caller must
- *  supply alongside the human-readable name. The on-chain handler does NOT
- *  re-hash (anchor-lang 1.0 doesn't re-export `solana_program::hash`); the
- *  caller is the source of truth. */
+/**
+ * Compute the 32-byte SHA-256 hash a `register_namespace` caller must
+ * supply alongside the human-readable name. The on-chain handler does
+ * NOT re-hash (anchor-lang 1.0 doesn't re-export `solana_program::hash`);
+ * the caller is the source of truth.
+ *
+ * **Aliasing note (load-bearing):** `computeNamespaceHash` and
+ * `computeCapabilityHash` are byte-equivalent. Both compute
+ * `SHA256(name_utf8)`. They're exposed under two names because the
+ * on-chain instruction surface uses two names — `register_namespace`
+ * takes `namespace_hash` and `request_validation` /
+ * `respond_to_validation` take `capability_hash` — but **the PDAs they
+ * key off resolve to the same address only when the same canonical name
+ * goes into both functions**.
+ *
+ * Concretely: `request_validation` validates that the namespace at
+ * `[b"capability", capability_hash]` already exists. If a SERVICE
+ * registers under name `"foo"` (namespace_hash = `SHA256("foo")`) but
+ * later requests validation for `"foo:v1"`
+ * (capability_hash = `SHA256("foo:v1")`), the request fails with
+ * `AccountNotInitialized` because the two hashes are different and
+ * resolve to different PDAs.
+ *
+ * **Pass the same canonical name through both functions.** A name like
+ * `usdc-payment-policy.v1` (no `:`, since on-chain
+ * `register_namespace` rejects colons) is a typical canonical form.
+ *
+ * @param name 3..=32 char canonical capability name. Must NOT contain
+ *             ':' (the on-chain handler rejects it via
+ *             `NamespaceColonForbidden`).
+ * @returns 32-byte SHA-256 digest of the UTF-8 bytes of `name`.
+ */
 export function computeNamespaceHash(name: string): Uint8Array {
   return new Uint8Array(createHash("sha256").update(name, "utf-8").digest());
 }
 
-/** Compute a 32-byte capability-hash for an arbitrary `capability_name`
- *  string. AgentTrust's PolicyVault `RequireValidation` policy stores this
- *  hash; namespaces and attestations reference it by value. */
+/**
+ * Compute a 32-byte capability-hash for an arbitrary `capabilityName`
+ * string. AgentTrust's PolicyVault `RequireValidation` policy stores
+ * this hash; namespaces and attestations reference it by value.
+ *
+ * **Aliasing note (load-bearing):** `computeCapabilityHash` and
+ * `computeNamespaceHash` are byte-equivalent. Both compute
+ * `SHA256(name_utf8)`. They're exposed under two names because the
+ * on-chain instruction surface uses two names — `register_namespace`
+ * takes `namespace_hash` and `request_validation` /
+ * `respond_to_validation` take `capability_hash`.
+ *
+ * **Pass the same canonical name through both** — the registered
+ * namespace's PDA at `[b"capability", namespace_hash]` is the same PDA
+ * `request_validation` looks up at `[b"capability", capability_hash]`.
+ * Different names → different PDAs → request fails with
+ * `AccountNotInitialized`.
+ *
+ * @param capabilityName 3..=32 char canonical capability name. Must
+ *                       NOT contain ':' (on-chain
+ *                       `NamespaceColonForbidden`).
+ * @returns 32-byte SHA-256 digest of the UTF-8 bytes of `capabilityName`.
+ */
 export function computeCapabilityHash(capabilityName: string): Uint8Array {
   return new Uint8Array(createHash("sha256").update(capabilityName, "utf-8").digest());
 }
