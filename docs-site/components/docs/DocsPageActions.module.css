@@ -173,13 +173,6 @@
   line-height: 16px;
 }
 
-.externalIcon {
-  width: 12px;
-  height: 12px;
-  flex: 0 0 auto;
-  color: rgb(83, 83, 87);
-}
-
 .checkIcon {
   width: 14px;
   height: 14px;

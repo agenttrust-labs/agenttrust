@@ -49,70 +49,6 @@ function CopyPageIcon({ className }: { className?: string }): JSX.Element {
   );
 }
 
-function MarkdownIcon({ className }: { className?: string }): JSX.Element {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      height="18"
-      viewBox="0 0 18 18"
-      width="18"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M15.25 3.75H2.75C1.64543 3.75 0.75 4.64543 0.75 5.75V12.25C0.75 13.3546 1.64543 14.25 2.75 14.25H15.25C16.3546 14.25 17.25 13.3546 17.25 12.25V5.75C17.25 4.64543 16.3546 3.75 15.25 3.75Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M8.75 11.25V6.75H8.356L6.25 9.5L4.144 6.75H3.75V11.25"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M11.5 9.5L13.25 11.25L15 9.5"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M13.25 11.25V6.75"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
-
-function ArrowUpRightIcon({ className }: { className?: string }): JSX.Element {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      height="24"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-      width="24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M7 7h10v10" />
-      <path d="M7 17 17 7" />
-    </svg>
-  );
-}
-
 function MenuChevronIcon({ className }: { className?: string }): JSX.Element {
   return (
     <svg
@@ -208,10 +144,6 @@ export function DocsPageActions({ markdownUrl }: DocsPageActionsProps): JSX.Elem
     }
   }
 
-  function handleViewMarkdown(): void {
-    setIsOpen(false);
-  }
-
   function handleAskAssistant(event: MouseEvent<HTMLButtonElement>): void {
     event.preventDefault();
     setIsOpen(false);
@@ -276,28 +208,6 @@ export function DocsPageActions({ markdownUrl }: DocsPageActionsProps): JSX.Elem
           </span>
           <CheckIcon className={styles.checkIcon} />
         </button>
-
-        <a
-          className={styles.menuItem}
-          href={markdownUrl}
-          onClick={handleViewMarkdown}
-          rel="noreferrer"
-          role="menuitem"
-          tabIndex={isOpen ? 0 : -1}
-          target="_blank"
-        >
-          <span className={styles.iconBox}>
-            <MarkdownIcon className={styles.itemIcon} />
-          </span>
-          <span className={styles.itemText}>
-            <span className={styles.itemTitle}>
-              View as Markdown
-              <ArrowUpRightIcon className={styles.externalIcon} />
-            </span>
-            <span className={styles.itemDescription}>View this page as plain text</span>
-          </span>
-          <CheckIcon className={styles.checkIcon} />
-        </a>
 
         <button
           className={styles.menuItem}
