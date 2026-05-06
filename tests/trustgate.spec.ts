@@ -322,5 +322,58 @@ describe("trustgate", () => {
         expect(String(e)).to.match(/already in use|0x0/i);
       }
     });
+
+    it("dispute_payment lands a negative-score feedback for the same agent", async function () {
+      const env = await quantuStateAvailable();
+      if (!env.ok) { this.skip(); return; }
+
+      const facilitator = wallet;
+      const [authorityPda] = deriveAuthorityPda(program.programId, facilitator);
+      try {
+        await program.methods.initAuthority(facilitator).accountsStrict({
+          payer: facilitator, authority: authorityPda, systemProgram: SystemProgram.programId,
+        }).rpc();
+      } catch { /* already inited */ }
+
+      const { asset, agentAccount, atomStats } = await registerAgentWithAtom(env.baseCollection);
+
+      const paymentIdHash = Buffer.alloc(32);
+      paymentIdHash.writeBigUInt64LE(BigInt(Date.now()) + 7n, 0);
+      asset.publicKey.toBuffer().copy(paymentIdHash, 8);
+      const [logPda] = deriveFeedbackLogPda(program.programId, paymentIdHash);
+
+      const reasonHash = Buffer.alloc(32, 0xAA);
+
+      const sig = await program.methods.disputePayment(
+        Array.from(paymentIdHash), facilitator, asset.publicKey,
+        Array.from(reasonHash), "ipfs://Qm-dispute-evidence",
+      ).accountsStrict({
+        payer:         facilitator,
+        authority:     authorityPda,
+        emissionLog:   logPda,
+        systemProgram: SystemProgram.programId,
+      }).remainingAccounts([
+        { pubkey: agentAccount,        isSigner: false, isWritable: true  },
+        { pubkey: asset.publicKey,     isSigner: false, isWritable: false },
+        { pubkey: env.baseCollection,  isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        { pubkey: ATOM_CONFIG_PDA,     isSigner: false, isWritable: false },
+        { pubkey: atomStats,           isSigner: false, isWritable: true  },
+        { pubkey: QUANTU_ATOM_ENGINE,  isSigner: false, isWritable: false },
+        { pubkey: REG_AUTH_PDA,        isSigner: false, isWritable: false },
+        { pubkey: QUANTU_AGENT_REGISTRY, isSigner: false, isWritable: false },
+      ]).rpc({ commitment: "confirmed" });
+
+      expect(sig).to.be.a("string");
+
+      const log = await program.account.feedbackEmissionLog.fetch(logPda);
+      expect(log.isDispute).to.equal(1);
+      expect(log.score).to.equal(20); // DISPUTE_SCORE constant — see programs/trustgate/src/constants.rs
+      expect(log.emittedAtSlot.toNumber()).to.be.greaterThan(0);
+
+      // The authority's dispute_count must have incremented.
+      const auth = await program.account.trustGateAuthority.fetch(authorityPda);
+      expect(auth.disputeCount.toNumber()).to.be.greaterThan(0);
+    });
   });
 });

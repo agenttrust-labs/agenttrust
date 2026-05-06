@@ -353,5 +353,75 @@ describe("validation-registry", () => {
         expect(e.error.errorCode.code).to.equal("DeadlineInPast");
       }
     });
+
+    it("rejects duplicate namespace registration (same namespace_hash)", async () => {
+      const runTag = Math.random().toString(36).slice(2, 8);
+      const name   = `dup-test.${runTag}`;
+      const hash   = sha256(name);
+      const pda    = deriveNamespacePda(program.programId, hash);
+
+      // First registration succeeds.
+      await program.methods
+        .registerNamespace(Array.from(hash), name, "v1", "ipfs://x")
+        .accountsStrict({ creator: wallet, namespace: pda, systemProgram: SystemProgram.programId })
+        .rpc();
+
+      // Second registration at the same hash → the init constraint fires
+      // (account already in use). This is the correct disambiguation: the
+      // namespace PDA is keyed on the hash, so collisions are structurally
+      // impossible to overwrite.
+      try {
+        await program.methods
+          .registerNamespace(Array.from(hash), name, "v2", "ipfs://y")
+          .accountsStrict({ creator: wallet, namespace: pda, systemProgram: SystemProgram.programId })
+          .rpc();
+        expect.fail("expected init failure on duplicate namespace");
+      } catch (e: any) {
+        expect(String(e)).to.match(/already in use|0x0/i);
+      }
+    });
+
+    it("respond_to_validation rejects expiry in the past (when non-zero)", async () => {
+      const runTag = Math.random().toString(36).slice(2, 8);
+      const name   = `expiry-test.${runTag}`;
+      const nsHash = sha256(name);
+      const nsPda  = deriveNamespacePda(program.programId, nsHash);
+      await program.methods
+        .registerNamespace(Array.from(nsHash), name, "v1", "ipfs://x")
+        .accountsStrict({ creator: wallet, namespace: nsPda, systemProgram: SystemProgram.programId })
+        .rpc();
+
+      const subject     = Keypair.generate().publicKey;
+      const claimPayload = sha256("payload");
+      const claimUri     = sha256("uri");
+
+      const attestorPda = deriveAttestorPda(program.programId, wallet);
+      try {
+        await program.methods.registerAttestor("ipfs://m")
+          .accountsStrict({
+            attestor: wallet, attestorProfile: attestorPda,
+            systemProgram: SystemProgram.programId,
+          }).rpc();
+      } catch (_) { /* already registered */ }
+
+      const attestPda = deriveAttestationPda(program.programId, subject, nsHash, wallet);
+
+      // expiresAt=1 is in the past for any non-genesis slot.
+      try {
+        await program.methods
+          .respondToValidation(
+            subject, Array.from(nsHash), Array.from(claimPayload), Array.from(claimUri),
+            new BN(1),
+          )
+          .accountsStrict({
+            payer: wallet, attestor: wallet, attestation: attestPda,
+            attestorProfile: attestorPda, capabilityNamespace: nsPda,
+            systemProgram: SystemProgram.programId,
+          }).rpc();
+        expect.fail("expected ExpiryInPast");
+      } catch (e: any) {
+        expect(e.error.errorCode.code).to.equal("ExpiryInPast");
+      }
+    });
   });
 });

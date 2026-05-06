@@ -263,13 +263,33 @@ describe("policy-vault", () => {
       }
     });
 
-    it("fails when lead signer is not in members", async () => {
-      // Setup: provider.wallet creates auth where it IS in members + a stranger.
-      // Then we attempt set_killswitch with a stranger keypair as `signer`.
-      // Without funding the stranger we still get a deterministic failure path:
-      // the test framework refuses tx because the non-funded keypair can't sign.
-      // Skip this scenario in Phase 3 — rust unit-level checks cover the
-      // member-check; cross-keypair signing is wired up in Phase 9 E2E tests.
+    it("fails when lead signer is not in members (MemberNotInAuthority)", async () => {
+      const agent     = freshAgent();
+      const stranger  = Keypair.generate();
+      const [authPda] = deriveAuthorityPda(program.programId, agent);
+
+      // Fund the stranger so they can pay tx fees.
+      const airdropSig = await provider.connection.requestAirdrop(stranger.publicKey, 1_000_000_000);
+      await provider.connection.confirmTransaction(airdropSig, "confirmed");
+
+      // Authority has wallet only — stranger is NOT a member.
+      await initAuthorityFor(agent, [wallet], 1);
+      const ksPda = await initKillSwitchFor(agent);
+
+      try {
+        await program.methods
+          .setKillswitch(agent, true)
+          .accountsStrict({
+            signer: stranger.publicKey,
+            policyAuthority: authPda,
+            killSwitchState: ksPda,
+          })
+          .signers([stranger])
+          .rpc();
+        expect.fail("expected MemberNotInAuthority for non-member lead signer");
+      } catch (e) {
+        expect((e as AnchorError).error.errorCode.code).to.equal("MemberNotInAuthority");
+      }
     });
   });
 
@@ -647,6 +667,248 @@ describe("policy-vault", () => {
       }
       const policy = await program.account.policyAccount.fetch(env.policyPda);
       expect(policy.spendingTodayUsed.toNumber()).to.equal(80);
+    });
+
+    it("Daily cap exceeded reverts with SpendingDailyExceeded — counters frozen", async () => {
+      // perTxMax=100, dailyMax=500. Five 100-unit calls fill the daily bucket
+      // exactly; the sixth must revert without advancing the counter.
+      const env = await setupForStrict(BITMASK_SPENDING_PLUS_KILLSWITCH, 210, /*perTxMax*/ 100);
+      for (let i = 0; i < 5; i++) await callStrict(env, freshAgent(), 100, 210);
+      const mid = await program.account.policyAccount.fetch(env.policyPda);
+      expect(mid.spendingTodayUsed.toNumber()).to.equal(500);
+
+      try {
+        await callStrict(env, freshAgent(), 100, 210);
+        expect.fail("expected gate_payment_strict to revert on daily exceed");
+      } catch (e) {
+        expect(String(e)).to.match(/SpendingDailyExceeded|6002/);
+      }
+      const after = await program.account.policyAccount.fetch(env.policyPda);
+      expect(after.spendingTodayUsed.toNumber()).to.equal(500); // unchanged
+    });
+
+    it("Weekly cap exceeded reverts with SpendingWeeklyExceeded — counters frozen", async () => {
+      // Use a tighter weekly cap so we don't have to roll the day forward.
+      // perTxMax=100, dailyMax=500, weeklyMax=300 → second 200-unit call
+      // pushes weekly to 400 > 300 cap.
+      const policyId = 211;
+      const agent = freshAgent();
+      await initAuthorityFor(agent);
+      await initKillSwitchFor(agent);
+      const args = { ...defaultArgs(policyId), enabledKindsBitmask: BITMASK_SPENDING_PLUS_KILLSWITCH };
+      args.spending.perTxMax  = new BN(200);
+      args.spending.dailyMax  = new BN(500);
+      args.spending.weeklyMax = new BN(300);
+      await initPolicyFor(agent, args);
+
+      const ksPda     = deriveKillSwitchPda(program.programId, agent)[0];
+      const policyPda = derivePolicyPda(program.programId, agent, policyId)[0];
+      const ledgerPda = deriveVelocityPda(program.programId, agent, policyId)[0];
+
+      await program.methods
+        .gatePaymentStrict(agent, freshAgent(), new BN(200), PublicKey.default, policyId)
+        .accountsStrict({
+          caller: wallet, policyAccount: policyPda, velocityLedger: ledgerPda,
+          killSwitchState: ksPda, payerAtomStats: null, payeeAtomStats: null, validationAttestation: null,
+        }).rpc();
+
+      try {
+        await program.methods
+          .gatePaymentStrict(agent, freshAgent(), new BN(200), PublicKey.default, policyId)
+          .accountsStrict({
+            caller: wallet, policyAccount: policyPda, velocityLedger: ledgerPda,
+            killSwitchState: ksPda, payerAtomStats: null, payeeAtomStats: null, validationAttestation: null,
+          }).rpc();
+        expect.fail("expected gate_payment_strict to revert on weekly exceed");
+      } catch (e) {
+        expect(String(e)).to.match(/SpendingWeeklyExceeded|6003/);
+      }
+      const after = await program.account.policyAccount.fetch(policyPda);
+      expect(after.spendingTodayUsed.toNumber()).to.equal(200); // first call only
+    });
+
+    it("Velocity window cap exceeded reverts with VelocityWindowExceeded", async () => {
+      const policyId = 212;
+      const agent = freshAgent();
+      await initAuthorityFor(agent);
+      await initKillSwitchFor(agent);
+      const args = { ...defaultArgs(policyId), enabledKindsBitmask: 0x04 /* velocity only */ };
+      args.velocity.maxInWindow = new BN(500);
+      await initPolicyFor(agent, args);
+
+      const ksPda     = deriveKillSwitchPda(program.programId, agent)[0];
+      const policyPda = derivePolicyPda(program.programId, agent, policyId)[0];
+      const ledgerPda = deriveVelocityPda(program.programId, agent, policyId)[0];
+
+      // 500 in one shot: at the cap (allowed).
+      await program.methods
+        .gatePaymentStrict(agent, freshAgent(), new BN(500), PublicKey.default, policyId)
+        .accountsStrict({
+          caller: wallet, policyAccount: policyPda, velocityLedger: ledgerPda,
+          killSwitchState: ksPda, payerAtomStats: null, payeeAtomStats: null, validationAttestation: null,
+        }).rpc();
+
+      try {
+        await program.methods
+          .gatePaymentStrict(agent, freshAgent(), new BN(1), PublicKey.default, policyId)
+          .accountsStrict({
+            caller: wallet, policyAccount: policyPda, velocityLedger: ledgerPda,
+            killSwitchState: ksPda, payerAtomStats: null, payeeAtomStats: null, validationAttestation: null,
+          }).rpc();
+        expect.fail("expected gate_payment_strict to revert on velocity exceed");
+      } catch (e) {
+        expect(String(e)).to.match(/VelocityWindowExceeded|6010/);
+      }
+      const ledger = await program.account.velocityLedger.fetch(ledgerPda);
+      expect(ledger.cumulativeAmount.toNumber()).to.equal(500); // unchanged after revert
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Multisig coverage — extends set_killswitch with the N=N (unanimous) edge.
+  // The 1-of-1 + threshold-not-met edges are above. N=N+1 is structurally
+  // impossible at init_authority time and is covered by ThresholdExceedsMembers.
+  // ---------------------------------------------------------------------------
+
+  describe("multisig N=N (unanimous)", () => {
+    it("3-of-3 set_killswitch requires all three distinct signers", async () => {
+      const agent     = freshAgent();
+      const a = Keypair.generate();
+      const b = Keypair.generate();
+      const [authPda] = deriveAuthorityPda(program.programId, agent);
+
+      // Fund both extra signers so they can co-sign the tx.
+      for (const k of [a, b]) {
+        const sig = await provider.connection.requestAirdrop(k.publicKey, 1_000_000_000);
+        await provider.connection.confirmTransaction(sig, "confirmed");
+      }
+
+      await program.methods
+        .initAuthority(agent, [wallet, a.publicKey, b.publicKey], 3)
+        .accountsStrict({ payer: wallet, policyAuthority: authPda, systemProgram: SystemProgram.programId })
+        .rpc();
+
+      const ksPda = await initKillSwitchFor(agent);
+
+      // Lead signer alone with threshold=3 → MultisigThresholdNotMet.
+      try {
+        await program.methods
+          .setKillswitch(agent, true)
+          .accountsStrict({ signer: wallet, policyAuthority: authPda, killSwitchState: ksPda })
+          .rpc();
+        expect.fail("expected MultisigThresholdNotMet for lead-only at N=3");
+      } catch (e) {
+        expect((e as AnchorError).error.errorCode.code).to.equal("MultisigThresholdNotMet");
+      }
+
+      // Lead + a + b all signing → set_killswitch handler walks
+      // `remaining_accounts` for additional `is_signer: true` members,
+      // dedups against policy_authority.members, and requires
+      // distinct_count >= threshold.
+      const sig = await program.methods
+        .setKillswitch(agent, true)
+        .accountsStrict({ signer: wallet, policyAuthority: authPda, killSwitchState: ksPda })
+        .remainingAccounts([
+          { pubkey: a.publicKey, isSigner: true, isWritable: false },
+          { pubkey: b.publicKey, isSigner: true, isWritable: false },
+        ])
+        .signers([a, b])
+        .rpc();
+      expect(sig).to.be.a("string");
+
+      const ks = await program.account.killSwitchState.fetch(ksPda);
+      expect(ks.paused).to.equal(true);
+      expect(ks.pausedBy.toBase58()).to.equal(wallet.toBase58());
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Atomic-tx coverage — gate_payment_strict and set_killswitch in the same
+  // transaction. Catches any state-mutation race between the gate's commit
+  // path and a concurrent killswitch flip: the entire tx must commit-or-revert
+  // as one, never half-way.
+  // ---------------------------------------------------------------------------
+
+  describe("gate_payment_strict + set_killswitch atomic", () => {
+    const BITMASK_SPENDING_PLUS_KILLSWITCH = 0x03;
+
+    it("gate runs before killswitch flip — both commit atomically", async () => {
+      const policyId = 220;
+      const agent = freshAgent();
+      const [authPda] = deriveAuthorityPda(program.programId, agent);
+      await initAuthorityFor(agent);
+      await initKillSwitchFor(agent);
+      const args = { ...defaultArgs(policyId), enabledKindsBitmask: BITMASK_SPENDING_PLUS_KILLSWITCH };
+      args.spending.perTxMax = new BN(100);
+      await initPolicyFor(agent, args);
+
+      const ksPda     = deriveKillSwitchPda(program.programId, agent)[0];
+      const policyPda = derivePolicyPda(program.programId, agent, policyId)[0];
+      const ledgerPda = deriveVelocityPda(program.programId, agent, policyId)[0];
+
+      const gateIx = await program.methods
+        .gatePaymentStrict(agent, freshAgent(), new BN(50), PublicKey.default, policyId)
+        .accountsStrict({
+          caller: wallet, policyAccount: policyPda, velocityLedger: ledgerPda,
+          killSwitchState: ksPda, payerAtomStats: null, payeeAtomStats: null, validationAttestation: null,
+        }).instruction();
+
+      const flipIx = await program.methods
+        .setKillswitch(agent, true)
+        .accountsStrict({ signer: wallet, policyAuthority: authPda, killSwitchState: ksPda })
+        .instruction();
+
+      // Same tx, gate then flip. Both must commit.
+      const tx = new anchor.web3.Transaction().add(gateIx).add(flipIx);
+      await provider.sendAndConfirm(tx);
+
+      const policy = await program.account.policyAccount.fetch(policyPda);
+      expect(policy.spendingTodayUsed.toNumber()).to.equal(50);
+      const ks = await program.account.killSwitchState.fetch(ksPda);
+      expect(ks.paused).to.equal(true);
+    });
+
+    it("killswitch flip before gate — gate reverts, flip rolled back", async () => {
+      const policyId = 221;
+      const agent = freshAgent();
+      const [authPda] = deriveAuthorityPda(program.programId, agent);
+      await initAuthorityFor(agent);
+      await initKillSwitchFor(agent);
+      const args = { ...defaultArgs(policyId), enabledKindsBitmask: BITMASK_SPENDING_PLUS_KILLSWITCH };
+      args.spending.perTxMax = new BN(100);
+      await initPolicyFor(agent, args);
+
+      const ksPda     = deriveKillSwitchPda(program.programId, agent)[0];
+      const policyPda = derivePolicyPda(program.programId, agent, policyId)[0];
+      const ledgerPda = deriveVelocityPda(program.programId, agent, policyId)[0];
+
+      const flipIx = await program.methods
+        .setKillswitch(agent, true)
+        .accountsStrict({ signer: wallet, policyAuthority: authPda, killSwitchState: ksPda })
+        .instruction();
+
+      const gateIx = await program.methods
+        .gatePaymentStrict(agent, freshAgent(), new BN(50), PublicKey.default, policyId)
+        .accountsStrict({
+          caller: wallet, policyAccount: policyPda, velocityLedger: ledgerPda,
+          killSwitchState: ksPda, payerAtomStats: null, payeeAtomStats: null, validationAttestation: null,
+        }).instruction();
+
+      // flip then gate. gate must see paused=true and revert; the flip
+      // rolls back too because the whole tx fails.
+      const tx = new anchor.web3.Transaction().add(flipIx).add(gateIx);
+      try {
+        await provider.sendAndConfirm(tx);
+        expect.fail("expected tx to revert when gate fires after killswitch flip");
+      } catch (e) {
+        expect(String(e)).to.match(/KillSwitchEngaged|6040/);
+      }
+
+      // Both effects rolled back: killswitch still false, spending still 0.
+      const ks = await program.account.killSwitchState.fetch(ksPda);
+      expect(ks.paused).to.equal(false);
+      const policy = await program.account.policyAccount.fetch(policyPda);
+      expect(policy.spendingTodayUsed.toNumber()).to.equal(0);
     });
   });
 });
