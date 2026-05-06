@@ -37,6 +37,14 @@ export {
 } from "./spl";
 
 export {
+  makeValidateOnChainTx,
+  type OnChainTxValidation,
+  type OnChainTxRejection,
+  type ValidateOnChainTxFn,
+  type MakeValidateOnChainTxOptions,
+} from "./onchain-validator";
+
+export {
   derivePolicyPda, deriveVelocityPda, deriveKillSwitchPda,
   deriveFeedbackLogPda, deriveTrustGateAuthorityPda,
   loadPolicyVault, loadTrustGate, makeProvider,
