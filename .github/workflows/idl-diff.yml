@@ -1,0 +1,121 @@
+name: IDL diff
+
+# Acts as ABI-stability gate. Surfaces a PR that changes the on-chain
+# Anchor IDL (instructions, accounts, types) so reviewers explicitly
+# acknowledge the surface change before merge.
+#
+# Why: a silent IDL bump breaks every downstream consumer (the SDK,
+# the MCP server, partner facilitators) until they re-fetch and
+# re-typegen. We treat the deployed-program IDL as a public contract.
+#
+# Steps:
+#   1. anchor build → produces target/idl/<name>.json from source.
+#   2. anchor idl fetch <programId> --provider.cluster devnet → reads
+#      the currently-deployed IDL.
+#   3. jq-normalize both, diff. A non-empty diff means the PR's
+#      source IDL differs from devnet's IDL.
+#
+# Bypass: a maintainer adds the `idl-change-ack` label to the PR.
+# CI surfaces the diff as a status, but the label flips the status
+# from failure to neutral. Encodes "yes, we know we're shipping a
+# breaking change."
+#
+# Trigger: PR touching programs/** (any source change can in theory
+# alter the IDL). Push to main is intentionally NOT triggered — by
+# the time a change reaches main, the gate has already been cleared
+# by the PR review.
+
+on:
+  pull_request:
+    paths:
+      - 'programs/**'
+      - 'Anchor.toml'
+      - '.github/workflows/idl-diff.yml'
+  workflow_dispatch:
+
+jobs:
+  diff:
+    name: IDL diff vs devnet
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache Anchor target
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-anchor-target-${{ hashFiles('**/Cargo.lock', 'Anchor.toml') }}
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.16/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+
+      - name: Install Rust toolchain
+        run: rustup default 1.86.0
+
+      - name: Install AVM + Anchor 1.0.1
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor avm --force --locked
+          avm install 1.0.1
+          avm use 1.0.1
+
+      - name: anchor build (produces target/idl/*.json)
+        run: anchor build
+
+      - name: Diff each program's IDL against devnet
+        env:
+          DEVNET: https://api.devnet.solana.com
+        run: |
+          set -e
+          declare -A PROGRAMS=(
+            [policy_vault]="8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR"
+            [trustgate]="HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N"
+            [validation_registry]="Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv"
+          )
+          drift=0
+          for name in "${!PROGRAMS[@]}"; do
+            local_idl="target/idl/${name}.json"
+            if [ ! -f "$local_idl" ]; then
+              echo "::warning file=programs/${name//_/-}/Cargo.toml::Anchor build did not produce ${local_idl}; skipping"
+              continue
+            fi
+            remote_idl=$(mktemp)
+            if ! anchor idl fetch "${PROGRAMS[$name]}" --provider.cluster "$DEVNET" > "$remote_idl" 2>/dev/null; then
+              echo "::warning file=Anchor.toml::Could not fetch on-chain IDL for ${name} (${PROGRAMS[$name]}); skipping diff"
+              continue
+            fi
+            # Normalize via jq -S (sort keys) so trivial key-order
+            # changes don't show up as diffs. Sort the instruction
+            # array by name for the same reason.
+            local_norm=$(mktemp)
+            remote_norm=$(mktemp)
+            jq -S '. | .instructions = (.instructions | sort_by(.name)) | .accounts = (.accounts | sort_by(.name))' "$local_idl"  > "$local_norm"
+            jq -S '. | .instructions = (.instructions | sort_by(.name)) | .accounts = (.accounts | sort_by(.name))' "$remote_idl" > "$remote_norm"
+            if diff -q "$local_norm" "$remote_norm" > /dev/null; then
+              echo "::notice file=target/idl/${name}.json::${name} IDL matches devnet"
+            else
+              drift=1
+              echo "::error file=target/idl/${name}.json::${name} IDL differs from devnet — surface change requires the 'idl-change-ack' label"
+              # Print a focused diff (first 200 lines) to aid review.
+              diff -u "$remote_norm" "$local_norm" | head -200 || true
+            fi
+          done
+          if [ $drift -ne 0 ]; then
+            # If the maintainer added the bypass label, downgrade to a
+            # warning. The action below sets the right exit code.
+            if [[ "${{ contains(github.event.pull_request.labels.*.name, 'idl-change-ack') }}" == "true" ]]; then
+              echo "::warning::IDL drift acknowledged via 'idl-change-ack' label; merging is allowed."
+              exit 0
+            fi
+            exit 1
+          fi
