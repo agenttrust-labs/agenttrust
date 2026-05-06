@@ -125,4 +125,13 @@ jobs:
         run: anchor build
 
       - name: Anchor test (uses local validator with Quantu mainnet clones)
-        run: anchor test
+        # --provider.cluster localnet: override Anchor.toml's
+        #   `cluster = "devnet"` — without this, `anchor test` deploys
+        #   to live devnet, which fails on upgrade-authority mismatch
+        #   because CI's throwaway wallet isn't the deploy authority.
+        # --validator legacy: anchor 1.0.1 defaults to surfpool;
+        #   surfpool isn't installed in CI (or locally). Solana CLI's
+        #   own solana-test-validator handles the [test.validator]
+        #   block in Anchor.toml.
+        # --skip-build: we already ran `anchor build` above.
+        run: anchor test --skip-build --provider.cluster localnet --validator legacy
