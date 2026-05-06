@@ -1,0 +1,87 @@
+name: Kani proof budget
+
+# Catches a proof regression that would balloon the formal-
+# verification runtime without anyone noticing locally. Today's run
+# is ~95 s on a fast local arm64 host (Phase F2.6 measured ~78 s on
+# CI, but caching state varies). We set the budget at 180 s — ~90%
+# headroom over the 95 s baseline, generous enough to absorb CI
+# cold-cache variance, tight enough to catch a 2x runtime
+# regression. If the budget gets tripped, the team has to either
+# rein in the proof complexity, narrow a kani::unwind bound, or
+# revisit the budget itself with a paired comment update.
+#
+# Wall-clock is the right signal here: it captures the symbolic-
+# search blow-up (CBMC's solver loops) that's the actual failure
+# mode we care about. Per-check sub-counts can grow without
+# regressing runtime; runtime growth is the smoke alarm.
+#
+# Trigger: PR touching programs/** OR any proofs/** path. The
+# existing kani-prove.yml runs the proofs themselves on the same
+# trigger; this is the budget guardian sibling.
+
+on:
+  pull_request:
+    paths:
+      - 'programs/**'
+      - 'programs/policy-vault/src/proofs/**'
+      - '.github/workflows/kani-budget.yml'
+  workflow_dispatch:
+
+jobs:
+  budget:
+    name: cargo kani total runtime <= 180 s
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Kani
+        uses: model-checking/kani-github-action@v1.1
+        with:
+          kani-version: '0.67.0'
+
+      - name: Run all proofs + measure wall-clock
+        working-directory: programs/policy-vault
+        run: |
+          set -e
+          # Use bash's $SECONDS for portable wall-clock measurement.
+          # `time` would also work but its output format varies across
+          # shells; SECONDS is just an integer counter.
+          start=$SECONDS
+          cargo kani --output-format terse > /tmp/kani-output.txt 2>&1
+          elapsed=$(( SECONDS - start ))
+
+          echo "::notice::Kani total wall-clock = ${elapsed}s (budget = 180s)"
+
+          # Confirm the run was actually green; a runtime regression
+          # under a failing proof is still a fail.
+          if ! grep -q "Manual Harness Summary:" /tmp/kani-output.txt; then
+            echo "::error::Kani did not report a Manual Harness Summary — likely crashed mid-run"
+            tail -40 /tmp/kani-output.txt
+            exit 1
+          fi
+          if ! grep -q ", 0 failures," /tmp/kani-output.txt; then
+            echo "::error::Kani reported failures"
+            grep -E "VERIFICATION|failures" /tmp/kani-output.txt
+            exit 1
+          fi
+
+          # Threshold rationale: current ~95 s on local arm64; CI's
+          # x86_64 cold-cache historically lands at ~78 s. 180 s gives
+          # ~90% headroom — catches a 2x regression without flapping
+          # on normal CI variance. Bump only with a paired update to
+          # the workflow YAML's top comment + commit explanation.
+          BUDGET=180
+          if [ "$elapsed" -gt "$BUDGET" ]; then
+            echo "::error file=programs/policy-vault/src/proofs/mod.rs::Kani runtime ${elapsed}s exceeds ${BUDGET}s budget. Inspect /tmp/kani-output.txt for slow harnesses; consider tightening kani::unwind bounds."
+            tail -60 /tmp/kani-output.txt
+            exit 1
+          fi
