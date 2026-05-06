@@ -432,6 +432,20 @@ samp {
   color: var(--ink);
 }
 
+.dark #nd-sidebar a[data-active='false']:hover,
+.dark #nd-sidebar button:hover {
+  background: rgba(237, 237, 242, 0.05);
+}
+
+.dark #nd-sidebar a:not(.agenttrust-brand),
+.dark #nd-sidebar button:not([data-search-full]) {
+  color: rgba(237, 237, 242, 0.78);
+}
+
+.dark #nd-sidebar [data-radix-scroll-area-viewport] > div::before {
+  color: var(--ink);
+}
+
 [data-search-full]:hover {
   background: var(--bg) !important;
   color: var(--ink) !important;
@@ -642,11 +656,17 @@ a:hover .agenttrust-brand,
 #nd-page :not(pre) > code {
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--border) 50%, transparent);
+  background: var(--bg-subtle);
   color: var(--ink);
   font-size: 12px;
   font-weight: 600;
   padding: 2px 7px;
+}
+
+.dark #nd-page :not(pre) > code {
+  background: rgba(242, 241, 245, 0.06);
+  border-color: rgba(242, 241, 245, 0.16);
+  color: #f4f3f9;
 }
 
 #nd-page pre,
