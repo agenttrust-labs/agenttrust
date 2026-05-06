@@ -1,0 +1,66 @@
+name: Lockfile freshness
+
+# Catches the bug we hit twice this session: a package.json edit lands
+# without the corresponding pnpm-lock.yaml update (or a Cargo.toml edit
+# without Cargo.lock), CI greens because the cached lockfile happens to
+# resolve, then a fresh clone fails to install. Same idea for Cargo.
+#
+# This workflow re-runs the lockfile resolver in *strict* mode — any
+# drift between the manifest and the lockfile triggers a hard fail.
+#
+# Trigger: every PR + push to main that touches a manifest or lockfile.
+
+on:
+  pull_request:
+    paths:
+      - '**/package.json'
+      - 'pnpm-lock.yaml'
+      - '**/Cargo.toml'
+      - 'Cargo.lock'
+  push:
+    branches: [main]
+    paths:
+      - '**/package.json'
+      - 'pnpm-lock.yaml'
+      - '**/Cargo.toml'
+      - 'Cargo.lock'
+  workflow_dispatch:
+
+jobs:
+  pnpm-lockfile:
+    name: pnpm-lock.yaml is in sync with package.json
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      # `--frozen-lockfile` is the canonical signal: pnpm refuses to
+      # mutate the lockfile and exits non-zero if the manifest demands
+      # a change. No installs are performed (--lockfile-only).
+      - name: pnpm install --frozen-lockfile --lockfile-only
+        run: pnpm install --frozen-lockfile --lockfile-only
+
+  cargo-lockfile:
+    name: Cargo.lock is in sync with Cargo.toml
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain (matches anchor-test.yml floor)
+        run: |
+          rustup default 1.86.0
+
+      # `cargo update --workspace --locked` exits non-zero when the
+      # lockfile and manifest disagree (`error: the lock file Cargo.lock
+      # needs to be updated but --locked was passed`). It does NOT modify
+      # the lockfile when --locked is set, so the workflow is purely
+      # diagnostic.
+      - name: cargo update --workspace --locked (dry check)
+        run: cargo update --workspace --locked
