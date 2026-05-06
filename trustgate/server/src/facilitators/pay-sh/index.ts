@@ -140,6 +140,12 @@ export class PaySh implements FacilitatorAdapter {
       return null;
     }
 
+    // B2 config-error trap: payTo and extra.agentTrust.payeeRecipient must
+    // address the same SPL transfer destination. Drift between the two means
+    // a SERVICE has misconfigured one of them; the proof would settle to a
+    // different account than the verify-time policy gate analysed.
+    if (pr.payTo !== pr.extra.agentTrust.payeeRecipient) return null;
+
     const meta: PayShRawMeta = {
       expectedRecipient: new PublicKey(pr.extra.agentTrust.payeeRecipient),
       network: pr.network,

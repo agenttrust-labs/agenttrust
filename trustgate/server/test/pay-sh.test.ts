@@ -188,6 +188,17 @@ describe("PaySh.parseRequest", () => {
     expect(await adapter.parseRequest(reqWith(undefined) as any)).to.equal(null);
     expect(await adapter.parseRequest(reqWith("garbage") as any)).to.equal(null);
   });
+
+  it("returns null when payTo disagrees with extra.agentTrust.payeeRecipient (B2)", async () => {
+    const body = makeBody();
+    (body.paymentRequirements as any).payTo = Keypair.generate().publicKey.toBase58();
+    expect(await adapter.parseRequest(reqWith(body) as any)).to.equal(null);
+  });
+
+  it("accepts when payTo equals payeeRecipient (B2 happy path)", async () => {
+    const ctx = await adapter.parseRequest(reqWith(makeBody()) as any);
+    expect(ctx).to.not.equal(null);
+  });
 });
 
 describe("PaySh.formatChallenge", () => {
