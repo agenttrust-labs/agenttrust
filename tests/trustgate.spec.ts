@@ -124,9 +124,13 @@ describe("trustgate", () => {
   // ---------------------------------------------------------------------------
 
   describe("emit_feedback", () => {
-    // Mainnet IDs — anchor test clones these per Anchor.toml.
-    const QUANTU_AGENT_REGISTRY = new PublicKey("8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ");
-    const QUANTU_ATOM_ENGINE    = new PublicKey("AToMw53aiPQ8j7iHVb4fGt6nzUNxUhcPc3tbPBZuzVVb");
+    // Devnet IDs — these MUST match programs/trustgate/src/constants.rs
+    // (the trustgate program pubkey-hardcodes its CPI targets, so the
+    // Quantu addresses the test exercises must match those constants;
+    // mainnet IDs would silently mismatch). Anchor.toml [test.validator.url]
+    // points at devnet so [test.validator.clone] resolves these.
+    const QUANTU_AGENT_REGISTRY = new PublicKey("8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C");
+    const QUANTU_ATOM_ENGINE    = new PublicKey("AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF");
     const MPL_CORE_PROGRAM      = new PublicKey("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d");
 
     // Anchor sha256 sighashes (verified against give_feedback constant in
@@ -203,7 +207,11 @@ describe("trustgate", () => {
         .add(ComputeBudgetProgram.setComputeUnitLimit({ units: 350_000 }))
         .add(registerIx)
         .add(initStatsIx);
-      await provider.sendAndConfirm(tx, [asset]);
+      // skipPreflight bypasses the local simulation, which races the
+      // first cold-cache JIT of cloned MPL Core / agent_registry on the
+      // legacy test validator. The on-chain confirm below is the real
+      // gate; preflight is purely advisory.
+      await provider.sendAndConfirm(tx, [asset], { skipPreflight: true, commitment: "confirmed" });
 
       return { asset, agentAccount, atomStats };
     }

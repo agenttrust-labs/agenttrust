@@ -26,13 +26,52 @@ wallet = "~/.config/solana/id.json"
 test = "pnpm exec ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.spec.ts"
 
 [test]
-startup_wait = 10000
+# Boosted from 10s — cloning the Quantu/MPL Core programs + their
+# upgradeable ProgramData accounts pushes initial readiness past the
+# legacy-validator default. Anything below ~25s gets "Blockhash not found"
+# on the first sendTransaction.
+startup_wait = 30000
 
 [test.validator]
-url = "https://api.mainnet-beta.solana.com"
+# Clone Quantu from devnet (where AgentTrust + Quantu both live). The
+# trustgate Rust source pubkey-hardcodes the devnet IDs, so the test
+# CPI target must come from devnet too — cloning the mainnet variants
+# would mismatch trustgate's `agent_registry_8004::ID` constant.
+url = "https://api.devnet.solana.com"
+# Avoid gossip port collision (port 8000 is commonly used by local dev
+# servers). solana-test-validator defaults to bind_address=0.0.0.0; pin
+# explicit local-only ports so the test validator doesn't fight other
+# listeners on the box.
+bind_address = "127.0.0.1"
+rpc_port     = 18899
+gossip_port  = 18001
+
+# Quantu devnet programs — agent_registry_8004 + atom_engine.
+[[test.validator.clone]]
+address = "8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C"
 
 [[test.validator.clone]]
-address = "8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ"
+address = "AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF"
 
+# MPL Core — Quantu's register_with_options CPIs into mpl_core::create_v1
+# to add the asset to base_collection. Must be cloned (and its ProgramData
+# follows automatically) for the inline agent registration to succeed.
 [[test.validator.clone]]
-address = "AToMw53aiPQ8j7iHVb4fGt6nzUNxUhcPc3tbPBZuzVVb"
+address = "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+
+# Quantu's RootConfig PDA on devnet (seeded by [b"root_config"]).
+[[test.validator.clone]]
+address = "GGQfKNpXq8HchNxecLfXi8D7xz9PDppdPAPgr5Fx4Nvd"
+
+# Quantu's AtomConfig PDA on devnet (seeded by [b"atom_config"]).
+[[test.validator.clone]]
+address = "4XeDhpmZ5GbfSbqgTcD3t6FKRXpMg8jixbqWDbthDSrk"
+
+# registry_config PDA scoped to base_collection; verifies the collection's
+# config matches before agent_registry mints the new agent_account.
+[[test.validator.clone]]
+address = "Djy4TKPvFyEumcVTDCqJUHWErKqcaeRj4ULWwaPkedor"
+
+# base_collection MPL Core asset on devnet — anchor target for register_with_options.
+[[test.validator.clone]]
+address = "6CTyGPcn8dMwKEqgtvx2XCpkGUd7uqCVK6937RSM5bhA"
