@@ -5,12 +5,12 @@
   "attestor": "5xys6GcL3SeJmA9evUH6d3pADkD22DWxRNAdpytwxcYy",
   "subjectAsset": "C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B",
   "capabilityName": "usdc-payment-policy.v1",
-  "capturedAt": "2026-05-06T12:43:34.164Z",
+  "capturedAt": "2026-05-06T17:53:59.262Z",
   "steps": {
     "registerNamespace": {
-      "signature": "5B3PfDGYhzhusJwjXURnhpkZ2umipdegfNREtJbcgZySR7nr976CcSJXqYSzB8eSYT14W3yrzGuks75S7pdZD3WK",
-      "explorer": "https://explorer.solana.com/tx/5B3PfDGYhzhusJwjXURnhpkZ2umipdegfNREtJbcgZySR7nr976CcSJXqYSzB8eSYT14W3yrzGuks75S7pdZD3WK?cluster=devnet",
-      "pda": "34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR"
+      "skipped": true,
+      "pda": "34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR",
+      "explorer": "https://explorer.solana.com/address/34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR?cluster=devnet"
     },
     "registerAttestor": {
       "skipped": true,
@@ -18,15 +18,15 @@
       "explorer": "https://explorer.solana.com/address/GTzWJzV5htNi1Ntqwq2e2ydu9h4rArnKQwzv2sJjC9zP?cluster=devnet"
     },
     "requestValidation": {
-      "signature": "qBQzSTCWfkE9Xw1EZ2qRwo3Hv451cbVaTRKSa32KHpnL7sfCSVBEhjGinm5qod6W6LtCgAj7xvbhydHf1wjoKq9",
-      "explorer": "https://explorer.solana.com/tx/qBQzSTCWfkE9Xw1EZ2qRwo3Hv451cbVaTRKSa32KHpnL7sfCSVBEhjGinm5qod6W6LtCgAj7xvbhydHf1wjoKq9?cluster=devnet",
-      "pda": "GnbrSzWsDw1rehCrFJ4ckiM9JJJeAHdjfNDt7QQy7vhV",
-      "requester": "7eJvTEAUJNt4AKpzJSQRjaCVfVVdu5dAJNmsLqr5QaQ2"
+      "signature": "4GtUt5qbevHsjKRtD3Fwi2LzPBsyy2QAGm33Dsq4PW4mTHfE8Z7NQ98yAkS6a3qdjf38xMHqhNv8Zoh2Y9U5NgCn",
+      "explorer": "https://explorer.solana.com/tx/4GtUt5qbevHsjKRtD3Fwi2LzPBsyy2QAGm33Dsq4PW4mTHfE8Z7NQ98yAkS6a3qdjf38xMHqhNv8Zoh2Y9U5NgCn?cluster=devnet",
+      "pda": "HDiDpr7sqM7D8ZdkaGfnnpXaDfryqoFBG3ZJwJ6UgiBF",
+      "requester": "5WP1RUQXFyvBNuiyg4b14FknHMTwsDt5Eqdq7UP72nw"
     },
     "respondToValidation": {
-      "signature": "CCxKvvQ9ZdboukcXPp9jj1a3o53grGR9VjZux7kS1AAWqaVnRXVqhJjphsM1QYjny5oaVP4oRGThBLUQ41DyzwC",
-      "explorer": "https://explorer.solana.com/tx/CCxKvvQ9ZdboukcXPp9jj1a3o53grGR9VjZux7kS1AAWqaVnRXVqhJjphsM1QYjny5oaVP4oRGThBLUQ41DyzwC?cluster=devnet",
-      "pda": "C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY"
+      "skipped": true,
+      "pda": "C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY",
+      "explorer": "https://explorer.solana.com/address/C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY?cluster=devnet"
     }
   }
 }

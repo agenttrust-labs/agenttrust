@@ -5,8 +5,8 @@
   "mint": "2EGGN4fB5nkhuJQJ1mE9DrCBqmuCECSAvocMU4xbNqMY",
   "transferAmount": "1000",
   "signedTransfer": {
-    "signature": "5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD",
-    "explorer": "https://explorer.solana.com/tx/5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD?cluster=devnet"
+    "signature": "uXL2Kk1C9JQPSQ8gY4VpRUyKNP2muP4ouF1kToz6BoAdNygVrbxaqwy9xHPCLupczAKsYHKyFkTvHEZ1P5ZDyhs",
+    "explorer": "https://explorer.solana.com/tx/uXL2Kk1C9JQPSQ8gY4VpRUyKNP2muP4ouF1kToz6BoAdNygVrbxaqwy9xHPCLupczAKsYHKyFkTvHEZ1P5ZDyhs?cluster=devnet"
   },
   "emitFeedback": {
     "signature": "jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag",
@@ -19,6 +19,6 @@
     "asset": "C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B",
     "atomStats": "4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv"
   },
-  "facilitatorBalanceSol": "9.477407",
-  "capturedAt": "2026-05-06T10:40:05.487Z"
+  "facilitatorBalanceSol": "8.905693",
+  "capturedAt": "2026-05-06T17:53:48.313Z"
 }
