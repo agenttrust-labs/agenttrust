@@ -1,0 +1,93 @@
+name: Adapter contract conformance
+
+# Catches an adapter author dropping a FacilitatorAdapter method
+# (or one of the metadata fields) and the dispatch breaking at
+# runtime instead of at PR review time.
+#
+# Two checks:
+#   1. Static — for each of the 4 production adapters, grep the
+#      source for the load-bearing surface: 5 lifecycle methods +
+#      `name`, `description`, `protocols` fields. Any missing piece
+#      fails the workflow with a precise pointer.
+#   2. Behavioral — run the cross-adapter LSP test in isolation
+#      (cross-adapter.test.ts from F2.3). It instantiates each real
+#      adapter through the FacilitatorAdapter interface and asserts
+#      every adapter handles Allow / Deny / RequireValidation
+#      consistently. The tsc + per-adapter unit tests catch
+#      type-level regressions; this elevates the substitution-
+#      equivalence check to its own pre-merge gate.
+#
+# Trigger: PR touching trustgate/server/src/facilitators/** OR
+# trustgate/server/test/cross-adapter.test.ts.
+
+on:
+  pull_request:
+    paths:
+      - 'trustgate/server/src/facilitators/**'
+      - 'trustgate/server/test/cross-adapter.test.ts'
+      - '.github/workflows/adapter-contract-conformance.yml'
+  workflow_dispatch:
+
+jobs:
+  static-shape:
+    name: Each adapter exports the FacilitatorAdapter contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      # The 5 lifecycle methods + 3 metadata fields (name, description,
+      # protocols) every concrete adapter must expose. A missing entry
+      # is grounds for a hard fail with a clear annotation.
+      - name: grep for required surface in each adapter
+        run: |
+          set -e
+          ADAPTERS=(pay-sh dexter atxp mcpay)
+          REQUIRED_METHODS=(parseRequest formatChallenge formatSettlement validatePaymentProof emitFeedback)
+          REQUIRED_FIELDS=(name description protocols)
+          fail=0
+          for a in "${ADAPTERS[@]}"; do
+            f="trustgate/server/src/facilitators/${a}/index.ts"
+            if [ ! -f "$f" ]; then
+              echo "::error file=${f}::adapter source missing"
+              fail=1
+              continue
+            fi
+            for m in "${REQUIRED_METHODS[@]}"; do
+              if ! grep -qE "^[[:space:]]+(async[[:space:]]+)?${m}[[:space:]]*\(" "$f"; then
+                echo "::error file=${f}::adapter '${a}' missing method '${m}()'"
+                fail=1
+              fi
+            done
+            for fld in "${REQUIRED_FIELDS[@]}"; do
+              if ! grep -qE "readonly[[:space:]]+${fld}([[:space:]]*:|[[:space:]]*=)" "$f"; then
+                echo "::error file=${f}::adapter '${a}' missing readonly field '${fld}'"
+                fail=1
+              fi
+            done
+          done
+          [ $fail -eq 0 ]
+
+  behavioral:
+    name: Cross-adapter LSP test
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build SDK (server depends on its dist)
+        run: pnpm --filter ./trustgate/sdk run build
+
+      # --grep narrows to the 5 cross-adapter assertions from F2.3.
+      # Running the full server suite is overkill here — the lint-
+      # and-format and ts-test workflows already cover that.
+      - name: Run cross-adapter LSP suite
+        run: pnpm --filter ./trustgate/server exec ts-mocha -p ./tsconfig.json -t 30000 test/cross-adapter.test.ts
