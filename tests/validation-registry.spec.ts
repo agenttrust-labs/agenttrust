@@ -14,6 +14,7 @@ import {
   Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram,
 } from "@solana/web3.js";
 import { expect } from "chai";
+import type { ValidationRegistry } from "../target/types/validation_registry";
 
 const NS_PREFIX     = Buffer.from("capability");
 const ATT_PREFIX    = Buffer.from("attestor");
@@ -45,7 +46,7 @@ describe("validation-registry", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.ValidationRegistry as Program<any>;
+  const program = anchor.workspace.ValidationRegistry as Program<ValidationRegistry>;
   const wallet  = provider.wallet.publicKey;
   const conn    = provider.connection as Connection;
 
@@ -67,7 +68,7 @@ describe("validation-registry", () => {
           "v1",
           "ipfs://Qm-kyc-tier-1-schema",
         )
-        .accounts({
+        .accountsStrict({
           creator:       wallet,
           namespace:     nsPda,
           systemProgram: SystemProgram.programId,
@@ -87,7 +88,7 @@ describe("validation-registry", () => {
       try {
         await program.methods
           .registerAttestor("ipfs://Qm-attestor-civic-metadata")
-          .accounts({
+          .accountsStrict({
             attestor:        wallet,
             attestorProfile: attestorPda,
             systemProgram:   SystemProgram.programId,
@@ -117,7 +118,7 @@ describe("validation-registry", () => {
           "v1",
           "ipfs://Qm-cap-schema",
         )
-        .accounts({
+        .accountsStrict({
           creator:       wallet,
           namespace:     capNsPda,
           systemProgram: SystemProgram.programId,
@@ -138,7 +139,7 @@ describe("validation-registry", () => {
           Array.from(claimUriHash),
           new BN(deadline),
         )
-        .accounts({
+        .accountsStrict({
           requester:           wallet,
           validationRequest:   reqPda,
           capabilityNamespace: capNsPda,
@@ -163,7 +164,7 @@ describe("validation-registry", () => {
           Array.from(claimUriHash),
           new BN(expiresAt),
         )
-        .accounts({
+        .accountsStrict({
           payer:               wallet,
           attestor:            wallet,
           attestation:         attestPda,
@@ -193,7 +194,7 @@ describe("validation-registry", () => {
           Array.from(capabilityHash),
           Array.from(reasonHash),
         )
-        .accounts({
+        .accountsStrict({
           attestor:        wallet,
           attestation:     attestPda,
           attestorProfile: attestorPda,
@@ -222,7 +223,7 @@ describe("validation-registry", () => {
           .registerNamespace(
             Array.from(namespaceHash), namespaceName, "v1", "ipfs://x",
           )
-          .accounts({
+          .accountsStrict({
             creator: wallet, namespace: nsPda, systemProgram: SystemProgram.programId,
           })
           .rpc();
@@ -236,7 +237,7 @@ describe("validation-registry", () => {
           .registerNamespace(
             Array.from(capabilityHash), namespaceName, "v1", "ipfs://x",
           )
-          .accounts({
+          .accountsStrict({
             creator: wallet, namespace: capNsPda, systemProgram: SystemProgram.programId,
           })
           .rpc();
@@ -250,7 +251,7 @@ describe("validation-registry", () => {
 
       await program.methods
         .requestValidation(subjectAsset, Array.from(capabilityHash), Array.from(claimUriHash), new BN(slot + 100_000))
-        .accounts({
+        .accountsStrict({
           requester: wallet, validationRequest: reqPda,
           capabilityNamespace: capNsPda, systemProgram: SystemProgram.programId,
         })
@@ -261,7 +262,7 @@ describe("validation-registry", () => {
           subjectAsset, Array.from(capabilityHash),
           Array.from(claimPayloadHash), Array.from(claimUriHash), new BN(0),
         )
-        .accounts({
+        .accountsStrict({
           payer: wallet, attestor: wallet, attestation: attestPda,
           attestorProfile: attestorPda, capabilityNamespace: capNsPda,
           systemProgram: SystemProgram.programId,
@@ -271,14 +272,14 @@ describe("validation-registry", () => {
       // First revoke — succeeds.
       await program.methods
         .revokeValidation(subjectAsset, Array.from(capabilityHash), Array.from(sha256("first")))
-        .accounts({ attestor: wallet, attestation: attestPda, attestorProfile: attestorPda })
+        .accountsStrict({ attestor: wallet, attestation: attestPda, attestorProfile: attestorPda })
         .rpc();
 
       // Second revoke — fails with AlreadyRevoked.
       try {
         await program.methods
           .revokeValidation(subjectAsset, Array.from(capabilityHash), Array.from(sha256("second")))
-          .accounts({ attestor: wallet, attestation: attestPda, attestorProfile: attestorPda })
+          .accountsStrict({ attestor: wallet, attestation: attestPda, attestorProfile: attestorPda })
           .rpc();
         expect.fail("expected AlreadyRevoked");
       } catch (e: any) {
@@ -295,7 +296,7 @@ describe("validation-registry", () => {
       try {
         await program.methods
           .registerNamespace(Array.from(hash), badName, "v1", "ipfs://x")
-          .accounts({
+          .accountsStrict({
             creator: wallet, namespace: pda, systemProgram: SystemProgram.programId,
           })
           .rpc();
@@ -312,7 +313,7 @@ describe("validation-registry", () => {
       try {
         await program.methods
           .registerNamespace(Array.from(hash), badName, "v1", "ipfs://x")
-          .accounts({
+          .accountsStrict({
             creator: wallet, namespace: pda, systemProgram: SystemProgram.programId,
           })
           .rpc();
@@ -329,7 +330,7 @@ describe("validation-registry", () => {
       try {
         await program.methods
           .registerNamespace(Array.from(nsHash), ns, "v1", "ipfs://x")
-          .accounts({ creator: wallet, namespace: nsPda, systemProgram: SystemProgram.programId })
+          .accountsStrict({ creator: wallet, namespace: nsPda, systemProgram: SystemProgram.programId })
           .rpc();
       } catch (_) {}
 
@@ -342,7 +343,7 @@ describe("validation-registry", () => {
             subject, Array.from(nsHash), Array.from(sha256("uri")),
             new BN(0), // 0 < current slot → past
           )
-          .accounts({
+          .accountsStrict({
             requester: wallet, validationRequest: reqPda,
             capabilityNamespace: nsPda, systemProgram: SystemProgram.programId,
           })

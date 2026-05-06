@@ -16,6 +16,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, SystemProgram, ComputeBudgetProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { expect } from "chai";
+import type { Trustgate } from "../target/types/trustgate";
 
 const TRUSTGATE_AUTHORITY_PREFIX = Buffer.from("trustgate_auth");
 const FEEDBACK_LOG_PREFIX        = Buffer.from("feedback_log");
@@ -44,7 +45,7 @@ describe("trustgate", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.Trustgate as Program<any>;
+  const program = anchor.workspace.Trustgate as Program<Trustgate>;
   const wallet  = provider.wallet.publicKey;
 
   const freshFacilitator = () => Keypair.generate().publicKey;
@@ -56,7 +57,7 @@ describe("trustgate", () => {
 
       await program.methods
         .initAuthority(facilitator)
-        .accounts({
+        .accountsStrict({
           payer:         wallet,
           authority:     pda,
           systemProgram: SystemProgram.programId,
@@ -76,13 +77,13 @@ describe("trustgate", () => {
 
       await program.methods
         .initAuthority(facilitator)
-        .accounts({ payer: wallet, authority: pda, systemProgram: SystemProgram.programId })
+        .accountsStrict({ payer: wallet, authority: pda, systemProgram: SystemProgram.programId })
         .rpc();
 
       try {
         await program.methods
           .initAuthority(facilitator)
-          .accounts({ payer: wallet, authority: pda, systemProgram: SystemProgram.programId })
+          .accountsStrict({ payer: wallet, authority: pda, systemProgram: SystemProgram.programId })
           .rpc();
         expect.fail("expected reinit failure");
       } catch (e) {
@@ -98,10 +99,10 @@ describe("trustgate", () => {
       expect(pda1.toBase58()).to.not.equal(pda2.toBase58());
 
       await program.methods.initAuthority(f1)
-        .accounts({ payer: wallet, authority: pda1, systemProgram: SystemProgram.programId })
+        .accountsStrict({ payer: wallet, authority: pda1, systemProgram: SystemProgram.programId })
         .rpc();
       await program.methods.initAuthority(f2)
-        .accounts({ payer: wallet, authority: pda2, systemProgram: SystemProgram.programId })
+        .accountsStrict({ payer: wallet, authority: pda2, systemProgram: SystemProgram.programId })
         .rpc();
 
       const a1 = await program.account.trustGateAuthority.fetch(pda1);
@@ -215,7 +216,7 @@ describe("trustgate", () => {
       const facilitator = wallet;
       const [authorityPda] = deriveAuthorityPda(program.programId, facilitator);
       try {
-        await program.methods.initAuthority(facilitator).accounts({
+        await program.methods.initAuthority(facilitator).accountsStrict({
           payer: facilitator, authority: authorityPda, systemProgram: SystemProgram.programId,
         }).rpc();
       } catch (e) {
@@ -234,7 +235,7 @@ describe("trustgate", () => {
       const sig = await program.methods.emitFeedback(
         Array.from(paymentIdHash), facilitator, asset.publicKey,
         100, "trustgate-test", "policy=1", "/protected", "",
-      ).accounts({
+      ).accountsStrict({
         payer:         facilitator,
         authority:     authorityPda,
         emissionLog:   logPda,
@@ -266,7 +267,7 @@ describe("trustgate", () => {
       const facilitator = wallet;
       const [authorityPda] = deriveAuthorityPda(program.programId, facilitator);
       try {
-        await program.methods.initAuthority(facilitator).accounts({
+        await program.methods.initAuthority(facilitator).accountsStrict({
           payer: facilitator, authority: authorityPda, systemProgram: SystemProgram.programId,
         }).rpc();
       } catch { /* already inited */ }
@@ -294,7 +295,7 @@ describe("trustgate", () => {
       await program.methods.emitFeedback(
         Array.from(paymentIdHash), facilitator, asset.publicKey,
         100, "test", "policy=1", "/protected", "",
-      ).accounts({
+      ).accountsStrict({
         payer: facilitator, authority: authorityPda,
         emissionLog: logPda, systemProgram: SystemProgram.programId,
       }).remainingAccounts(remaining).rpc({ commitment: "confirmed" });
@@ -304,7 +305,7 @@ describe("trustgate", () => {
         await program.methods.emitFeedback(
           Array.from(paymentIdHash), facilitator, asset.publicKey,
           100, "test", "policy=1", "/protected", "",
-        ).accounts({
+        ).accountsStrict({
           payer: facilitator, authority: authorityPda,
           emissionLog: logPda, systemProgram: SystemProgram.programId,
         }).remainingAccounts(remaining).rpc({ commitment: "confirmed" });

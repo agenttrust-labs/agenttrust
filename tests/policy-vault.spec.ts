@@ -16,6 +16,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { BN, Program, AnchorError } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { expect } from "chai";
+import type { PolicyVault } from "../target/types/policy_vault";
 
 // -----------------------------------------------------------------------------
 // PDA derivation helpers
@@ -84,7 +85,7 @@ describe("policy-vault", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.PolicyVault as Program<any>;
+  const program = anchor.workspace.PolicyVault as Program<PolicyVault>;
   const wallet  = provider.wallet.publicKey;
 
   const freshAgent = () => Keypair.generate().publicKey;
@@ -98,7 +99,7 @@ describe("policy-vault", () => {
     const [pda] = deriveAuthorityPda(program.programId, agent);
     await program.methods
       .initAuthority(agent, members, threshold)
-      .accounts({
+      .accountsStrict({
         payer: wallet,
         policyAuthority: pda,
         systemProgram: SystemProgram.programId,
@@ -111,7 +112,7 @@ describe("policy-vault", () => {
     const [pda] = deriveKillSwitchPda(program.programId, agent);
     await program.methods
       .initKillswitch(agent)
-      .accounts({
+      .accountsStrict({
         payer: wallet,
         killSwitchState: pda,
         systemProgram: SystemProgram.programId,
@@ -126,7 +127,7 @@ describe("policy-vault", () => {
     const [ledgerPda] = deriveVelocityPda(program.programId, agent, args.policyId);
     return program.methods
       .initPolicy(agent, args)
-      .accounts({
+      .accountsStrict({
         payer: wallet,
         policyAuthority: authPda,
         policyAccount: policyPda,
@@ -226,7 +227,7 @@ describe("policy-vault", () => {
       // pause
       await program.methods
         .setKillswitch(agent, true)
-        .accounts({ signer: wallet, policyAuthority: authPda, killSwitchState: ksPda })
+        .accountsStrict({ signer: wallet, policyAuthority: authPda, killSwitchState: ksPda })
         .rpc();
       let ks = await program.account.killSwitchState.fetch(ksPda);
       expect(ks.paused).to.equal(true);
@@ -236,7 +237,7 @@ describe("policy-vault", () => {
       // unpause
       await program.methods
         .setKillswitch(agent, false)
-        .accounts({ signer: wallet, policyAuthority: authPda, killSwitchState: ksPda })
+        .accountsStrict({ signer: wallet, policyAuthority: authPda, killSwitchState: ksPda })
         .rpc();
       ks = await program.account.killSwitchState.fetch(ksPda);
       expect(ks.paused).to.equal(false);
@@ -254,7 +255,7 @@ describe("policy-vault", () => {
         // Lead signer alone = 1 distinct member; threshold = 2.
         await program.methods
           .setKillswitch(agent, true)
-          .accounts({ signer: wallet, policyAuthority: authPda, killSwitchState: ksPda })
+          .accountsStrict({ signer: wallet, policyAuthority: authPda, killSwitchState: ksPda })
           .rpc();
         expect.fail("expected MultisigThresholdNotMet");
       } catch (e) {
@@ -438,7 +439,7 @@ describe("policy-vault", () => {
     ) {
       return program.methods
         .gatePayment(env.agent, payee, new BN(amount), PublicKey.default, policyId)
-        .accounts({
+        .accountsStrict({
           caller:          wallet,
           policyAccount:   env.policyPda,
           velocityLedger:  env.ledgerPda,
@@ -475,7 +476,7 @@ describe("policy-vault", () => {
       // Pause the agent's KillSwitchState.
       await program.methods
         .setKillswitch(env.agent, true)
-        .accounts({ signer: wallet, policyAuthority: env.authPda, killSwitchState: env.ksPda })
+        .accountsStrict({ signer: wallet, policyAuthority: env.authPda, killSwitchState: env.ksPda })
         .rpc();
 
       // gate_payment now returns Deny — tx succeeds but spending counters DON'T move.
@@ -587,7 +588,7 @@ describe("policy-vault", () => {
     ) {
       return program.methods
         .gatePaymentStrict(env.agent, payee, new BN(amount), PublicKey.default, policyId)
-        .accounts({
+        .accountsStrict({
           caller:                wallet,
           policyAccount:         env.policyPda,
           velocityLedger:        env.ledgerPda,
@@ -623,7 +624,7 @@ describe("policy-vault", () => {
       const env = await setupForStrict(BITMASK_SPENDING_PLUS_KILLSWITCH, 202);
       await program.methods
         .setKillswitch(env.agent, true)
-        .accounts({ signer: wallet, policyAuthority: env.authPda, killSwitchState: env.ksPda })
+        .accountsStrict({ signer: wallet, policyAuthority: env.authPda, killSwitchState: env.ksPda })
         .rpc();
 
       try {
