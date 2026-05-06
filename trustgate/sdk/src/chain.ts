@@ -97,19 +97,23 @@ export function makeProvider(cfg: ProviderConfig): AnchorProvider {
 export async function loadPolicyVault(
   provider:  AnchorProvider,
   programId: PublicKey,
+  idl?:      import("@coral-xyz/anchor").Idl,
 ): Promise<Program> {
-  const idl = await Program.fetchIdl(programId, provider);
-  if (!idl) throw new Error(`policy_vault IDL not on-chain at ${programId.toBase58()}`);
-  return new Program(idl, provider);
+  if (idl) return new Program(idl, provider);
+  const fetched = await Program.fetchIdl(programId, provider);
+  if (!fetched) throw new Error(`policy_vault IDL not on-chain at ${programId.toBase58()}`);
+  return new Program(fetched, provider);
 }
 
 export async function loadTrustGate(
   provider:  AnchorProvider,
   programId: PublicKey,
+  idl?:      import("@coral-xyz/anchor").Idl,
 ): Promise<Program> {
-  const idl = await Program.fetchIdl(programId, provider);
-  if (!idl) throw new Error(`trustgate IDL not on-chain at ${programId.toBase58()}`);
-  return new Program(idl, provider);
+  if (idl) return new Program(idl, provider);
+  const fetched = await Program.fetchIdl(programId, provider);
+  if (!fetched) throw new Error(`trustgate IDL not on-chain at ${programId.toBase58()}`);
+  return new Program(fetched, provider);
 }
 
 // ---------------------------------------------------------------------------
