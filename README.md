@@ -173,7 +173,9 @@ See the snippet in [Component 2 — TrustGate](#2--trustgate--x402-facilitator-i
 
 ## Live devnet trace
 
-**AgentTrust + Pay.sh atomic settlement, live on Solana devnet — captured 2026-05-06.**
+**Two complete end-to-end flows live on Solana devnet — both captured 2026-05-06.**
+
+### Pay.sh + AgentTrust atomic settlement
 
 A real signed SPL transfer flowed through the demo's `/protected` endpoint, completed gate_payment + transfer + emit_feedback, and wrote a `FeedbackEmissionLog` PDA on chain.
 
@@ -206,6 +208,26 @@ pnpm --filter ./examples/pay-sh-demo exec ts-node scripts/devnet-smoke.ts
 ```
 
 The full trace (signatures, PDAs, slot numbers) lands in `examples/pay-sh-demo/devnet-smoke.json`. Re-running is idempotent — TrustGateAuthority, test mint, payer keypair, and ATAs are reused if present.
+
+### ValidationRegistry — the third ERC-8004 leg, full lifecycle
+
+All 5 ValidationRegistry instructions exercised end-to-end against the
+deployed devnet program. Subject = the same Quantu tier-3 agent the Pay.sh
+trace used; capability = `usdc-payment-policy.v1`.
+
+| step | tx |
+|---|---|
+| **register_namespace** | [`5B3PfDGYhzhusJwj…`](https://explorer.solana.com/tx/5B3PfDGYhzhusJwjXURnhpkZ2umipdegfNREtJbcgZySR7nr976CcSJXqYSzB8eSYT14W3yrzGuks75S7pdZD3WK?cluster=devnet) |
+| **register_attestor** | [`Ct3SQ4CR9bu6oijR…`](https://explorer.solana.com/tx/Ct3SQ4CR9bu6oijRELe7pnjj8KfMRVDiQ3AkytNQtYfF2yZBsThMJNoCDADnwWp37PYcsFJSEkBjXmaLY9a9eQD?cluster=devnet) |
+| **request_validation** | [`qBQzSTCWfkE9Xw1E…`](https://explorer.solana.com/tx/qBQzSTCWfkE9Xw1EZ2qRwo3Hv451cbVaTRKSa32KHpnL7sfCSVBEhjGinm5qod6W6LtCgAj7xvbhydHf1wjoKq9?cluster=devnet) |
+| **respond_to_validation** | [`CCxKvvQ9ZdboukcX…`](https://explorer.solana.com/tx/CCxKvvQ9ZdboukcXPp9jj1a3o53grGR9VjZux7kS1AAWqaVnRXVqhJjphsM1QYjny5oaVP4oRGThBLUQ41DyzwC?cluster=devnet) |
+
+**`ValidationAttestation` PDA** — the artifact PolicyVault's
+`RequireValidation` policy reads to flip a Deny back to Allow:
+[`C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY`](https://explorer.solana.com/address/C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY?cluster=devnet)
+
+Reproduce: `pnpm --filter ./examples/attestor-demo run smoke` (~0.012 SOL
+total). Full trace in `examples/attestor-demo/devnet-attestor-trace.json`.
 
 ---
 

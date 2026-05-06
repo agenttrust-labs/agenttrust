@@ -1,0 +1,6 @@
+node_modules/
+dist/
+
+# Devnet attestor identity. Stable across runs so the AttestorProfile PDA
+# doesn't churn; regenerated on first run if missing (~0.005 SOL of rent).
+attestor-keypair.json

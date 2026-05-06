@@ -1,0 +1,23 @@
+{
+  "name": "agenttrust-attestor-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AgentTrust ValidationRegistry — devnet attestor lifecycle demo",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "smoke": "ts-node scripts/devnet-attestor-flow.ts"
+  },
+  "dependencies": {
+    "@agenttrust-sdk/trustgate": "workspace:*",
+    "@coral-xyz/anchor": "^0.31.1",
+    "@solana/web3.js": "^1.98.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "bs58": "^6.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^4.9.5"
+  }
+}
