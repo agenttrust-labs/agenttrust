@@ -1,0 +1,89 @@
+name: Lint + format
+
+# Catches style drift, type errors, accidental console.log, dead
+# imports, unsafe Rust patterns. The four jobs run in parallel; any
+# warning from any tool fails the workflow.
+#
+# TS workspaces use `pnpm run lint` which today is `tsc --noEmit` for
+# trustgate/sdk, trustgate/server, mcp, and the example demos —
+# strong type-check gate. docs-site + web have their own eslint
+# configs; we exercise them via `pnpm --filter`.
+#
+# Rust uses cargo fmt --check + cargo clippy -D warnings on the
+# Anchor program workspace.
+#
+# Scope: PRs only (style nits should not block a hotfix push to main).
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ts-typecheck:
+    name: TypeScript typecheck (every workspace)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      # Build the SDK first — every downstream workspace depends on its
+      # dist artefacts (workspace:* protocol resolves to source, but the
+      # consumers `import` from compiled .d.ts files).
+      - run: pnpm --filter ./trustgate/sdk run build
+
+      # Run lint per workspace. The shape lets a single failing
+      # workspace surface clearly in the run summary.
+      - run: pnpm --filter ./trustgate/sdk    run lint
+      - run: pnpm --filter ./trustgate/server run lint
+      - run: pnpm --filter ./mcp              run lint
+      - run: pnpm --filter ./examples/pay-sh-demo  run lint
+      - run: pnpm --filter ./examples/attestor-demo run lint
+
+  ts-eslint:
+    name: ESLint (Next.js workspaces)
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      # Both Next.js workspaces ship eslint configs — exercise them.
+      # The other TS workspaces don't have eslint; their tsc --noEmit
+      # gate above is the equivalent strictness-floor for now.
+      - run: pnpm --filter ./web run lint
+      - run: pnpm --filter ./docs-site run lint
+
+  rust-fmt:
+    name: cargo fmt --check
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup default 1.86.0 && rustup component add rustfmt
+      - run: cargo fmt --all -- --check
+
+  # NOTE: cargo clippy --workspace -- -D warnings is intentionally
+  # NOT enabled yet. Anchor's #[program] macro expands to cfg
+  # attributes (`solana`, `anchor-debug`, `custom-heap`,
+  # `custom-panic`) that the host-target rustc flags as
+  # `unexpected_cfgs` — 30+ such lints would block PRs without
+  # surfacing real bugs. The fix is a per-crate
+  # `[lints.rust] unexpected_cfgs.level = "allow"` plus an audit of
+  # the genuine clippy warnings (assert_eq! on bools, etc.) — that
+  # cleanup is tracked separately. Once landed, add the clippy job
+  # back here with `-D warnings`.
