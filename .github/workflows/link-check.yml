@@ -1,0 +1,60 @@
+name: Link check
+
+# Catches dead Explorer links, removed PR links, deleted blog posts
+# cited in docs. We tripped on this once already (a stale Vercel
+# preview URL); CI gating prevents recurrence.
+#
+# Schedule: weekly Monday 09:00 UTC for the full sweep, plus PR
+# trigger when **/*.md or docs-site/content/**/*.mdx changes (only
+# the diff is checked on PRs).
+#
+# Tooling: lycheeverse/lychee-action@v2 — fast HTTP(S) link
+# checker, supports allowlist + custom user agent + retry policy.
+#
+# Allowlist (configured in .lychee.toml at repo root):
+#   * Solana Explorer (rate-limits aggressive crawls; surfaces 5xx
+#     intermittently)
+#   * localhost:* URLs (dev-only references in quickstart docs)
+#   * The private agenttrust-labs/agenttrust GitHub repo (auth-only;
+#     unauthed lychee gets 404)
+#
+# Failure threshold: any 4xx on a non-allowlisted URL fails the
+# workflow. 5xx alone passes — those are usually intermittent and
+# we don't want flapping. The action's retry policy already
+# tolerates one transient 5xx per URL.
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  pull_request:
+    paths:
+      - '**/*.md'
+      - 'docs-site/content/**/*.mdx'
+      - '.github/workflows/link-check.yml'
+      - '.lychee.toml'
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: lychee
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: lycheeverse/lychee-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Walk every README + every docs-site MDX file. The glob
+          # excludes node_modules + dist + target build artefacts so
+          # we don't validate every transitive dep's docs.
+          args: >-
+            --config .lychee.toml
+            --no-progress
+            './**/*.md'
+            './docs-site/content/**/*.mdx'
+            './examples/**/*.md'
+          # Mark the workflow failed only on definitive 4xx errors.
+          # 5xx + timeout = lychee retries internally per .lychee.toml.
+          fail: true
