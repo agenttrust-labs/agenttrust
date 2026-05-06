@@ -8,6 +8,7 @@ on:
       - 'docs-site/**'
       - 'tests/**'
       - 'examples/**'
+      - 'mcp/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -20,6 +21,7 @@ on:
       - 'docs-site/**'
       - 'tests/**'
       - 'examples/**'
+      - 'mcp/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.github/workflows/ts-test.yml'
@@ -84,6 +86,27 @@ jobs:
         run: pnpm --filter ./examples/pay-sh-demo run build
       - name: Demo flow tests (supertest, no devnet)
         run: pnpm --filter ./examples/pay-sh-demo test
+
+  mcp:
+    name: '@agenttrust/mcp — build + unit tests'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install workspace deps
+        run: pnpm install --frozen-lockfile
+      - name: Build SDK (mcp workspace dep)
+        run: pnpm --filter ./trustgate/sdk run build
+      - name: Build MCP server
+        run: pnpm --filter ./mcp run build
+      - name: MCP unit tests
+        run: pnpm --filter ./mcp test
 
   web:
     name: web — Next.js production build

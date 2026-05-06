@@ -73,3 +73,23 @@ jobs:
             echo "::error::Devnet integration failed; check Solana Explorer for last tx"
             exit 1
           }
+
+      - name: Build SDK (mcp dep)
+        if: steps.secret-check.outputs.available == 'true'
+        run: pnpm --filter ./trustgate/sdk run build
+
+      - name: Build MCP server
+        if: steps.secret-check.outputs.available == 'true'
+        run: pnpm --filter ./mcp run build
+
+      - name: MCP devnet smoke (gated on INTEGRATION=1)
+        if: steps.secret-check.outputs.available == 'true'
+        env:
+          KEYPAIR_B58: ${{ secrets.DEVNET_FACILITATOR_KEYPAIR }}
+        run: |
+          # Boots the MCP server in-process and exercises the read tools
+          # against live devnet (deployed program IDs from env defaults).
+          pnpm --filter ./mcp test:integration || {
+            echo "::error::MCP devnet integration failed"
+            exit 1
+          }
