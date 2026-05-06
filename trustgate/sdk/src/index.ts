@@ -21,7 +21,20 @@ export {
   AtomicityEnforced,
   AtomicityNotEnforcedError,
   assertAtomicityEnforced,
+  composeAtomicSettleTx,
+  deriveStandardAta,
+  type AtomicSettleQuantuAccounts,
+  type ComposeAtomicSettleArgs,
+  type ComposedAtomicSettle,
 } from "./atomicity";
+
+export {
+  TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  buildTransferCheckedIx,
+  deriveAssociatedTokenAddress,
+} from "./spl";
 
 export {
   derivePolicyPda, deriveVelocityPda, deriveKillSwitchPda,

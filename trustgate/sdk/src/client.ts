@@ -8,11 +8,18 @@
  */
 
 import { AnchorProvider, BN, Program } from "@coral-xyz/anchor";
-import { Keypair, PublicKey, Transaction, TransactionSignature } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  TransactionSignature,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
 
 import {
+  AtomicSettleQuantuAccounts,
   AtomicityEnforced,
   assertAtomicityEnforced,
+  composeAtomicSettleTx,
 } from "./atomicity";
 import {
   loadPolicyVault, loadTrustGate, makeProvider, simulateGatePayment,
@@ -57,41 +64,84 @@ export async function gatePayment(req: GatePaymentRequest): Promise<GateDecision
 
 export interface SettleRequest extends AtomicityEnforced {
   rpcUrl:              string;
-  facilitator:         Keypair;
-  payerAgent:          Keypair;          // signs SPL transfer
+  facilitator:         Keypair;       // signs gate_payment + emit_feedback
+  payerAgent:          Keypair;       // signs SPL transfer
   payerAgentAsset:     PublicKey;
   payeeAgentAsset:     PublicKey;
   amount:              bigint | number;
   mint:                PublicKey;
+  mintDecimals:        number;
   policyId:            number;
   payerTokenAccount:   PublicKey;
   payeeTokenAccount:   PublicKey;
-  paymentIdHash:       Uint8Array;       // 32 bytes
+  paymentIdHash:       Uint8Array;    // 32 bytes
   feedbackUri:         string;
-  score:               number;           // 0..=100
-  /** Quantu PDAs the caller has pre-derived (agent_account, collection). */
-  agentAccountPda:     PublicKey;
-  collectionPda:       PublicKey;
+  score:               number;        // 0..=100
+  tag1?:               string;        // ≤32 chars
+  tag2?:               string;        // ≤32 chars
+  endpoint?:           string;        // ≤64 chars
+  /** Quantu accounts the emit_feedback CPI threads through remaining_accounts. */
+  quantuAccounts:      AtomicSettleQuantuAccounts;
+  /** Optional ATOM accounts for gate_payment to read tier from. */
+  payerAtomStats?:     PublicKey;
+  payeeAtomStats?:     PublicKey;
+  /** Optional Token-2022 program override; defaults to legacy SPL. */
+  tokenProgram?:       PublicKey;
   programIds?:         ProgramIds;
 }
 
 /**
- * Atomic settlement. Phase 7 enforces the atomicity invariant; the actual
- * transaction-builder body is the Phase 9 E2E deliverable that wires real
- * Quantu accounts. Calling this in v0.1 throws unless
- * `atomicityEnforced: true` is passed (literal-type-guard + runtime check).
+ * Atomic settlement: gate_payment + SPL transferChecked + emit_feedback in
+ * one signed transaction. The on-chain tx commits or reverts as a unit.
  *
- * Production callers will replace this stub with their own transaction
- * builder OR wait for the v0.2 release.
+ * Race-window note: gate_payment intentionally returns Ok on Deny (so the
+ * read-only /verify path can decode via return-data). The full
+ * "all three revert on Deny" property requires the caller to have
+ * simulated first — the result of `gatePayment(...)` MUST be Allow before
+ * calling `settle`. The on-chain `FeedbackEmissionLog` init-only
+ * constraint plus B5 SERVICE-signed challenges close the rest of the
+ * race surface; see `atomicity.ts:composeAtomicSettleTx` JSDoc for the
+ * full reasoning.
  */
 export async function settle(req: SettleRequest): Promise<TransactionSignature> {
   assertAtomicityEnforced(req, "settle");
-  // Phase 9 E2E fills this body. v0.1 gates the API surface + invariant.
-  throw new Error(
-    "settle: transaction builder ships in v0.2. Phase 7 of AgentTrust ships " +
-    "the atomicity-guard surface; the SPL-token + emit_feedback assembly " +
-    "needs real Quantu integration which is wired in Phase 9 E2E. Track at " +
-    "https://github.com/agenttrust-labs/agenttrust",
+  const programIds = req.programIds ?? DEFAULT_DEVNET_PROGRAM_IDS;
+  const provider   = makeProvider({ rpcUrl: req.rpcUrl, wallet: req.facilitator });
+  const policyVault = await loadPolicyVault(provider, programIds.policyVault);
+  const trustgate   = await loadTrustGate(provider, programIds.trustgate);
+
+  const { tx } = await composeAtomicSettleTx({
+    atomicityEnforced: true,
+    programIds,
+    policyVault,
+    trustgate,
+    facilitator:        req.facilitator.publicKey,
+    payer:              req.payerAgent.publicKey,
+    payerAgentAsset:    req.payerAgentAsset,
+    payeeAgentAsset:    req.payeeAgentAsset,
+    payerTokenAccount:  req.payerTokenAccount,
+    payeeTokenAccount:  req.payeeTokenAccount,
+    amount:             BigInt(req.amount.toString()),
+    mint:               req.mint,
+    mintDecimals:       req.mintDecimals,
+    policyId:           req.policyId,
+    paymentIdHash:      req.paymentIdHash,
+    score:              req.score,
+    tag1:               req.tag1     ?? "trustgate",
+    tag2:               req.tag2     ?? `policy=${req.policyId}`,
+    endpoint:           req.endpoint ?? "/protected",
+    feedbackUri:        req.feedbackUri,
+    quantuAccounts:     req.quantuAccounts,
+    payerAtomStats:     req.payerAtomStats,
+    payeeAtomStats:     req.payeeAtomStats,
+    tokenProgram:       req.tokenProgram,
+  });
+
+  return sendAndConfirmTransaction(
+    provider.connection,
+    tx,
+    [req.facilitator, req.payerAgent],
+    { commitment: "confirmed" },
   );
 }
 
