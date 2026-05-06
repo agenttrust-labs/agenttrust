@@ -23,34 +23,31 @@ export interface PerformanceHeadline {
 }
 
 export const PERFORMANCE_SECTION_LABELS = [
-  "/ Pay.sh live",
-  "/ Adapter contract",
-  "/ Atomic settlement",
+  "/ Identity first",
+  "/ Policy in path",
+  "/ Feedback recorded",
 ] as const;
 
 export const PERFORMANCE_HEADLINE: PerformanceHeadline = {
   firstLine: "One trust layer.",
   secondPrefix: "Every",
-  secondEmphasis: "x402",
-  secondSuffix: "route.",
+  secondEmphasis: "agent",
+  secondSuffix: "payment.",
 };
 
 export const PERFORMANCE_STATEMENT =
-  "Pay.sh works today. The same adapter contract keeps Dexter, atxp_ai, MCPay, and the next facilitator from touching AgentTrust policy logic.";
+  "AgentTrust keeps identity, policy, and feedback in one Solana-native decision path. Pay.sh is the first live route, not the boundary of the system.";
 
 export const PERFORMANCE_CTA = {
-  label: "Read The Adapter Pattern",
-  href: PUBLIC_LINKS.docsFacilitatorAdapters,
+  label: "Learn About Trust Performance",
+  href: PUBLIC_LINKS.docsArchitecture,
 } as const;
 
 export const PERFORMANCE_STATS: readonly PerformanceStat[] = [
   {
-    label: "Live facilitator",
-    value: "Pay.sh",
-  },
-  {
-    label: "Adapter target",
-    value: "<2h",
+    label: "Trust checks",
+    value: "3",
+    count: { from: 0, target: 3 },
   },
   {
     label: "Settlement path",
@@ -61,6 +58,10 @@ export const PERFORMANCE_STATS: readonly PerformanceStat[] = [
     label: "Invariants verified",
     value: "5 / 5",
     count: { from: 0, target: 5, suffix: " / 5" },
+  },
+  {
+    label: "Live route",
+    value: "Pay.sh",
   },
 ] as const;
 

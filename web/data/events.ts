@@ -10,47 +10,47 @@ export interface EventItem {
   readonly location: string;
 }
 
-export const EVENTS_HEADING = "Facilitator work happens onchain - and in review.";
+export const EVENTS_HEADING = "Trust work happens onchain - and in review.";
 
 export const EVENTS_COPY =
-  "Follow Pay.sh walkthroughs, adapter reviews, and atomic settlement sessions for teams routing x402 payments through AgentTrust.";
+  "Follow SDK labs, proof reviews, and settlement sessions for teams routing AI-agent payments through AgentTrust.";
 
 export const EVENTS: readonly EventItem[] = [
   {
-    date: "Pay.sh",
+    date: "SDK",
     description:
-      "Run the Express demo, emit the 402 envelope, retry with PAYMENT-SIGNATURE, and inspect the decision.",
-    event: "Pay.sh adapter walkthrough",
-    href: PUBLIC_LINKS.docsPayShAdapter,
+      "Install the package, call the payment gate, and inspect the allow or deny branch.",
+    event: "AgentTrust quickstart lab",
+    href: PUBLIC_LINKS.docsQuickstart,
     imageAlt: "Abstract trust gate route diagram",
     imageSrc: "/media/event-trust-gate.svg",
     location: "Remote",
   },
   {
-    date: "Atomic",
+    date: "Proofs",
     description:
-      "Review how policy, transfer, and feedback stay in one signed settlement path.",
-    event: "Settlement review session",
-    href: PUBLIC_LINKS.docsAtomicSettlement,
+      "Review the invariants that keep policy checks and route state consistent.",
+    event: "Formal verification review",
+    href: PUBLIC_LINKS.docsFormalVerification,
     imageAlt: "Proof grid with verified check paths",
     imageSrc: "/media/event-proof-review.svg",
     location: "GitHub",
   },
   {
-    date: "Adapter",
+    date: "Settlement",
     description:
-      "Implement the five-method FacilitatorAdapter shape and keep protocol quirks out of the routes.",
-    event: "New facilitator lab",
-    href: PUBLIC_LINKS.docsFacilitatorAdapters,
+      "Review how policy, transfer, and feedback stay in one signed settlement path.",
+    event: "Atomic route session",
+    href: PUBLIC_LINKS.docsAtomicSettlement,
     imageAlt: "SDK integration cards connected by purple lines",
     imageSrc: "/media/event-sdk-lab.svg",
     location: "Solana builders",
   },
   {
-    date: "Roadmap",
+    date: "Adapters",
     description:
-      "Track Pay.sh live status, Dexter integration work, and atxp_ai / MCPay placeholders honestly.",
-    event: "Facilitator map",
+      "Bring a new route into the same AgentTrust decision path without rewriting policy logic.",
+    event: "New route lab",
     href: PUBLIC_LINKS.docsFacilitatorAdapters,
     imageAlt: "Verifier nodes around an AgentTrust triangle",
     imageSrc: "/media/event-operator-briefing.svg",

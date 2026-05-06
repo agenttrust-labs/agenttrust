@@ -13,14 +13,13 @@ export interface HeroAction {
 }
 
 export const HERO_FOUNDATION_LINE =
-  "Pay.sh integration live on Solana devnet - foundation-aligned, mainnet-ready x402 trust.";
+  "Live on Solana devnet - identity, policy, and feedback checks before settlement.";
 
 export const HERO_HEADLINE_LINES: readonly (readonly HeadlineWord[])[] = [
   [
     { text: "Trust" },
-    { text: "any" },
-    { text: "x402" },
-    { text: "payment" },
+    { text: "AI-agent" },
+    { text: "payments" },
   ],
   [
     { text: "before", isEmphasized: true },
@@ -29,15 +28,15 @@ export const HERO_HEADLINE_LINES: readonly (readonly HeadlineWord[])[] = [
 ];
 
 export const HERO_HEADLINE =
-  "Trust any x402 payment before settlement.";
+  "Trust AI-agent payments before settlement.";
 
 export const HERO_BODY =
-  "AgentTrust plugs into Pay.sh today and any x402 facilitator next. Policy, SPL transfer, and feedback compose into one signed Solana transaction.";
+  "AgentTrust ties payment decisions to identity, reputation, and policy. Pay.sh proves the first live x402 route; the same trust path can follow the next facilitator.";
 
 export const HERO_ACTIONS: readonly HeroAction[] = [
   {
     icon: "globe",
-    label: "Run Pay.sh Demo",
+    label: "Integrate SDK",
     href: PUBLIC_LINKS.docsQuickstart,
     variant: "primary",
   },

@@ -17,13 +17,13 @@ export const TRILEMMA_COPY: TrilemmaCopy = {
   center: "All before settlement.",
   centerLines: ["All before", "settlement."],
   leadLines: [
-    "x402 services used to split policy checks,",
-    "token transfer, and feedback into separate trust moments.",
+    "AI-agent payments used to split identity,",
+    "policy, and feedback into separate trust moments.",
   ],
   pillars: [
-    { label: "Pay.sh", caption: "Facilitator path" },
+    { label: "Identity", caption: "Counterparty signal" },
     { label: "Policy", caption: "Gate decision" },
-    { label: "Feedback", caption: "ERC-8004 record" },
+    { label: "Feedback", caption: "Reputation record" },
   ],
   resolveEmphasis: "atomically",
   resolvePrefix: "AgentTrust composes all three",

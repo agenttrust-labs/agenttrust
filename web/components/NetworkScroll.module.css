@@ -15,17 +15,17 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 78px 24px 40px;
+  padding: 72px 24px 40px;
 }
 
 .body {
-  max-width: 28ch;
+  max-width: 31ch;
   margin: 0;
-  font-size: clamp(1.7rem, 2.4vw, 2.35rem);
+  font-size: clamp(1.45rem, 1.85vw, 1.95rem);
   font-weight: 400;
-  line-height: 1.16;
+  line-height: 1.22;
   color: var(--ink);
-  letter-spacing: -0.045em;
+  letter-spacing: -0.035em;
 }
 
 .dim {
@@ -85,13 +85,13 @@
   .stage {
     position: sticky;
     top: 0;
-    grid-template-columns: 31% 42% 27%;
+    grid-template-columns: 32% 40% 28%;
     min-height: 100dvh;
   }
 
   .copy {
     align-self: stretch;
-    padding: clamp(88px, 12vh, 116px) clamp(28px, 3.2vw, 56px) 64px;
+    padding: clamp(92px, 12vh, 122px) clamp(36px, 4vw, 68px) 64px;
     border-right: 1px solid var(--border);
   }
 

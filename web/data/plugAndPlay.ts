@@ -15,13 +15,13 @@ export interface PlugCopySegment {
 export const PLUG_SECTION_TITLE = "Plug and play.";
 
 export const PLUG_COPY: readonly PlugCopySegment[] = [
-  { text: "Use AgentTrust with Pay.sh now, then bring the same policy path to the next x402 facilitator. " },
-  { text: "Adapters translate the wire format; Solana programs keep the decision and feedback path stable.", isDim: true },
+  { text: "Use AgentTrust where agents already pay. " },
+  { text: "The SDK gives apps one verification path while adapters handle route-specific wire formats.", isDim: true },
 ] as const;
 
 export const PLUG_CTA = {
-  href: PUBLIC_LINKS.docsPayShAdapter,
-  label: "Open Pay.sh Walkthrough",
+  href: PUBLIC_LINKS.docsQuickstart,
+  label: "Check Integration Briefing",
 } as const;
 
 export const PLUG_CHIP_ROWS: readonly PlugChipRow[] = [
@@ -29,13 +29,13 @@ export const PLUG_CHIP_ROWS: readonly PlugChipRow[] = [
     duration: "42s",
     offset: "-4vw",
     labels: [
-      "Pay.sh",
-      "x402 v2",
+      "Identity",
+      "Policy",
+      "Feedback",
       "SERVICE Signature",
-      "VerifyContext",
       "Gate Decision",
       "SPL Transfer",
-      "Feedback CPI",
+      "Receipt",
     ],
   },
   {
@@ -43,26 +43,26 @@ export const PLUG_CHIP_ROWS: readonly PlugChipRow[] = [
     offset: "-18vw",
     reverse: true,
     labels: [
-      "FacilitatorAdapter",
-      "Dexter",
-      "atxp_ai",
-      "MCPay",
-      "ReplayCache",
+      "SDK",
+      "Verifier",
+      "Replay Cache",
       "Proof Validator",
-      "Receipt",
+      "Policy Route",
+      "Audit Trail",
+      "Devnet",
     ],
   },
   {
     duration: "44s",
     offset: "-10vw",
     labels: [
-      "Policy",
-      "Identity",
-      "Validation",
+      "Pay.sh",
+      "Dexter",
+      "atxp_ai",
+      "MCPay",
+      "Adapter",
+      "Route",
       "Atomic Tx",
-      "Devnet",
-      "Mainnet Ready",
-      "ERC-8004 Feedback",
     ],
   },
 ] as const;

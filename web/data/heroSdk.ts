@@ -16,13 +16,13 @@ export interface HeroTerminalLine {
 export const HERO_SDK_COMMAND = "npm install @agenttrust-sdk/trustgate";
 
 export const HERO_SDK_COPY = {
-  eyebrow: "Pay.sh Quickstart",
-  title: "Put AgentTrust in the x402 path.",
+  eyebrow: "SDK Quickstart",
+  title: "Wire trust checks in minutes.",
   body:
-    "Run the Pay.sh demo, emit a SERVICE-signed challenge, and keep the policy check tied to settlement.",
+    "Run the demo, verify a SERVICE-signed challenge, and settle policy, transfer, and feedback together.",
   commandLabel: "Copy SDK install command",
   copiedLabel: "Copied",
-  terminalTitle: "pay-sh-demo",
+  terminalTitle: "agenttrust-demo",
 } as const;
 
 export const HERO_SDK_LINKS: readonly HeroSdkLink[] = [

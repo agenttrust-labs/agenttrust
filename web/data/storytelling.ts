@@ -5,32 +5,32 @@ export const STORYTELLING_SECTION_ID = "trust-stack";
 
 export const STORYTELLING_PANELS: readonly StoryPanel[] = [
   {
-    eyebrow: "01 / Pay.sh",
-    title: "Start with the Foundation path",
-    body: "Pay.sh is live as the first concrete adapter, with AgentTrust policy hints embedded in the x402 challenge before payment retry.",
+    eyebrow: "01 / Identity",
+    title: "Know the counterparty first",
+    body: "Resolve who an agent is paying, which attestations are current, and whether the recipient is trusted before value moves.",
     action: {
-      label: "Open Pay.sh Guide",
-      href: PUBLIC_LINKS.docsPayShAdapter,
+      label: "Read Trust Model",
+      href: PUBLIC_LINKS.docsArchitecture,
     },
     visual: "identity",
   },
   {
-    eyebrow: "02 / Adapters",
-    title: "Swap facilitators in one file",
-    body: "Routes, policy logic, and feedback stay untouched. Pay.sh ships today; Dexter proves the next adapter path; atxp_ai and MCPay stay explicit roadmap.",
+    eyebrow: "02 / Policy",
+    title: "Put rules in the payment path",
+    body: "Limits, allowlists, pause state, and velocity checks sit directly on the route, so unsafe transfers fail before settlement.",
     action: {
-      label: "Read Adapter Contract",
-      href: PUBLIC_LINKS.docsFacilitatorAdapters,
+      label: "View Payment Gate",
+      href: PUBLIC_LINKS.docsGatePayment,
     },
     visual: "policy",
   },
   {
-    eyebrow: "03 / Atomic",
-    title: "Settle or revert together",
-    body: "The policy check, SPL transfer, and feedback emission share one signed transaction, so there is no split-brain payment state.",
+    eyebrow: "03 / Feedback",
+    title: "Make trust decisions auditable",
+    body: "Feedback records the reason a route passed or stopped, giving builders a clear trail after every payment decision.",
     action: {
-      label: "Inspect Atomicity",
-      href: PUBLIC_LINKS.docsAtomicSettlement,
+      label: "Inspect Feedback",
+      href: PUBLIC_LINKS.docsTrustGate,
     },
     visual: "proofs",
   },

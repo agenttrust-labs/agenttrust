@@ -6,7 +6,7 @@
   contain: paint;
   border-bottom: 1px solid rgba(10, 10, 10, 0.08);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.76) 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.08) 72%, rgba(255, 255, 255, 0.72) 100%),
+    linear-gradient(180deg, #fff 0%, transparent 28%, transparent 72%, #fff 100%),
     radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.62) 0.75px, transparent 0.75px);
   background-size: auto, 17.5px 17.5px;
 }

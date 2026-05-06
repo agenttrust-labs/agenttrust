@@ -54,8 +54,7 @@ export function createTrilemmaScrollAnimation({
 
   prepareDrawPaths(paths);
   gsap.set(existingElements([lead, resolve]), { autoAlpha: 0, y: 30 });
-  gsap.set(glyph, { autoAlpha: 0 });
-  gsap.set(center, { autoAlpha: 0, scale: 0.985, y: 32 });
+  gsap.set(existingElements([center, glyph]), { autoAlpha: 0 });
   gsap.set(lines, { yPercent: 120 });
   gsap.set(nodes, { autoAlpha: 0, scale: 0.76 });
 
@@ -89,19 +88,19 @@ export function createTrilemmaScrollAnimation({
       }, 0.12)
       .to(glyph, { rotate: 10, scale: 1.035, y: -28, duration: 0.6, ease: "none" }, 0.18)
       .to(nodes, { rotate: -6, duration: 0.54, ease: "none", stagger: 0.02 }, 0.24)
-      .to(lead, {
-        autoAlpha: 0.2,
-        duration: 0.12,
-        ease: "none",
-        y: -18,
-      }, 0.58)
-      .to(center, {
+      .fromTo(center, {
+        autoAlpha: 0,
+        scale: 0.96,
+        xPercent: 0,
+        yPercent: -44,
+      }, {
         autoAlpha: 1,
-        duration: 0.18,
+        duration: 0.14,
         ease: "power3.out",
         scale: 1,
-        y: 0,
-      }, 0.62)
+        xPercent: 0,
+        yPercent: -50,
+      }, 0.68)
       .to(glyph, { rotate: -4, scale: 1, y: 0, duration: 0.2, ease: "none" }, 0.78);
 
     return () => {

@@ -12,24 +12,24 @@ export interface MediaCard {
 export const MEDIA_HEADING = "AgentTrust Media";
 
 export const MEDIA_COPY =
-  "Follow Pay.sh integration notes, adapter updates, and settlement writeups from the AgentTrust team.";
+  "Follow proof notes, builder updates, and settlement writeups from the AgentTrust team.";
 
 export const MEDIA_CARDS: readonly MediaCard[] = [
   {
-    eyebrow: "Pay.sh integration",
-    href: PUBLIC_LINKS.docsPayShAdapter,
-    imageAlt: "AgentTrust and Pay.sh integration cover art with x402 challenge notes",
+    eyebrow: "Trust decisions",
+    href: PUBLIC_LINKS.docsArchitecture,
+    imageAlt: "AgentTrust trust decision cover art with policy and feedback notes",
     imageSrc: "/media/media-proof-notes.svg",
-    summary: "Service-signed challenge envelopes, adapter calls, and devnet wiring.",
-    title: "Pay.sh Notes",
+    summary: "Identity, policy, and feedback checks before settlement.",
+    title: "Proof Notes",
   },
   {
-    eyebrow: "Facilitator adapters",
+    eyebrow: "Builder updates",
     href: PUBLIC_LINKS.docsFacilitatorAdapters,
     imageAlt: "Adapter playbook cover showing facilitator files connected to AgentTrust",
     imageSrc: "/media/media-builder-log.svg",
-    summary: "One adapter file for Pay.sh today and the next x402 facilitators later.",
-    title: "Adapter Log",
+    summary: "SDK wiring, adapter notes, and route integration details.",
+    title: "Builder Log",
   },
   {
     eyebrow: "Atomic settlement",
