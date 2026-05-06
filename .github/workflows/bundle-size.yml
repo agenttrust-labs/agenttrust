@@ -1,0 +1,58 @@
+name: SDK bundle size
+
+# Catches accidentally fattening @agenttrust-sdk/trustgate. The SDK
+# is the public-facing TypeScript surface — every byte we add lands
+# in every consumer's node_modules. A common failure mode: importing
+# `lodash` for one util, or pulling a heavy CJS module into a tree-
+# shake-friendly entry point.
+#
+# Threshold: 80 kB packed (.tgz). Current snapshot is 58.8 kB at
+# HEAD, so this gives ~21 kB headroom — roughly the budget for one
+# more major feature module before we have to start trimming.
+# Re-evaluate the threshold when we cross 70 kB.
+#
+# Trigger: PR touching trustgate/sdk/**.
+
+on:
+  pull_request:
+    paths:
+      - 'trustgate/sdk/**'
+      - '.github/workflows/bundle-size.yml'
+  workflow_dispatch:
+
+jobs:
+  size:
+    name: npm pack < 80 kB
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build SDK
+        run: pnpm --filter ./trustgate/sdk run build
+
+      - name: Pack + measure
+        run: |
+          set -e
+          cd trustgate/sdk
+          # pnpm pack writes the tarball into the package dir.
+          pnpm pack
+          tarball=$(ls *.tgz | head -1)
+          size=$(stat -c %s "$tarball")
+          # Threshold rationale: current 58.8 kB at HEAD; 80 kB = ~36%
+          # headroom for one more feature module. Bump only with a
+          # paired comment-update in this workflow YAML.
+          BUDGET=$((80 * 1024))
+          echo "::notice::SDK packed=${size}B (budget=${BUDGET}B, ${tarball})"
+          if [ "$size" -gt "$BUDGET" ]; then
+            echo "::error file=trustgate/sdk/package.json::SDK tarball ${size}B exceeds 80 kB budget. Investigate via 'pnpm --filter ./trustgate/sdk pack --json' to see what landed."
+            exit 1
+          fi
