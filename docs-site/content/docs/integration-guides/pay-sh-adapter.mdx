@@ -1,0 +1,110 @@
+---
+title: Pay.sh adapter
+description: The live Pay.sh + AgentTrust integration path.
+---
+
+Pay.sh is the first concrete AgentTrust facilitator adapter. It translates Pay.sh's x402 headers and `PaymentRequirements` body into the `VerifyContext` that the on-chain policy path understands.
+
+Pay.sh launch reference: [Solana Foundation launch note](https://solana.com/news/solana-foundation-launches-pay-sh-in-collaboration-with-google-cloud).
+
+## What the adapter does
+
+| Stage | Pay.sh / x402 surface | AgentTrust action |
+| --- | --- | --- |
+| Initial request | no payment proof | emit `402 Payment Required` with a base64 x402 v2 envelope |
+| Challenge | `paymentRequirements.extra.agentTrust` | include payer agent, payee agent, payee recipient, policy ID, `issuedAt`, and `serviceSignature` |
+| Retry | `PAYMENT-SIGNATURE` or `X-PAYMENT` | parse proof and rebuild `VerifyContext` |
+| Policy | `VerifyContext` | run the gate decision |
+| Allow | signed payment proof | validate transfer fields, emit feedback, forward resource |
+| Deny | gate decision | return `402` with reason code and reason name |
+
+## Files to read
+
+| File | Purpose |
+| --- | --- |
+| `trustgate/server/src/facilitators/pay-sh/index.ts` | the five-method `PaySh` class |
+| `trustgate/server/src/facilitators/pay-sh/schemas.ts` | strict Zod wire schemas |
+| `trustgate/server/src/facilitators/pay-sh/sig.ts` | SERVICE challenge signature helpers |
+| `trustgate/server/src/facilitators/pay-sh/proof-validator.ts` | replay, self-pay, amount, mint, recipient checks |
+| `trustgate/server/src/facilitators/pay-sh/feedback.ts` | idempotent feedback emission |
+| `examples/pay-sh-demo/src/middleware.ts` | Express route bridge from Pay.sh retry to AgentTrust |
+
+## SERVICE-signed challenge
+
+The SERVICE emits a signed challenge when it returns the Pay.sh `402` response. The signature binds:
+
+- `issuedAt`
+- network
+- amount
+- asset
+- `payTo`
+- payer agent
+- payee agent
+- payee recipient
+- policy ID
+- payment ID hash
+
+`PaySh.parseRequest()` verifies that signature against the facilitator public key before it accepts the request. This closes the race window where a forged `paymentRequirements` envelope could be raced against the legitimate one.
+
+## Run the demo
+
+```bash
+pnpm --filter ./examples/pay-sh-demo dev
+```
+
+```bash
+pay --sandbox curl http://localhost:3402/protected
+```
+
+The demo uses three deterministic counterparties:
+
+| Counterparty tier | Expected result |
+| --- | --- |
+| 0 | `402 Deny` with `CounterpartyTierBelowMin` |
+| 1 | `402 Deny` with `CounterpartyTierBelowMin` |
+| 3 | `200 Allow` with `X-Payment-Receipt` |
+
+Get the exact payer agent keys:
+
+```bash
+curl -s http://localhost:3402/health | jq '.counterparties'
+```
+
+## Production wiring
+
+The demo proves the pipeline without requiring devnet RPC in CI. The server package carries the real devnet Anchor route: `trustgate/server/src/chain.ts` loads deployed program IDLs, `/verify` simulates `gate_payment`, and `/settle` delegates proof validation plus feedback emission through the active adapter.
+
+Production swaps three dependency seams:
+
+```ts
+const adapter = new PaySh({
+  signingNetwork: "solana-devnet",
+  feePayer: facilitator.publicKey,
+  validateOnChainTx,
+  emitFeedbackCpi,
+  priorEmissionLookup,
+  replayCache,
+  signDecision,
+});
+```
+
+| Dependency | Production implementation |
+| --- | --- |
+| `validateOnChainTx` | parse the confirmed SPL transfer transaction from RPC |
+| `emitFeedbackCpi` | build and send `trustgate::emit_feedback` through Anchor |
+| `priorEmissionLookup` | read the `FeedbackEmissionLog` PDA by payment hash |
+| `signDecision` | sign canonical decision bytes with the facilitator key |
+
+## Failure cases to keep
+
+Do not remove these checks when adapting Pay.sh into a production server:
+
+- reject unknown schema fields at the root
+- reject zero or u64-overflow amounts
+- reject network mismatch
+- reject `payTo` / `payeeRecipient` mismatch
+- reject expired challenges
+- reject replayed proof bindings
+- reject transfer authority equal to facilitator fee payer
+
+These checks are part of the adapter, not the route layer.

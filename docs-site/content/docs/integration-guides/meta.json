@@ -1,5 +1,11 @@
 {
   "title": "Integration guides",
-  "pages": ["x402-facilitator", "capability-namespaces", "custom-attestor"],
+  "pages": [
+    "pay-sh-adapter",
+    "facilitator-adapters",
+    "x402-facilitator",
+    "capability-namespaces",
+    "custom-attestor"
+  ],
   "defaultOpen": true
 }

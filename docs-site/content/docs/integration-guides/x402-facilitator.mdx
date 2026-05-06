@@ -1,19 +1,20 @@
 ---
 title: x402 facilitator
-description: Add AgentTrust decisions to a Solana x402 service.
+description: Add AgentTrust decisions to an x402 facilitator without coupling to one vendor.
 ---
 
-This guide is for a facilitator that already accepts x402 payment requests and wants AgentTrust decisions before settlement.
+This guide is for a facilitator that already accepts x402 payment requests and wants AgentTrust decisions before settlement. If you are using Pay.sh, start with the [Pay.sh adapter guide](/integration-guides/pay-sh-adapter). If you are adding a new facilitator, start with the [adapter pattern](/integration-guides/facilitator-adapters).
 
 ## Integration points
 
 | Step | Facilitator action | AgentTrust call |
 | --- | --- | --- |
-| 1 | parse payer, payee, mint, and amount | none |
-| 2 | check policy | `POST /verify` or `gatePayment()` |
-| 3 | return x402 denial or validation need | TrustGate header builder |
-| 4 | settle payment | single Solana transaction |
-| 5 | emit feedback | TrustGate `emit_feedback` |
+| 1 | receive x402 request or retry proof | `FacilitatorAdapter.parseRequest` |
+| 2 | translate into payer, payee, mint, amount, and policy ID | `VerifyContext` |
+| 3 | check policy | `gate_payment` or `gatePayment()` |
+| 4 | return x402 denial or validation need | `adapter.formatChallenge` |
+| 5 | settle payment | one signed transaction path |
+| 6 | emit feedback | `adapter.emitFeedback` |
 
 ## Minimal Express mount
 
@@ -33,7 +34,7 @@ await mountTrustGate(app, {
 });
 ```
 
-## Verify request
+## Verify request shape
 
 ```http
 POST /verify
@@ -47,6 +48,8 @@ Content-Type: application/json
   "policyId": 1
 }
 ```
+
+For Pay.sh, the adapter reads this context from `paymentRequirements.extra.agentTrust`, verifies `serviceSignature`, derives `paymentIdHash` from `extra.memo`, and rejects mismatched `payTo` / `payeeRecipient` values.
 
 ## Denial response
 
@@ -71,6 +74,6 @@ X-Capability-Required: <32-byte-capability-hash>
 
 ## Settlement rule
 
-The facilitator must keep the policy gate, token transfer, and feedback emission in one Solana transaction once the settlement builder is wired. The SDK makes that requirement explicit with `atomicityEnforced: true`.
+The facilitator must keep the policy gate, token transfer, and feedback emission in one signed Solana path once the settlement builder is wired. The SDK makes that requirement explicit with `atomicityEnforced: true`.
 
-Source: `trustgate/server/src/x402.ts`, `trustgate/sdk/src/express.ts`.
+Source: `trustgate/server/src/facilitators`, `trustgate/server/src/x402.ts`, `trustgate/sdk/src/express.ts`.

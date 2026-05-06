@@ -1,0 +1,85 @@
+---
+title: Facilitator adapters
+description: Add a new x402 facilitator without rewriting AgentTrust routes or policy.
+---
+
+The adapter layer is the reason AgentTrust is not locked to Pay.sh. Pay.sh is live today; Dexter is the next worked path; atxp_ai and MCPay are marked roadmap through explicit stubs.
+
+## Mental model
+
+```txt
+HTTP request
+  -> routes/{verify,settle}
+  -> FacilitatorRegistry
+  -> active FacilitatorAdapter
+  -> VerifyContext
+  -> policy decision
+  -> settlement proof validation
+  -> feedback emission
+```
+
+Routes, policy logic, and registry reads stay unchanged. Protocol quirks live in one adapter file.
+
+## The five-method contract
+
+| Method | Why it exists |
+| --- | --- |
+| `parseRequest(req)` | translate the facilitator's request body and headers into `VerifyContext` |
+| `formatChallenge(decision, ctx)` | render Allow / Deny / RequireValidation in that facilitator's wire format |
+| `formatSettlement(ctx)` | return protocol-specific settlement metadata or an unsigned transaction skeleton |
+| `validatePaymentProof(proof, ctx)` | verify proof shape and cross-check it against the verify-time context |
+| `emitFeedback(ctx, settlement)` | emit the AgentTrust feedback record after settlement |
+
+If an adapter needs a sixth method, that is a contract change, not a one-off escape hatch.
+
+## Status map
+
+| Facilitator | Repo status | Meaning |
+| --- | --- | --- |
+| Pay.sh | concrete adapter | ready path for the demo and production dependency factory |
+| Dexter | stub / in flight | worked example for proving adapter portability |
+| atxp_ai | stub | roadmap, not silently unsupported |
+| MCPay | stub | roadmap, not silently unsupported |
+
+## Add a facilitator
+
+1. Read the facilitator's wire format. Identify challenge headers, proof headers, body shape, recipient encoding, payment ID hints, and Allow / Deny responses.
+2. Define strict Zod schemas for the request body and proof payload.
+3. Implement one `FacilitatorAdapter` class.
+4. Re-export it from `trustgate/server/src/facilitators/index.ts`.
+5. Register it with `FacilitatorRegistry`.
+6. Add unit tests that mirror Pay.sh coverage.
+7. Add a demo under `examples/<name>-demo` if the integration needs a runnable walkthrough.
+
+## Registry wiring
+
+```ts
+import {
+  FacilitatorRegistry,
+  PaySh,
+} from "@agenttrust/trustgate-server";
+
+const registry = new FacilitatorRegistry();
+registry.register(new PaySh(payShDeps));
+registry.setDefault("pay-sh");
+```
+
+Request-time selection can come from `X-Facilitator`, environment defaults, or a programmatic default. The active adapter is the only code that knows about the chosen facilitator.
+
+## Security checklist
+
+Every adapter must preserve the same proof-of-payment checks:
+
+- replay defense
+- self-pay defense
+- amount, mint, and recipient cross-checks
+- network match
+- expiry window
+- idempotent feedback emission
+- stable reason codes on Deny
+
+Pay.sh's `proof-validator.ts` and `feedback.ts` are the reference pattern.
+
+## Target integration time
+
+The architecture target is under two hours for a facilitator that already has a clear x402 wire spec. If adding a facilitator forces route edits, policy edits, or registry read changes, the adapter boundary failed and should be fixed before the integration is considered done.

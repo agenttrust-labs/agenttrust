@@ -1,20 +1,23 @@
 ---
 title: Architecture overview
-description: The three-program AgentTrust flow from x402 request to ERC-8004 feedback.
+description: How AgentTrust composes x402 facilitators, Solana policy, settlement, and feedback.
 ---
 
-AgentTrust has three on-chain programs and one TypeScript surface.
+AgentTrust has three on-chain programs, one TypeScript SDK, and one facilitator-adapter layer. Pay.sh is the first concrete adapter. The design keeps protocol-specific wire shapes outside the policy and feedback path.
 
-## Flow
+## Current flow
 
 ```txt
 agent request
-  -> x402 facilitator
-  -> TrustGate /verify
+  -> x402 facilitator (Pay.sh today)
+  -> FacilitatorAdapter.parseRequest
+  -> VerifyContext
   -> PolicyVault gate_payment
   -> Allow | Deny | RequireValidation
-  -> settlement + TrustGate emit_feedback
-  -> Quantu agent_registry_8004 give_feedback
+  -> signed settlement path
+     -> SPL transfer
+     -> TrustGate emit_feedback
+     -> Quantu agent_registry_8004 give_feedback
 ```
 
 ## Components
@@ -24,7 +27,22 @@ agent request
 | PolicyVault | `programs/policy-vault` | compose five policy kinds and return a decision |
 | TrustGate | `programs/trustgate` | sign feedback CPI as the facilitator PDA |
 | ValidationRegistry | `programs/validation-registry` | store capability attestations read by PolicyVault |
+| Facilitator adapters | `trustgate/server/src/facilitators` | translate Pay.sh / Dexter / atxp_ai / MCPay wire shapes into `VerifyContext` |
 | SDK | `trustgate/sdk` | expose client helpers and Express routes |
+
+## Why adapters exist
+
+Every x402 facilitator carries the same payment intent but differs in headers, body shape, proof payload, retry behavior, and settlement metadata. AgentTrust isolates those differences in five adapter methods:
+
+| Method | Responsibility |
+| --- | --- |
+| `parseRequest` | turn a facilitator request into `VerifyContext` |
+| `formatChallenge` | render Allow / Deny / RequireValidation back into that facilitator's wire shape |
+| `formatSettlement` | produce settlement metadata or an unsigned transaction skeleton |
+| `validatePaymentProof` | verify proof shape and cross-check transfer context |
+| `emitFeedback` | call the feedback CPI idempotently |
+
+Routes, policy logic, and registry reads do not branch on a facilitator name.
 
 ## Decision path
 
@@ -55,6 +73,12 @@ PolicyVault reads foreign PDAs defensively:
 <KaniProofBadge />
 
 The Kani harnesses target the pure Rust policy/composer layer rather than the Anchor wrappers. That keeps proofs short, deterministic, and tied to the code that makes decisions.
+
+## Atomic settlement boundary
+
+For production settlement, the policy check, SPL transfer, and feedback emission must share the same signed transaction path. If one part fails, the user should not get a successful payment with missing feedback or feedback for a missing payment.
+
+The Pay.sh demo uses stubs for RPC and CPI so local tests run quickly. Those seams are the same seams a production factory fills with devnet programs and SPL transfer parsing.
 
 ## Deployment boundary
 

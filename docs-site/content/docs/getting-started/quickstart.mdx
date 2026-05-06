@@ -1,98 +1,100 @@
 ---
 title: Quickstart
-description: Install the SDK, run a read-only gate, and mount the Express x402 routes.
+description: Run AgentTrust with Pay.sh in under 10 minutes.
 ---
 
-This page gets a facilitator from zero to a read-only `gatePayment()` check against devnet.
+This page gets you from a clean checkout to a Pay.sh + AgentTrust server you can hit locally. It shows the x402 challenge, the Pay.sh retry, the AgentTrust decision, and the feedback receipt path.
 
-## Install
+## 1. Install
 
 ```bash
-pnpm add @agenttrust-sdk/trustgate express @solana/web3.js
+pnpm install
 ```
 
-The public package is `@agenttrust-sdk/trustgate`. The source lives at `github.com/agenttrust-labs/agenttrust`.
+The public SDK package is `@agenttrust-sdk/trustgate`. The Pay.sh demo imports the server workspace package directly so it can exercise the adapter layer before packaging.
 
-## Read a decision
+## 2. Build the demo
 
-`gatePayment()` simulates PolicyVault and returns one of three decision shapes. It does not settle funds.
-
-```ts
-import { Keypair, PublicKey } from "@solana/web3.js";
-import { gatePayment } from "@agenttrust-sdk/trustgate/client";
-
-const facilitator = Keypair.fromSecretKey(secretKey);
-
-const decision = await gatePayment({
-  rpcUrl: "https://api.devnet.solana.com",
-  caller: facilitator,
-  payerAgentAsset: new PublicKey("payer-agent-asset-pubkey"),
-  payeeAgentAsset: new PublicKey("payee-agent-asset-pubkey"),
-  amount: 1_000_000n,
-  mint: new PublicKey("mint-pubkey"),
-  policyId: 1,
-});
-
-switch (decision.kind) {
-  case "Allow":
-    break;
-  case "Deny":
-    console.error(decision.reasonCode, decision.reasonName);
-    break;
-  case "RequireValidation":
-    console.error(decision.capabilityHash);
-    break;
-}
+```bash
+pnpm --filter ./examples/pay-sh-demo build
 ```
 
-## Mount the x402 routes
+## 3. Start the server
 
-`mountTrustGate()` binds four endpoints to an Express app:
+```bash
+pnpm --filter ./examples/pay-sh-demo dev
+```
+
+The server listens on `:3402` and exposes:
 
 | Route | Purpose |
 | --- | --- |
-| `POST /verify` | read-only PolicyVault simulation |
-| `GET /receipt/:paymentIdHashHex` | feedback log lookup |
-| `POST /settle` | atomic settlement surface |
-| `POST /dispute` | negative feedback surface |
+| `GET /health` | deterministic demo counterparties and facilitator key |
+| `GET /protected` | Pay.sh-gated resource |
+
+## 4. Drive the Pay.sh path
+
+Without a payment proof, `/protected` returns `402 Payment Required` with a base64 x402 v2 challenge.
+
+```bash
+curl -i http://localhost:3402/protected
+```
+
+With Pay.sh installed, let the CLI pay and retry.
+
+```bash
+pay --sandbox curl http://localhost:3402/protected
+```
+
+For a deterministic Allow path, use the tier-3 demo counterparty.
+
+```bash
+PAYER=$(curl -s http://localhost:3402/health | jq -r '.counterparties[2].agent')
+pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" http://localhost:3402/protected
+```
+
+For a deterministic Deny path, use tier 0.
+
+```bash
+PAYER=$(curl -s http://localhost:3402/health | jq -r '.counterparties[0].agent')
+pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" http://localhost:3402/protected
+```
+
+## 5. Run the same flow without the CLI
+
+The integration tests synthesize Pay.sh proof bodies and drive the same Express route in-process.
+
+```bash
+pnpm --filter ./examples/pay-sh-demo test
+```
+
+## What happens inside
 
 ```ts
-import express from "express";
-import { Keypair } from "@solana/web3.js";
-import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
-
-const app = express();
-app.use(express.json());
-
-await mountTrustGate(app, {
-  rpcUrl: "https://api.devnet.solana.com",
-  facilitatorKeypair: Keypair.fromSecretKey(secretKey),
-  defaultPolicyId: 1,
-  network: "solana-devnet",
-  atomicityEnforced: true,
-});
-
-app.listen(3000);
+adapter.parseRequest(req)
+  -> VerifyContext
+  -> decide(ctx)
+  -> adapter.formatChallenge(decision, ctx)
+  -> adapter.validatePaymentProof(proof, ctx)
+  -> adapter.emitFeedback(ctx, settlement)
 ```
 
-## Headers returned by `/verify`
+The local demo stubs RPC and CPI so CI can run without devnet. The server package carries the real Anchor path: `trustgate/server/src/chain.ts` loads the deployed devnet programs, `/verify` simulates `gate_payment`, and `/settle` delegates proof validation plus feedback emission through the active adapter.
 
-TrustGate maps PolicyVault decisions into x402-compatible headers.
+Production fills these same dependency seams:
 
-```http
-X-Payment-Network: solana-devnet
-X-Agent-Trust-Decision: Deny
-X-Payment-Required: denied
-X-Payment-Reason-Code: 6
-X-Payment-Reason-Name: CounterpartyTierBelowMin
-```
+| Seam | Demo implementation | Production implementation |
+| --- | --- |
+| `decide(ctx)` | static tier table | `simulateGatePayment` against devnet programs |
+| `validateOnChainTx` | synthetic confirmed tx | RPC + SPL transfer parser |
+| `emitFeedbackCpi` | synthetic feedback signature | Anchor call into `trustgate::emit_feedback` |
 
 ## Pinned devnet IDs
 
 <ProgramIdsTable />
 
-## Source references
+## Read next
 
-- SDK package: `@agenttrust-sdk/trustgate`
-- Repository: `github.com/agenttrust-labs/agenttrust`
-- SDK source: `trustgate/sdk/src/client.ts`, `trustgate/sdk/src/express.ts`
+- [Pay.sh adapter](/integration-guides/pay-sh-adapter)
+- [Facilitator adapters](/integration-guides/facilitator-adapters)
+- [Atomic-tx invariant](/sdk/atomic-tx-invariant)

@@ -1,15 +1,22 @@
 ---
 title: gatePayment
-description: Read-only TrustGate SDK decision call for facilitators.
+description: Read-only policy decision call for facilitators.
 ---
 
 `In progress`
 
-`gatePayment()` simulates PolicyVault and returns `Allow`, `Deny`, or `RequireValidation`. It is the fastest integration path when a service already owns its x402 routing layer.
+`gatePayment()` simulates PolicyVault and returns `Allow`, `Deny`, or `RequireValidation`. It remains useful when a service already owns its x402 routing layer and only wants the AgentTrust decision.
+
+For Pay.sh, the adapter path wraps this lower-level decision in:
+
+1. x402 challenge parsing
+2. SERVICE signature verification
+3. proof validation
+4. feedback emission
 
 | Source | Path |
 | --- | --- |
 | SDK client | [`trustgate/sdk/src/client.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/client.ts) |
+| Pay.sh adapter | [`trustgate/server/src/facilitators/pay-sh/index.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/index.ts) |
 | shared types | [`trustgate/sdk/src/types.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/types.ts) |
 | package README | [`trustgate/sdk/README.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/README.md) |
-

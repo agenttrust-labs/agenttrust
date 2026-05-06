@@ -1,61 +1,64 @@
 ---
 title: Introduction
-description: AgentTrust is a Solana trust and payment gate for agent commerce.
+description: AgentTrust is the Solana policy and feedback layer for x402 facilitators.
 ---
 
-AgentTrust is a Solana trust and payment gate for agent commerce.
+AgentTrust is the Solana policy and feedback layer for x402 facilitators.
 
-AgentTrust evaluates policy, validation, and feedback before a payment settles. The stack gives facilitators a single path for deciding whether an agent-to-agent payment should proceed, require validation, or stop.
+Pay.sh is the first concrete adapter: an AgentTrust-aware service can emit a Pay.sh x402 challenge, verify the SERVICE signature, run the policy decision, and settle with feedback tied to the same payment context. The same adapter contract is designed for Dexter, atxp_ai, MCPay, and the next facilitator without rewriting the routes.
 
 <KaniProofBadge />
 
-## What AgentTrust ships
+## What AgentTrust ships today
 
-AgentTrust ships as three Anchor programs plus a TypeScript SDK.
+AgentTrust ships as three Anchor programs, a TypeScript SDK, and a facilitator-adapter layer.
 
 | Part | Reads | Writes | Result |
 | --- | --- | --- | --- |
 | PolicyVault | payer and payee trust data | policy counters and velocity ledgers | `Allow`, `Deny`, or `RequireValidation` |
 | TrustGate | PolicyVault decisions | Quantu feedback logs | x402 status and ERC-8004 feedback |
 | ValidationRegistry | attestor profiles and attestations | capability attestations | reusable validation evidence |
+| Pay.sh adapter | x402 v2 `PaymentRequirements` | SERVICE-signed challenge and feedback receipt | live Pay.sh integration path |
+
+## Facilitator status
+
+| Facilitator | Status | Notes |
+| --- | --- | --- |
+| Pay.sh | live | First concrete adapter; launch announced by Solana Foundation with Google Cloud on May 5, 2026. |
+| Dexter | in flight | Worked example for the next adapter path; current repo carries a roadmap stub until full wiring lands. |
+| atxp_ai | roadmap | Stubbed explicitly so callers see a planned integration, not an accidental absence. |
+| MCPay | roadmap | Stubbed explicitly for the same adapter contract. |
+
+Pay.sh launch reference: [Solana Foundation launch note](https://solana.com/news/solana-foundation-launches-pay-sh-in-collaboration-with-google-cloud).
 
 ## Devnet deployment
 
-The current Frontier build is deployed on Solana devnet.
+The current Frontier build is deployed on Solana devnet and keeps the same adapter boundary for mainnet rollout.
 
 <ProgramIdsTable />
 
 ## The shortest path
 
-Install the SDK, mount TrustGate in your facilitator, then call `/verify` before payment settlement.
+Run the Pay.sh demo, then copy the adapter shape into your own facilitator.
 
 ```bash
-pnpm add @agenttrust-sdk/trustgate
+pnpm --filter ./examples/pay-sh-demo dev
 ```
 
-```ts
-import express from "express";
-import { Keypair } from "@solana/web3.js";
-import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
-
-const app = express();
-app.use(express.json());
-
-await mountTrustGate(app, {
-  rpcUrl: "https://api.devnet.solana.com",
-  facilitatorKeypair: Keypair.fromSecretKey(secretKey),
-  network: "solana-devnet",
-  atomicityEnforced: true,
-});
+```bash
+pay --sandbox curl http://localhost:3402/protected
 ```
 
 ## Read next
 
 <Cards>
   <Card title="Quickstart" href="/getting-started/quickstart">
-    Install the SDK and make the first gatePayment call.
+    Run the Pay.sh demo and inspect Allow / Deny paths.
+  </Card>
+  <Card title="Pay.sh adapter" href="/integration-guides/pay-sh-adapter">
+    Walk through the live adapter end to end.
   </Card>
   <Card title="Architecture overview" href="/getting-started/architecture-overview">
-    Follow the three-program flow from request to feedback.
+    See why the adapter layer exists and how it composes with the programs.
   </Card>
 </Cards>

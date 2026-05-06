@@ -3,9 +3,9 @@
   "pages": [
     "index",
     "getting-started",
-    "programs",
-    "sdk",
     "integration-guides",
+    "sdk",
+    "programs",
     "reference"
   ]
 }

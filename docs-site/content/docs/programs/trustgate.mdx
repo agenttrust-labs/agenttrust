@@ -3,7 +3,9 @@ title: TrustGate
 description: The x402 facilitator program that emits ERC-8004 feedback through Quantu.
 ---
 
-TrustGate is the on-chain x402 bridge. It owns a per-facilitator PDA, signs feedback CPI calls into Quantu, and records idempotency by payment hash.
+TrustGate is the on-chain feedback bridge for x402 facilitators. It owns a per-facilitator PDA, signs feedback CPI calls into Quantu, and records idempotency by payment hash.
+
+Pay.sh uses this path through the `PaySh` adapter. Other facilitators should reach the same on-chain instruction through their own adapter rather than adding facilitator-specific branches to routes.
 
 ## Instructions
 
@@ -48,3 +50,4 @@ The SDK and server map PolicyVault outcomes into response headers:
 - Program: `programs/trustgate/src/lib.rs`
 - CPI wrapper: `programs/trustgate/src/ext/agent_registry.rs`
 - Server route layer: `trustgate/server/src/routes/verify.ts`
+- Pay.sh adapter: `trustgate/server/src/facilitators/pay-sh/index.ts`

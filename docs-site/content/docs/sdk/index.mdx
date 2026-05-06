@@ -3,7 +3,7 @@ title: "@agenttrust-sdk/trustgate"
 description: TypeScript client helpers, Express middleware, and atomicity guard.
 ---
 
-The SDK is the facilitator-facing TypeScript package.
+The SDK is the facilitator-facing TypeScript package. The server adapter layer currently carries the concrete Pay.sh integration and the demo path; the package API remains the smaller client / Express surface for apps that call AgentTrust directly.
 
 ```bash
 pnpm add @agenttrust-sdk/trustgate
@@ -56,16 +56,18 @@ await mountTrustGate(app, {
 { atomicityEnforced: true }
 ```
 
-The marker is literal `true`, not `boolean`, and the runtime guard throws if a caller bypasses TypeScript with a cast.
+The marker is literal `true`, not `boolean`, and the runtime guard throws if a caller bypasses TypeScript with a cast. The server adapter path extends this into proof validation and feedback emission.
 
-## v0.1 surface
+## Current surface
 
 | API | Status |
 | --- | --- |
 | `gatePayment` | implemented |
 | `mountTrustGate` `/verify` | implemented |
 | `mountTrustGate` `/receipt` | implemented |
-| `settle` | guarded surface, transaction builder follows |
-| `dispute` | guarded surface, transaction builder follows |
+| Pay.sh adapter | implemented in `@agenttrust/trustgate-server` workspace package |
+| Pay.sh demo | implemented in `examples/pay-sh-demo` |
+| `settle` | guarded SDK surface; server adapter validation path is active |
+| `dispute` | guarded SDK surface; negative feedback route remains narrower |
 
 Source: `trustgate/sdk/src`.
