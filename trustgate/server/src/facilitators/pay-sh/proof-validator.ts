@@ -24,8 +24,14 @@ import {
   VerifyContext,
 } from "../types";
 import { bytesEqual, bytesToHex, sanitizeDetail } from "./helpers";
-import { PayShRawMeta } from "./request-meta";
 import { PaymentPayloadSchema } from "./schemas";
+
+/** Minimal cross-check meta — anything that has `expectedRecipient` works.
+ *  Used by Pay.sh and Dexter; future adapters can satisfy this surface
+ *  with their own request-meta type. */
+export interface CrossCheckMeta {
+  readonly expectedRecipient: PublicKey;
+}
 
 // ---------------------------------------------------------------------------
 // Replay cache — in-memory binding of (txSignature → paymentIdHash)
@@ -117,7 +123,7 @@ export function crossCheck(
     transferRecipient: PublicKey;
   },
   ctx:                 VerifyContext,
-  meta:                PayShRawMeta,
+  meta:                CrossCheckMeta,
   facilitatorFeePayer: PublicKey,
 ): PaymentProofValidation {
   // self-pay defense — the x402 SVM spec forbids the fee payer being the authority

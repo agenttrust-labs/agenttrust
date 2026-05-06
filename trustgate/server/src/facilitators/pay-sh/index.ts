@@ -435,7 +435,7 @@ export type {
   PaymentPayload as PayShPaymentPayload,
   PaymentRequirements as PayShPaymentRequirements,
 } from "./schemas";
-export { deriveMemoHash, bytesToHex, sameNetwork } from "./helpers";
+export { deriveMemoHash, bytesToHex, sameNetwork, sanitizeDetail, bytesEqual } from "./helpers";
 export {
   DEFAULT_FEEDBACK_SCORE,
   type EmitFeedbackFn,
