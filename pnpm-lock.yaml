@@ -111,9 +111,15 @@ importers:
 
   examples/pay-sh-demo:
     dependencies:
+      '@agenttrust-sdk/trustgate':
+        specifier: workspace:*
+        version: link:../../trustgate/sdk
       '@agenttrust/trustgate-server':
         specifier: workspace:*
         version: link:../../trustgate/server
+      '@coral-xyz/anchor':
+        specifier: ^0.31.1
+        version: 0.31.1(bufferutil@4.1.0)(typescript@4.9.5)(utf-8-validate@6.0.6)
       '@solana/web3.js':
         specifier: ^1.98.0
         version: 1.98.4(bufferutil@4.1.0)(typescript@4.9.5)(utf-8-validate@6.0.6)
@@ -136,6 +142,9 @@ importers:
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
+      bs58:
+        specifier: ^6.0.0
+        version: 6.0.0
       chai:
         specifier: ^4.3.4
         version: 4.5.0

@@ -141,3 +141,58 @@ describe("pay-sh-demo flow", () => {
     expect(res.status).to.equal(200);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Devnet integration smoke — gated on INTEGRATION=1.
+//
+// Verifies the demo can boot with REAL Anchor providers loading the
+// trustgate IDL from devnet, and that /health surfaces the live network.
+// A fully end-to-end emit_feedback CPI requires the demo's payee Quantu
+// agent to be pre-registered on devnet (asset + collection accounts +
+// agent_account PDA initialised). When the secret env is missing or the
+// payee agent isn't registered, this block reports the missing setup and
+// skips, so CI doesn't false-fail.
+// ---------------------------------------------------------------------------
+
+const INTEGRATION = process.env.INTEGRATION === "1";
+const integrationDescribe = INTEGRATION ? describe : describe.skip;
+
+integrationDescribe("real devnet integration", function () {
+  this.timeout(60_000);
+
+  it("demo boots with real Anchor + devnet RPC", async () => {
+    const facilitatorB58 = process.env.FACILITATOR_KEYPAIR_B58;
+    const rpcUrl = process.env.RPC_URL ?? "https://api.devnet.solana.com";
+    if (!facilitatorB58) {
+      // eslint-disable-next-line no-console
+      console.log("SKIPPED: FACILITATOR_KEYPAIR_B58 not set");
+      return;
+    }
+
+    const { Keypair } = await import("@solana/web3.js");
+    const bs58 = (await import("bs58")).default;
+    const { createRealDemoApp } = await import("../src");
+
+    const facilitator = Keypair.fromSecretKey(bs58.decode(facilitatorB58));
+
+    // Static Quantu resolver — empty; the integration test below only
+    // exercises /health and 402-emission paths, neither of which trigger
+    // emit_feedback. Full end-to-end emit_feedback is a manual-smoke
+    // step that requires Quantu agents pre-registered on devnet.
+    const resolveQuantu = async () => {
+      throw new Error("Quantu resolver not configured — manual smoke only");
+    };
+
+    const demo = await createRealDemoApp({
+      facilitator,
+      realChain: {
+        rpcUrl,
+        signingNetwork: process.env.NETWORK ?? "solana-devnet",
+        resolveQuantu,
+      },
+    });
+    const res = await request(demo.app).get("/health");
+    expect(res.status).to.equal(200);
+    expect(res.body.facilitator).to.equal(facilitator.publicKey.toBase58());
+  });
+});

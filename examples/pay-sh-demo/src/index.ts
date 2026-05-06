@@ -24,6 +24,7 @@ import { createHash } from "crypto";
 
 import {
   PaySh,
+  PayShDeps,
   ReplayCache,
   bytesToHex,
   canonicalChallengeBytes,
@@ -31,7 +32,8 @@ import {
   signEnvelope,
 } from "@agenttrust/trustgate-server";
 
-import { makeDemoPayShDeps } from "./deps";
+import { makeDemoPayShDeps, DemoOnChainStub } from "./deps";
+import { makeRealPayShDeps, MakeRealPayShDepsArgs } from "./deps-real";
 import { paymentMiddleware } from "./middleware";
 import {
   CounterpartyTable,
@@ -76,6 +78,11 @@ export interface CreateDemoAppOptions {
   readonly replayCache?: ReplayCache;
 }
 
+/** Real-chain variant — wires Anchor + RPC + Quantu account resolver. */
+export interface CreateRealDemoAppOptions extends CreateDemoAppOptions {
+  readonly realChain: Omit<MakeRealPayShDepsArgs, "facilitator">;
+}
+
 export interface DemoApp {
   readonly app:          Application;
   readonly facilitator:  Keypair;
@@ -100,9 +107,74 @@ export function createDemoApp(opts: CreateDemoAppOptions = {}): DemoApp {
     signingNetwork: network,
     feePayer:       facilitator.publicKey,
   });
+  return assembleDemoApp({
+    network, mint, facilitator, payeeKeypair, payeeWallet, payeeAgent,
+    payeeRecipient, counterparties, minTier,
+    deps, chainStub,
+    replayCacheOverride: opts.replayCache,
+  });
+}
+
+/**
+ * Real-chain variant. Loads Anchor + RPC, wires
+ * `makeValidateOnChainTx` + `makeEmitFeedbackCpi` +
+ * `makePriorEmissionLookup` from `@agenttrust-sdk/trustgate`. The
+ * middleware's `chainStub` setHint hook is a no-op in this mode — the
+ * adapter parses the actual signed tx via RPC.
+ */
+export async function createRealDemoApp(
+  opts: CreateRealDemoAppOptions,
+): Promise<DemoApp> {
+  const network        = opts.network ?? DEMO_NETWORK_DEVNET;
+  const mint           = opts.mint ?? USDC_MINT;
+  const facilitator    = opts.facilitator ?? Keypair.generate();
+  const payeeKeypair   = opts.payeeWallet ? undefined : Keypair.generate();
+  const payeeWallet    = opts.payeeWallet ?? payeeKeypair!.publicKey;
+  const payeeAgent     = opts.payeeAgent ?? deriveAgentPda(payeeWallet, "payee");
+  const payeeRecipient = opts.payeeRecipient ?? payeeWallet;
+  const counterparties = opts.counterparties ?? defaultCounterpartyTable();
+  const minTier        = opts.minTier ?? DEMO_POLICY_MIN_TIER;
+
+  const { deps } = await makeRealPayShDeps({
+    ...opts.realChain,
+    facilitator,
+    signingNetwork: opts.realChain.signingNetwork ?? network,
+  });
+  // Real path doesn't use the chainStub — pass a no-op stub instance.
+  const chainStub = new DemoOnChainStub();
+  return assembleDemoApp({
+    network, mint, facilitator, payeeKeypair, payeeWallet, payeeAgent,
+    payeeRecipient, counterparties, minTier,
+    deps, chainStub,
+    replayCacheOverride: opts.replayCache,
+  });
+}
+
+interface AssembleArgs {
+  readonly network:           string;
+  readonly mint:              string;
+  readonly facilitator:       Keypair;
+  readonly payeeKeypair?:     Keypair;
+  readonly payeeWallet:       PublicKey;
+  readonly payeeAgent:        PublicKey;
+  readonly payeeRecipient:    PublicKey;
+  readonly counterparties:    CounterpartyTable;
+  readonly minTier:           number;
+  readonly deps:              PayShDeps;
+  readonly chainStub:         DemoOnChainStub;
+  readonly replayCacheOverride?: ReplayCache;
+}
+
+function assembleDemoApp(args: AssembleArgs): DemoApp {
+  const {
+    network, mint, facilitator, payeeKeypair, payeeWallet, payeeAgent,
+    payeeRecipient, counterparties, minTier, deps, chainStub,
+    replayCacheOverride,
+  } = args;
+
   const adapter = new PaySh({
     ...deps,
-    replayCache: opts.replayCache ?? deps.replayCache,
+    replayCache: replayCacheOverride ?? deps.replayCache,
   });
 
   const decide = makeTierDecide(counterparties, minTier);
