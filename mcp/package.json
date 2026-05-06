@@ -1,0 +1,44 @@
+{
+  "name": "@agenttrust/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AgentTrust MCP server — exposes the deployed AgentTrust programs as natural-language tools, resources, and prompts in Claude Desktop / Cursor / any MCP client",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "bin": {
+    "agenttrust-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "scripts",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc && node -e \"const fs=require('fs');const path=require('path');const src=path.resolve('src/idl');const dst=path.resolve('dist/idl');fs.mkdirSync(dst,{recursive:true});for(const f of fs.readdirSync(src))if(f.endsWith('.json'))fs.copyFileSync(path.join(src,f),path.join(dst,f));\"",
+    "lint": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "ts-mocha -p ./test/tsconfig.json -t 30000 \"test/**/*.test.ts\"",
+    "test:integration": "INTEGRATION=1 ts-mocha -p ./test/tsconfig.json -t 60000 test/integration.test.ts"
+  },
+  "dependencies": {
+    "@agenttrust-sdk/trustgate": "workspace:*",
+    "@coral-xyz/anchor": "^0.31.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@solana/web3.js": "^1.98.0",
+    "bs58": "^6.0.0",
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.23.5"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^20.0.0",
+    "chai": "^4.3.4",
+    "mocha": "^9.0.3",
+    "ts-mocha": "^10.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.0"
+  }
+}

@@ -1,0 +1,1052 @@
+{
+  "address": "Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv",
+  "metadata": {
+    "name": "validation_registry",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "AgentTrust ValidationRegistry — third leg of the ERC-8004 trust stack"
+  },
+  "instructions": [
+    {
+      "name": "register_attestor",
+      "docs": [
+        "Self-register as an attestor. Permissionless. Sybil deterrent: rent",
+        "+ lack of downstream-consumer trust (PolicyVault filters by attestor)."
+      ],
+      "discriminator": [
+        68,
+        201,
+        86,
+        244,
+        51,
+        113,
+        15,
+        94
+      ],
+      "accounts": [
+        {
+          "name": "attestor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "attestor_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  116,
+                  116,
+                  101,
+                  115,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "attestor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "display_name_uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "register_namespace",
+      "docs": [
+        "Register a capability namespace. Permissionless — anyone can call.",
+        "Spam deterrent: rent (~0.0023 SOL).",
+        "Caller MUST compute `namespace_hash = SHA256(name_utf8)` off-chain."
+      ],
+      "discriminator": [
+        168,
+        143,
+        144,
+        145,
+        45,
+        80,
+        93,
+        126
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "namespace",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  112,
+                  97,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "namespace_hash"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "namespace_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "schema_uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "request_validation",
+      "docs": [
+        "Open a validation request for an agent. Subject's owner OR any third",
+        "party can call. Off-chain attestors discover via the `RequestCreated`",
+        "event."
+      ],
+      "discriminator": [
+        72,
+        26,
+        53,
+        67,
+        228,
+        30,
+        144,
+        53
+      ],
+      "accounts": [
+        {
+          "name": "requester",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "validation_request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "subject_asset"
+              },
+              {
+                "kind": "arg",
+                "path": "capability_hash"
+              },
+              {
+                "kind": "account",
+                "path": "requester"
+              }
+            ]
+          }
+        },
+        {
+          "name": "capability_namespace",
+          "docs": [
+            "Capability namespace must already exist (prevents requests against",
+            "undefined capabilities)."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  112,
+                  97,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "capability_hash"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "subject_asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "capability_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "claim_uri_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "deadline",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "respond_to_validation",
+      "docs": [
+        "Attestor responds with an Ed25519-signed attestation. Sysvar",
+        "verification at instruction index `current - 1` (mirrors Quantu's",
+        "`set_agent_wallet` pattern). Domain-separated message:",
+        "`AGENTTRUST_ATTEST || subject || cap || payload || expires`."
+      ],
+      "discriminator": [
+        64,
+        212,
+        244,
+        6,
+        65,
+        134,
+        212,
+        122
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "Anyone can pay for the rent."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "attestor",
+          "docs": [
+            "The attestor must sign the tx. v1.1+ adds Ed25519 sysvar verify",
+            "for non-repudiation against future key compromise."
+          ],
+          "signer": true
+        },
+        {
+          "name": "attestation",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  116,
+                  116,
+                  101,
+                  115,
+                  116,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "subject_asset"
+              },
+              {
+                "kind": "arg",
+                "path": "capability_hash"
+              },
+              {
+                "kind": "account",
+                "path": "attestor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "attestor_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  116,
+                  116,
+                  101,
+                  115,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "attestor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "capability_namespace",
+          "docs": [
+            "Capability must exist (prevents attestations to undefined capabilities)."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  112,
+                  97,
+                  98,
+                  105,
+                  108,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "capability_hash"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "subject_asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "capability_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "claim_payload_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "claim_uri_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "expires_at",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "revoke_validation",
+      "docs": [
+        "Original attestor revokes their own attestation. Sets `revoked=true`",
+        "(audit-trail preserving — accounts are not closed)."
+      ],
+      "discriminator": [
+        33,
+        148,
+        178,
+        136,
+        222,
+        96,
+        13,
+        227
+      ],
+      "accounts": [
+        {
+          "name": "attestor",
+          "signer": true
+        },
+        {
+          "name": "attestation",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  116,
+                  116,
+                  101,
+                  115,
+                  116,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "subject_asset"
+              },
+              {
+                "kind": "arg",
+                "path": "capability_hash"
+              },
+              {
+                "kind": "account",
+                "path": "attestor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "attestor_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  116,
+                  116,
+                  101,
+                  115,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "attestor"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "subject_asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "capability_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "revocation_reason_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "AttestorProfile",
+      "discriminator": [
+        80,
+        125,
+        165,
+        23,
+        103,
+        186,
+        41,
+        194
+      ]
+    },
+    {
+      "name": "CapabilityNamespace",
+      "discriminator": [
+        181,
+        184,
+        42,
+        101,
+        24,
+        183,
+        193,
+        18
+      ]
+    },
+    {
+      "name": "ValidationAttestation",
+      "discriminator": [
+        130,
+        54,
+        37,
+        194,
+        159,
+        219,
+        114,
+        123
+      ]
+    },
+    {
+      "name": "ValidationRequest",
+      "discriminator": [
+        130,
+        174,
+        153,
+        111,
+        74,
+        241,
+        40,
+        140
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AttestationCreated",
+      "discriminator": [
+        217,
+        170,
+        19,
+        203,
+        128,
+        51,
+        29,
+        163
+      ]
+    },
+    {
+      "name": "AttestationRevoked",
+      "discriminator": [
+        47,
+        106,
+        65,
+        238,
+        200,
+        127,
+        163,
+        50
+      ]
+    },
+    {
+      "name": "AttestorRegistered",
+      "discriminator": [
+        142,
+        114,
+        59,
+        201,
+        93,
+        183,
+        89,
+        183
+      ]
+    },
+    {
+      "name": "NamespaceRegistered",
+      "discriminator": [
+        194,
+        227,
+        137,
+        127,
+        163,
+        67,
+        162,
+        245
+      ]
+    },
+    {
+      "name": "RequestCreated",
+      "discriminator": [
+        102,
+        44,
+        0,
+        225,
+        163,
+        110,
+        167,
+        187
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 14000,
+      "name": "NameTooShort",
+      "msg": "Namespace name too short (min 3 chars)"
+    },
+    {
+      "code": 14001,
+      "name": "NameTooLong",
+      "msg": "Namespace name too long (max 32 chars)"
+    },
+    {
+      "code": 14002,
+      "name": "NamespaceColonForbidden",
+      "msg": "Namespace name must not contain ':' (delimiter is reserved)"
+    },
+    {
+      "code": 14003,
+      "name": "VersionTooLong",
+      "msg": "Version string too long (max 16 chars)"
+    },
+    {
+      "code": 14004,
+      "name": "UriTooLong",
+      "msg": "URI too long"
+    },
+    {
+      "code": 14010,
+      "name": "DeadlineInPast",
+      "msg": "Deadline is in the past"
+    },
+    {
+      "code": 14011,
+      "name": "DeadlineTooFar",
+      "msg": "Deadline too far in the future (max 30 days ~432_000*30 slots)"
+    },
+    {
+      "code": 14020,
+      "name": "ExpiryInPast",
+      "msg": "Expiry is in the past"
+    },
+    {
+      "code": 14030,
+      "name": "NotOriginalAttestor",
+      "msg": "Only the original attestor can revoke their attestation"
+    },
+    {
+      "code": 14031,
+      "name": "AlreadyRevoked",
+      "msg": "Attestation already revoked"
+    },
+    {
+      "code": 14040,
+      "name": "Overflow",
+      "msg": "Counter overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "AttestationCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "subject_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "capability_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "attestor",
+            "type": "pubkey"
+          },
+          {
+            "name": "expires_at",
+            "type": "u64"
+          },
+          {
+            "name": "issued_at",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AttestationRevoked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "subject_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "capability_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "attestor",
+            "type": "pubkey"
+          },
+          {
+            "name": "revoked_at",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AttestorProfile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "attestor",
+            "type": "pubkey"
+          },
+          {
+            "name": "display_name_uri",
+            "type": "string"
+          },
+          {
+            "name": "total_attestations",
+            "type": "u64"
+          },
+          {
+            "name": "total_revoked_by_attestor",
+            "type": "u64"
+          },
+          {
+            "name": "total_revoked_externally",
+            "type": "u64"
+          },
+          {
+            "name": "registered_at",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AttestorRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "attestor",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CapabilityNamespace",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "namespace_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "type": "string"
+          },
+          {
+            "name": "schema_uri",
+            "type": "string"
+          },
+          {
+            "name": "registered_at",
+            "type": "u64"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NamespaceRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "namespace_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequestCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "subject_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "capability_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "requester",
+            "type": "pubkey"
+          },
+          {
+            "name": "deadline",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ValidationAttestation",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "subject_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "capability_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "attestor",
+            "type": "pubkey"
+          },
+          {
+            "name": "claim_payload_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "attestor_signature",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "issued_at",
+            "type": "u64"
+          },
+          {
+            "name": "expires_at",
+            "type": "u64"
+          },
+          {
+            "name": "revoked",
+            "type": "bool"
+          },
+          {
+            "name": "revoked_at",
+            "type": "u64"
+          },
+          {
+            "name": "revocation_reason_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "claim_uri_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ValidationRequest",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "subject_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "capability_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "requester",
+            "type": "pubkey"
+          },
+          {
+            "name": "claim_uri_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "u64"
+          },
+          {
+            "name": "deadline",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
