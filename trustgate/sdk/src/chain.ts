@@ -186,7 +186,7 @@ export function parseGateDecision(buf: Buffer): GateDecision {
     if (buf.length < 33) throw new Error("RequireValidation return data too short");
     return {
       kind:           "RequireValidation",
-      capabilityHash: Array.from(buf.subarray(1, 33)),
+      capabilityHash: new Uint8Array(buf.subarray(1, 33)),
     };
   }
 

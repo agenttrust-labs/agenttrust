@@ -48,6 +48,14 @@ export function denyReasonName(code: DenyReasonCode): string {
   return DENY_REASON_NAMES[code] ?? `Unknown(${code})`;
 }
 
+function bytesToHex(bytes: Uint8Array): string {
+  let s = "";
+  for (let i = 0; i < bytes.length; i++) {
+    s += bytes[i].toString(16).padStart(2, "0");
+  }
+  return s;
+}
+
 // ---------------------------------------------------------------------------
 // Header builder
 // ---------------------------------------------------------------------------
@@ -72,10 +80,7 @@ export function buildHeadersForDecision(decision: GateDecision): {
 
     case "RequireValidation": {
       headers[X_PAYMENT_REQUIRED]    = "validation";
-      const hex = decision.capabilityHash
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-      headers[X_CAPABILITY_REQUIRED] = hex;
+      headers[X_CAPABILITY_REQUIRED] = bytesToHex(decision.capabilityHash);
       return { httpStatus: 402, headers };
     }
   }

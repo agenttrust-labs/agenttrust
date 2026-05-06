@@ -38,7 +38,7 @@ describe("x402 header builder", () => {
   });
 
   it("RequireValidation → 402 + capability hash hex", () => {
-    const hash = new Array(32).fill(0xAB);
+    const hash = new Uint8Array(32).fill(0xAB);
     const { httpStatus, headers } = buildHeadersForDecision({
       kind:           "RequireValidation",
       capabilityHash: hash,

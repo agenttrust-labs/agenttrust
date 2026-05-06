@@ -218,7 +218,7 @@ describe("PaySh.formatChallenge", () => {
 
   it("RequireValidation → 402 with capabilityHash hex", () => {
     const c = adapter.formatChallenge(
-      { kind: "RequireValidation", capabilityHash: new Array(32).fill(0xAB) },
+      { kind: "RequireValidation", capabilityHash: new Uint8Array(32).fill(0xAB) },
       ctx,
     );
     expect(c.status).to.equal(402);

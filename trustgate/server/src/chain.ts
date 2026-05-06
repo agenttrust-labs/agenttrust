@@ -172,8 +172,7 @@ function parseGateDecision(buf: Buffer): GateDecision {
 
   if (variant === 2) {
     if (buf.length < 33) throw new Error("RequireValidation return data too short");
-    const capabilityHash = Array.from(buf.subarray(1, 33));
-    return { kind: "RequireValidation", capabilityHash };
+    return { kind: "RequireValidation", capabilityHash: new Uint8Array(buf.subarray(1, 33)) };
   }
 
   throw new Error(`unknown GateDecision variant: ${variant}`);

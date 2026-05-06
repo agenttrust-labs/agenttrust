@@ -46,6 +46,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "tsc --noEmit",
     "test": "ts-mocha -p ./tsconfig.json -t 30000 test/**/*.test.ts",
     "prepublishOnly": "pnpm run build && pnpm test",
     "publish:dry": "npm publish --dry-run",

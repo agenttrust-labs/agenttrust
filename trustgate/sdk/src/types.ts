@@ -5,7 +5,7 @@ export type DenyReasonCode = number; // 1..=15
 export type GateDecision =
   | { kind: "Allow" }
   | { kind: "Deny"; reasonCode: DenyReasonCode; reasonName: string }
-  | { kind: "RequireValidation"; capabilityHash: number[] /* 32 bytes */ };
+  | { kind: "RequireValidation"; capabilityHash: Uint8Array /* 32 bytes */ };
 
 /// Pinned program IDs. Override via mountTrustGate config to point at a
 /// different cluster's deployment (e.g., mainnet program IDs once live).
