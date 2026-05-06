@@ -1,0 +1,83 @@
+name: Anchor end-to-end tests
+
+on:
+  pull_request:
+    paths:
+      - 'programs/**'
+      - 'Anchor.toml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'tests/**'
+      - 'trustgate/sdk/**'
+      - '.github/workflows/anchor-test.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'programs/**'
+      - 'Anchor.toml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'tests/**'
+      - 'trustgate/sdk/**'
+      - '.github/workflows/anchor-test.yml'
+  workflow_dispatch:
+
+jobs:
+  anchor:
+    name: anchor build + test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install workspace deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache Anchor target
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-anchor-target-${{ hashFiles('**/Cargo.lock', 'Anchor.toml') }}
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v1.18.22/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+
+      - name: Verify Solana installation
+        run: |
+          solana --version
+          solana-test-validator --version
+
+      - name: Install Rust toolchain
+        run: |
+          rustup default 1.81.0
+          rustup component add rustfmt clippy
+
+      - name: Install AVM + Anchor 1.0.1
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor avm --force --locked
+          avm install 1.0.1
+          avm use 1.0.1
+
+      - name: Anchor build (skip-lint disabled per Anchor.toml)
+        run: anchor build
+
+      - name: Anchor test (uses local validator with Quantu mainnet clones)
+        run: anchor test

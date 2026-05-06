@@ -1,0 +1,75 @@
+name: Devnet integration smoke
+
+# Runs the demo against real devnet using a CI-managed facilitator
+# keypair. Manual trigger only by default; daily cron runs at 02:00 UTC
+# to surface regressions in deployed program IDs / Quantu state.
+#
+# Required secrets:
+#   DEVNET_FACILITATOR_KEYPAIR  — base58 64-byte secret key for the
+#                                 facilitator. Must be funded with
+#                                 ~0.5 SOL on devnet for tx fees.
+#
+# When the secret is missing the workflow exits cleanly with
+# "skipped, secret missing" so PRs that touch demo code don't fail.
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  devnet-smoke:
+    name: examples/pay-sh-demo — real devnet integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      INTEGRATION:    '1'
+      RPC_URL:        'https://api.devnet.solana.com'
+      NETWORK:        'solana-devnet'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for facilitator keypair secret
+        id: secret-check
+        run: |
+          if [ -z "${{ secrets.DEVNET_FACILITATOR_KEYPAIR }}" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::skipped, secret DEVNET_FACILITATOR_KEYPAIR missing"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.secret-check.outputs.available == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.secret-check.outputs.available == 'true'
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install workspace deps
+        if: steps.secret-check.outputs.available == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build trustgate-server (demo dep)
+        if: steps.secret-check.outputs.available == 'true'
+        run: pnpm --filter ./trustgate/server run build
+
+      - name: Build demo
+        if: steps.secret-check.outputs.available == 'true'
+        run: pnpm --filter ./examples/pay-sh-demo run build
+
+      - name: Run integration smoke (gated on INTEGRATION=1)
+        if: steps.secret-check.outputs.available == 'true'
+        env:
+          FACILITATOR_KEYPAIR_B58: ${{ secrets.DEVNET_FACILITATOR_KEYPAIR }}
+        run: |
+          # The integration spec spins the demo in-process, signs a real
+          # devnet tx with the facilitator keypair, posts to /protected,
+          # and asserts the on-chain FeedbackEmissionLog PDA exists.
+          pnpm --filter ./examples/pay-sh-demo test:integration || {
+            echo "::error::Devnet integration failed; check Solana Explorer for last tx"
+            exit 1
+          }
