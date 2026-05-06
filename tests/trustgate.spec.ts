@@ -319,7 +319,37 @@ describe("trustgate", () => {
         }).remainingAccounts(remaining).rpc({ commitment: "confirmed" });
         expect.fail("expected init-account-already-in-use error on retry");
       } catch (e) {
-        expect(String(e)).to.match(/already in use|0x0/i);
+        // Robust against Solana CLI / Anchor error-format drift. The init
+        // constraint fails because the FeedbackEmissionLog PDA already
+        // exists; the underlying error is the System program's
+        // "address already in use" custom error code 0x0, which surfaces
+        // through one of three layers depending on the runtime path:
+        //
+        //   1. SendTransactionError.logs[] → "Allocate: account ... already in use"
+        //   2. AnchorError.error.errorCode.number === 3001 (AccountAlreadyInUse)
+        //      OR === 0xbb9 in newer Anchor builds
+        //   3. err.message string includes "0x0" (custom program error hex)
+        //   4. JSON-stringified err blob contains "already in use"
+        //
+        // Match on any of these signals — never on the exact string shape.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const err = e as any;
+        const codeNumber = err?.error?.errorCode?.number;
+        const codeName   = err?.error?.errorCode?.code;
+        const logs       = Array.isArray(err?.logs) ? err.logs.join("\n") : "";
+        const blob       = `${String(e)}\n${logs}\n${JSON.stringify(err?.error ?? {})}`;
+        const matchesLog   = /already in use/i.test(blob);
+        const matchesHex   = /\b0x0\b/.test(blob) || /custom program error: 0x0/i.test(blob);
+        const matchesCode  = codeNumber === 3001 || codeNumber === 0xbb9;
+        const matchesName  = codeName === "AccountAlreadyInUse" || codeName === "AccountAlreadyInitialized";
+        const ok = matchesLog || matchesHex || matchesCode || matchesName;
+        // The assertion message includes the captured signals so a future
+        // regression surfaces the actual shape instead of an opaque "didn't
+        // match regex" failure.
+        expect(
+          ok,
+          `expected init-already-in-use error; got:\n  message: ${String(e)}\n  errorCode.number: ${codeNumber}\n  errorCode.code: ${codeName}\n  logs: ${logs.slice(0, 400)}`,
+        ).to.equal(true);
       }
     });
 
