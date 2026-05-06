@@ -273,6 +273,26 @@ describe("McPay.validatePaymentProof", () => {
     expect(r2.valid).to.equal(false);
     if (!r2.valid) expect(r2.reason).to.equal("mismatched_payment_context");
   });
+
+  it("rejects malformed proof (Zod)", async () => {
+    const r = await adapter.validatePaymentProof({ no: "tx" }, ctx);
+    expect(r.valid).to.equal(false);
+    if (!r.valid) expect(r.reason).to.equal("malformed_payload");
+  });
+
+  it("rejects mint mismatch", async () => {
+    stub.next = { ...stub.next, transferredMint: Keypair.generate().publicKey };
+    const r = await adapter.validatePaymentProof({ payload: { transaction: "BASE64" } }, ctx);
+    expect(r.valid).to.equal(false);
+    if (!r.valid) expect(r.reason).to.equal("mismatched_payment_context");
+  });
+
+  it("rejects recipient mismatch", async () => {
+    stub.next = { ...stub.next, transferRecipient: Keypair.generate().publicKey };
+    const r = await adapter.validatePaymentProof({ payload: { transaction: "BASE64" } }, ctx);
+    expect(r.valid).to.equal(false);
+    if (!r.valid) expect(r.reason).to.equal("mismatched_payment_context");
+  });
 });
 
 describe("McPay.emitFeedback", () => {

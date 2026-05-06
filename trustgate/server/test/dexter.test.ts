@@ -311,6 +311,22 @@ describe("Dexter.validatePaymentProof", () => {
     expect(r2.valid).to.equal(false);
     if (!r2.valid) expect(r2.reason).to.equal("mismatched_payment_context");
   });
+
+  it("rejects mint mismatch", async () => {
+    stub.next = { ...stub.next, transferredMint: Keypair.generate().publicKey };
+    const r = await adapter.validatePaymentProof({ payload: { transaction: "BASE64" } }, ctx);
+    expect(r.valid).to.equal(false);
+    if (!r.valid) expect(r.reason).to.equal("mismatched_payment_context");
+  });
+
+  it("idempotent retry: same sig + same paymentIdHash → still valid", async () => {
+    const cache = new ReplayCache();
+    const adapter2 = new Dexter(makeDeps(stub, { replayCache: cache }));
+    const r1 = await adapter2.validatePaymentProof({ payload: { transaction: "BASE64" } }, ctx);
+    expect(r1.valid).to.equal(true);
+    const r2 = await adapter2.validatePaymentProof({ payload: { transaction: "BASE64" } }, ctx);
+    expect(r2.valid).to.equal(true);
+  });
 });
 
 describe("Dexter.emitFeedback", () => {
