@@ -45,6 +45,31 @@ export {
 } from "./onchain-validator";
 
 export {
+  DEFAULT_DEVNET_QUANTU_IDS,
+  MAINNET_QUANTU_IDS,
+  type QuantuProgramIds,
+  type QuantuFeedbackAccounts,
+  type QuantuFeedbackAccountsArgs,
+  deriveAgentAccountPda,
+  deriveAtomConfigPda,
+  deriveAtomStatsPda,
+  deriveAtomRegistryAuthorityPda,
+  deriveQuantuFeedbackAccounts,
+} from "./quantu";
+
+export {
+  makeEmitFeedbackCpi,
+  makePriorEmissionLookup,
+  type EmitFeedbackCpiFn,
+  type EmitFeedbackCpiInput,
+  type EmitFeedbackResult,
+  type MakeEmitFeedbackCpiOptions,
+  type PriorEmissionLookupFn,
+  type PriorEmissionResult,
+  type MakePriorEmissionLookupOptions,
+} from "./emit-feedback";
+
+export {
   derivePolicyPda, deriveVelocityPda, deriveKillSwitchPda,
   deriveFeedbackLogPda, deriveTrustGateAuthorityPda,
   loadPolicyVault, loadTrustGate, makeProvider,
