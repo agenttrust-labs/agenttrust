@@ -603,6 +603,32 @@ a:hover .agenttrust-brand,
   min-width: 620px;
 }
 
+#nd-page .docs-table-scroll {
+  width: 100%;
+  margin: 18px 0 28px;
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  -webkit-overflow-scrolling: touch;
+}
+
+#nd-page .docs-table-scroll > table {
+  margin: 0;
+  border: 0;
+}
+
+#nd-page .docs-table-scroll th:first-child,
+#nd-page .docs-table-scroll td:first-child {
+  padding-left: 16px;
+}
+
+#nd-page .docs-table-scroll th:last-child,
+#nd-page .docs-table-scroll td:last-child {
+  padding-right: 16px;
+}
+
 #nd-page th {
   background: var(--bg-subtle);
   color: var(--ink);
