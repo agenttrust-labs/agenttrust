@@ -1,0 +1,22 @@
+Kani 0.67.0 — PolicyVault formal verification
+=================================================
+Captured 2026-05-06 from `cargo kani` in programs/policy-vault.
+
+Harness                                                                    | Status         | Sub-checks
+---------------------------------------------------------------------------+----------------+-----------
+proofs::inv_counterparty_tier_monotone::counterparty_tier_monotone         | SUCCESSFUL     | 0 of   8 failed
+proofs::inv_multisig_threshold_enforced::multisig_threshold_enforced       | SUCCESSFUL     | 0 of 149 failed (1 unreachable)
+proofs::inv_paused_implies_no_allow::paused_killswitch_implies_no_allow    | SUCCESSFUL     | 0 of 126 failed (9 unreachable)
+proofs::inv_validation_expiry_correct::validation_expiry_correct           | SUCCESSFUL     | 0 of  85 failed (3 unreachable)
+proofs::inv_velocity_counter_le_limit::velocity_allow_implies_cumulative_le_max | SUCCESSFUL | 0 of   9 failed
+proofs::smoke::smoke_kani_works                                            | SUCCESSFUL     | 0 of   1 failed
+
+Manual Harness Summary:
+Complete - 6 successfully verified harnesses, 0 failures, 6 total.
+
+Total non-smoke sub-checks: 8 + 149 + 126 + 85 + 9 = 377
+Total invariants verified:  5 / 5 (smoke proof = 6th harness, sanity check)
+Total runtime:              ~78s on a single CI runner
+
+Re-run anytime with:
+  cd programs/policy-vault && cargo kani

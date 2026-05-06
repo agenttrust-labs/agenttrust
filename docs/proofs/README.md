@@ -127,7 +127,7 @@ hardening item.
 | 1 | paused_implies_no_allow | 0 | 126 | 9 |
 | 2 | velocity_counter_le_limit | 0 | 9 | — |
 | 3 | counterparty_tier_monotone | 0 | 8 | — |
-| 4 | validation_expiry_correct | 0 | 85 | — |
+| 4 | validation_expiry_correct | 0 | 85 | 3 |
 | 5 | multisig_threshold_enforced | 0 | 149 | 1 |
 
 Failed: **0 / 377**.
