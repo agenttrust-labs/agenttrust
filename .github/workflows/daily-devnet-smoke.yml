@@ -1,0 +1,167 @@
+name: Daily devnet smoke
+
+# Catches devnet program degradation, IDL re-init drift, Quantu
+# state expiry, faucet-related setup rot. If devnet integration
+# works today but breaks two days from now (e.g., a Quantu
+# deployment rotation, the facilitator wallet getting drained, a
+# Solana CLI release that changes RPC contract), this surfaces it
+# before a judge clicks the wrong link mid-demo.
+#
+# Differs from devnet-integration.yml (which already runs at 02:00
+# UTC and exercises the *integration test suite*): this workflow
+# runs the standalone scripts/devnet-smoke.ts smoke binary,
+# captures the resulting signatures, and re-verifies them via
+# getSignatureStatus + getAccountInfo against the deployed program.
+# It's the operational canary — "as of today, the demo round-trip
+# still produces a green on-chain proof."
+#
+# Schedule: 14:00 UTC daily, 12 hours offset from
+# devnet-integration.yml's 02:00 UTC so a regression has at most
+# 12h between detection windows. workflow_dispatch as backup.
+#
+# Gated on DEVNET_FACILITATOR_KEYPAIR; skips cleanly when missing.
+
+on:
+  schedule:
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: pay-sh devnet round-trip + on-chain verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RPC_URL: 'https://api.devnet.solana.com'
+      NETWORK: 'solana-devnet'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for facilitator keypair secret
+        id: secret-check
+        run: |
+          if [ -z "${{ secrets.DEVNET_FACILITATOR_KEYPAIR }}" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::skipped, secret DEVNET_FACILITATOR_KEYPAIR missing"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.secret-check.outputs.available == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.secret-check.outputs.available == 'true'
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install workspace deps
+        if: steps.secret-check.outputs.available == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build SDK + server (demo deps)
+        if: steps.secret-check.outputs.available == 'true'
+        run: |
+          pnpm --filter ./trustgate/sdk run build
+          pnpm --filter ./trustgate/server run build
+
+      - name: Run pay-sh devnet smoke script
+        if: steps.secret-check.outputs.available == 'true'
+        env:
+          FACILITATOR_KEYPAIR_B58: ${{ secrets.DEVNET_FACILITATOR_KEYPAIR }}
+        working-directory: examples/pay-sh-demo
+        run: |
+          # The smoke is idempotent — it reuses the recorded mint /
+          # payer / counterparty state from devnet-counterparties.json
+          # and devnet-smoke.json, only minting fresh state when
+          # missing. Captures signatures into devnet-smoke.json.
+          pnpm exec ts-node scripts/devnet-smoke.ts
+
+      - name: Re-verify captured signatures on chain
+        if: steps.secret-check.outputs.available == 'true'
+        env:
+          RPC_URL: 'https://api.devnet.solana.com'
+        run: |
+          set -e
+          # Read the freshly-captured smoke proof and confirm both
+          # signatures are findable on devnet via JSON-RPC. Either a
+          # missing tx or a non-null `err` field fails the canary.
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const proof = JSON.parse(fs.readFileSync(
+              path.resolve("examples/pay-sh-demo/devnet-smoke.json"),
+              "utf-8"
+            ));
+            const sigs = [
+              ["signedTransfer", proof.signedTransfer.signature],
+              ["emitFeedback",   proof.emitFeedback.signature],
+            ];
+            (async () => {
+              for (const [label, sig] of sigs) {
+                const res = await fetch(process.env.RPC_URL, {
+                  method:  "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({
+                    jsonrpc: "2.0", id: 1,
+                    method:  "getSignatureStatuses",
+                    params:  [[sig], { searchTransactionHistory: true }],
+                  }),
+                });
+                const j = await res.json();
+                const status = j?.result?.value?.[0];
+                if (!status) {
+                  console.error(`::error::${label} signature ${sig} not found on devnet`);
+                  process.exit(1);
+                }
+                if (status.err) {
+                  console.error(`::error::${label} signature ${sig} on chain but errored: ${JSON.stringify(status.err)}`);
+                  process.exit(1);
+                }
+                console.log(`::notice::${label} ${sig} confirmed at slot ${status.slot}`);
+              }
+            })().catch((e) => { console.error("verify failed:", e); process.exit(1); });
+          '
+
+      - name: Confirm FeedbackEmissionLog PDA owned by trustgate
+        if: steps.secret-check.outputs.available == 'true'
+        env:
+          RPC_URL: 'https://api.devnet.solana.com'
+        run: |
+          set -e
+          # The smoke proof captures the log PDA address. Confirm the
+          # deployed trustgate program owns it — catches a redeploy /
+          # program-ID rotation that would break consumers.
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const proof = JSON.parse(fs.readFileSync(
+              path.resolve("examples/pay-sh-demo/devnet-smoke.json"),
+              "utf-8"
+            ));
+            const pda = proof.emitFeedback.logPda;
+            const TRUSTGATE = "HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N";
+            (async () => {
+              const res = await fetch(process.env.RPC_URL, {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                  jsonrpc: "2.0", id: 1,
+                  method:  "getAccountInfo",
+                  params:  [pda, { encoding: "base64" }],
+                }),
+              });
+              const j = await res.json();
+              const owner = j?.result?.value?.owner;
+              if (!owner) {
+                console.error(`::error::FeedbackEmissionLog ${pda} not on devnet`);
+                process.exit(1);
+              }
+              if (owner !== TRUSTGATE) {
+                console.error(`::error::FeedbackEmissionLog ${pda} owner=${owner}, expected ${TRUSTGATE}`);
+                process.exit(1);
+              }
+              console.log(`::notice::FeedbackEmissionLog ${pda} owner verified`);
+            })().catch((e) => { console.error("verify failed:", e); process.exit(1); });
+          '
