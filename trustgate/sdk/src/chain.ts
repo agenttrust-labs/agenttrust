@@ -139,7 +139,11 @@ export async function simulateGatePayment(
     amount, mint, policyId,
   } = input;
 
-  const tx = await policyVault.methods
+  // Build the gate_payment instruction. We thread it into a
+  // VersionedTransaction so connection.simulateTransaction takes the
+  // versioned-tx happy path (no need to manage feePayer/blockhash on a
+  // legacy Transaction across @solana/web3.js >=1.95).
+  const ix = await policyVault.methods
     .gatePayment(payerAgentAsset, payeeAgentAsset, amount, mint, policyId)
     .accounts({
       caller,
@@ -149,14 +153,27 @@ export async function simulateGatePayment(
       payerAtomStats:        null,
       payeeAtomStats:        null,
       validationAttestation: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
-    .transaction();
+    .instruction();
 
-  const sim = await policyVault.provider.connection.simulateTransaction(tx, [], true);
+  const conn  = policyVault.provider.connection;
+  const blockhash = (await conn.getLatestBlockhash("confirmed")).blockhash;
+  const { TransactionMessage, VersionedTransaction } = await import("@solana/web3.js");
+  const message = new TransactionMessage({
+    payerKey:        caller,
+    recentBlockhash: blockhash,
+    instructions:    [ix],
+  }).compileToV0Message();
+  const tx = new VersionedTransaction(message);
+
+  const sim = await conn.simulateTransaction(tx, {
+    sigVerify:              false,
+    replaceRecentBlockhash: true,
+  });
   if (sim.value.err) {
     throw new Error(`simulation failed: ${JSON.stringify(sim.value.err)}`);
   }
-
   const returnData = sim.value.returnData;
   if (!returnData || !returnData.data || !returnData.data[0]) {
     throw new Error("simulation produced no return_data");
