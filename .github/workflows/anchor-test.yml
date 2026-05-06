@@ -56,8 +56,15 @@ jobs:
           key: ${{ runner.os }}-anchor-target-${{ hashFiles('**/Cargo.lock', 'Anchor.toml') }}
 
       - name: Install Solana CLI
+        # 3.1.14 is the floor we have local-validator coverage against.
+        # 2.1.16 (the prior pin) was hitting a `cargo-build-sbf` panic
+        # at `sdk/cargo-build-sbf/src/main.rs:146` with
+        # `Os { code: 2, kind: NotFound }` when `anchor build` ran on
+        # the fresh CI runner — the platform-tools toolchain layout
+        # changed shape between 2.x and 3.x, and Anchor 1.0.1 is
+        # tested against the 3.x layout.
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.16/install)"
+          sh -c "$(curl -sSfL https://release.anza.xyz/v3.1.14/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
 
       - name: Verify Solana installation
