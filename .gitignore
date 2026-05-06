@@ -25,6 +25,9 @@ agenttrust-grant/
 # Whitelist public docs
 !docs/proofs/
 !docs/proofs/**
+!trustgate/sdk/PUBLISHING.md
+!trustgate/sdk/README.md
+!examples/**/README.md
 .cache/
 .secrets/
 .playwright-mcp/

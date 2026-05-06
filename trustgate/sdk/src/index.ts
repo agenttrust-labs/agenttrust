@@ -1,20 +1,34 @@
 /**
- * `@agenttrust/trustgate` — drop-in TrustGate middleware for x402
- * facilitators on Solana. Adds gate_payment + emit_feedback to any
- * Express app with atomic-tx invariant enforcement.
+ * `@agenttrust-sdk/trustgate` — drop-in TrustGate middleware + facilitator
+ * tooling for the AgentTrust trust stack on Solana.
  *
- * Two import surfaces:
+ * Three import surfaces:
  *
- *   import { mountTrustGate } from "@agenttrust/trustgate/express";
- *   import { gatePayment, settle, dispute } from "@agenttrust/trustgate/client";
+ *   ```ts
+ *   import { mountTrustGate }                    from "@agenttrust-sdk/trustgate/express";
+ *   import { gatePayment, settle, dispute }      from "@agenttrust-sdk/trustgate/client";
+ *   import { composeAtomicSettleTx }             from "@agenttrust-sdk/trustgate";
+ *   ```
  *
- * Or bring the atomicity guard / chain helpers from the root namespace:
+ * The root namespace re-exports every helper grouped by concern:
  *
- *   import {
- *     AtomicityEnforced, AtomicityNotEnforcedError,
- *     derivePolicyPda, deriveTrustGateAuthorityPda,
- *     DEFAULT_DEVNET_PROGRAM_IDS,
- *   } from "@agenttrust/trustgate";
+ *   - **Atomicity guard:** `AtomicityEnforced`, `AtomicityNotEnforcedError`,
+ *     `composeAtomicSettleTx`
+ *   - **PDA derivers + Anchor loaders:** `derivePolicyPda`,
+ *     `deriveTrustGateAuthorityPda`, `loadPolicyVault`, `loadTrustGate`
+ *   - **Production factories:** `makeValidateOnChainTx`,
+ *     `makeEmitFeedbackCpi`, `makePriorEmissionLookup`
+ *   - **Quantu:** `deriveAgentAccountPda`, `deriveAtomStatsPda`,
+ *     `deriveQuantuFeedbackAccounts`, `DEFAULT_DEVNET_QUANTU_IDS`
+ *   - **ValidationRegistry (third leg of ERC-8004):** `buildRegisterNamespaceIx`,
+ *     `buildRequestValidationIx`, `buildRespondToValidationIx`,
+ *     `fetchValidationAttestation`, etc.
+ *   - **SPL helpers:** `buildTransferCheckedIx`, `deriveAssociatedTokenAddress`,
+ *     `TOKEN_PROGRAM_ID`, `TOKEN_2022_PROGRAM_ID`
+ *   - **Constants:** `DEFAULT_DEVNET_PROGRAM_IDS`,
+ *     `VALIDATION_REGISTRY_DEVNET_ID`, x402 header constants
+ *
+ * See `PUBLISHING.md` for the release workflow and the public-API contract.
  */
 
 export {
