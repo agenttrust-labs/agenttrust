@@ -1,0 +1,24 @@
+# gitleaks configuration. Inherits the default rule pack
+# (Solana keypairs, AWS, GCP, GitHub, npm, JWT, generic high-entropy
+# strings). The allowlist below only suppresses known-safe paths.
+#
+# Updated as part of secret-scan.yml — see that workflow's top
+# comment for the policy.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "AgentTrust deliberate-demo keypairs and example envs"
+paths = [
+  # Deliberately committed demo attestor keypair (gitignored, but
+  # explicit). Holds no real funds; rotated per demo run via
+  # `loadOrCreateKeypair` in the attestor-demo script.
+  '''examples/attestor-demo/attestor-keypair\.json''',
+  # Pay.sh demo's mint + payer keypairs — same pattern: regenerated
+  # by the smoke script on demand, only ever airdropped test SOL.
+  '''examples/pay-sh-demo/devnet-mint-keypair\.json''',
+  '''examples/pay-sh-demo/devnet-payer-keypair\.json''',
+  # `.example.env` files document the env-var schema; no real values.
+  '''.*\.example\.env$''',
+]
