@@ -535,10 +535,12 @@ a:hover .agenttrust-brand,
 
 #nd-page h1 {
   color: var(--ink);
-  font-size: 30px;
-  line-height: 36px;
-  font-weight: 720;
-  letter-spacing: 0;
+  font-family: var(--font-display), 'Fraunces', Georgia, serif;
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 540;
+  letter-spacing: -0.4px;
+  font-variation-settings: 'opsz' 36, 'SOFT' 30, 'WONK' 0;
   margin-bottom: 8px;
 }
 
