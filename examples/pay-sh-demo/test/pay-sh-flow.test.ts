@@ -204,4 +204,43 @@ integrationDescribe("real devnet integration", function () {
     expect(res.status).to.equal(200);
     expect(res.body.facilitator).to.equal(facilitator.publicKey.toBase58());
   });
+
+  it("the most recent devnet smoke proof is still on-chain (signature + log PDA)", async () => {
+    // Verifies the signatures captured in devnet-smoke.json are still
+    // visible on devnet, and the FeedbackEmissionLog PDA referenced there
+    // is owned by the trustgate program. This is the lightweight
+    // companion to the full per-run smoke (scripts/devnet-smoke.ts) — it
+    // proves the most recent smoke artifacts haven't rotted off chain.
+    const rpcUrl = process.env.RPC_URL ?? "https://api.devnet.solana.com";
+    const fs = await import("fs");
+    const path = await import("path");
+    const smokePath = path.resolve(process.cwd(), "devnet-smoke.json");
+    if (!fs.existsSync(smokePath)) {
+      // eslint-disable-next-line no-console
+      console.log("SKIPPED: devnet-smoke.json missing — run 'pnpm devnet:smoke' first");
+      return;
+    }
+    interface SmokeProof {
+      signedTransfer: { signature: string };
+      emitFeedback:   { signature: string; logPda: string };
+    }
+    const smoke = JSON.parse(fs.readFileSync(smokePath, "utf-8")) as SmokeProof;
+
+    const { Connection, PublicKey } = await import("@solana/web3.js");
+    const conn = new Connection(rpcUrl, "confirmed");
+
+    // Both signatures must still be findable on devnet via getSignatureStatus.
+    for (const sig of [smoke.signedTransfer.signature, smoke.emitFeedback.signature]) {
+      const status = await conn.getSignatureStatus(sig, { searchTransactionHistory: true });
+      expect(status?.value, `signature ${sig} not on chain`).to.not.equal(null);
+      expect(status?.value?.err, `signature ${sig} failed`).to.equal(null);
+    }
+
+    // The captured FeedbackEmissionLog PDA must still be owned by the
+    // trustgate program (devnet program ID).
+    const trustgateId = new PublicKey("HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N");
+    const logInfo = await conn.getAccountInfo(new PublicKey(smoke.emitFeedback.logPda));
+    expect(logInfo, `log PDA ${smoke.emitFeedback.logPda} missing`).to.not.equal(null);
+    expect(logInfo!.owner.toBase58()).to.equal(trustgateId.toBase58());
+  });
 });

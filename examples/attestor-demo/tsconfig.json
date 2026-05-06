@@ -11,9 +11,9 @@
     "skipLibCheck": true,
     "declaration": false,
     "sourceMap": true,
-    "types": ["node"],
+    "types": ["node", "mocha", "chai"],
     "moduleResolution": "node"
   },
   "include": ["scripts/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "test"]
 }
