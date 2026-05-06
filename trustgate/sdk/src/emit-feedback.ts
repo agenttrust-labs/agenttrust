@@ -85,6 +85,11 @@ export interface MakeEmitFeedbackCpiOptions {
   /** trustgate program ID — used for PDA derivation (separately from the
    *  Anchor handle so we don't need to read trustgate.programId in derives). */
   readonly trustgateId:   PublicKey;
+  /** agent_registry program ID — included in remaining_accounts so the
+   *  runtime can resolve the give_feedback CPI's invoke_signed. The
+   *  trustgate Rust handler doesn't unpack this account but it MUST be in
+   *  the tx's account list for the CPI to succeed. */
+  readonly agentRegistryId: PublicKey;
   /** Facilitator keypair — signs the tx. Must equal the `facilitator` arg
    *  the on-chain handler enforces via `require_keys_eq(payer, facilitator)`. */
   readonly facilitator:   Keypair;
@@ -122,6 +127,14 @@ export function makeEmitFeedbackCpi(opts: MakeEmitFeedbackCpiOptions): EmitFeedb
         { pubkey: quantu.registryAuthority, isSigner: false, isWritable: false },
       );
     }
+
+    // The trustgate Rust handler invokes agent_registry via invoke_signed.
+    // Solana's runtime needs the target program's AccountInfo present in the
+    // tx's account list to resolve that CPI — the unpacker doesn't read this
+    // slot, but the runtime does. Append unconditionally.
+    remainingAccounts.push({
+      pubkey: opts.agentRegistryId, isSigner: false, isWritable: false,
+    });
 
     const txSignature = await opts.trustgate.methods
       .emitFeedback(

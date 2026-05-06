@@ -171,6 +171,44 @@ See the snippet in [Component 2 — TrustGate](#2--trustgate--x402-facilitator-i
 
 ---
 
+## Live devnet trace
+
+**AgentTrust + Pay.sh atomic settlement, live on Solana devnet — captured 2026-05-06.**
+
+A real signed SPL transfer flowed through the demo's `/protected` endpoint, completed gate_payment + transfer + emit_feedback, and wrote a `FeedbackEmissionLog` PDA on chain.
+
+| step | tx signature |
+|---|---|
+| **emit_feedback** (PDA-signed CPI to `agent_registry::give_feedback` → `atom_engine::update_stats`) | [`jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag`](https://explorer.solana.com/tx/jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag?cluster=devnet) |
+| **signed SPL transferChecked** (the payment proof Pay.sh's CLI would produce) | [`5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD`](https://explorer.solana.com/tx/5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD?cluster=devnet) |
+
+**On-chain artifacts** (click to inspect):
+
+- `FeedbackEmissionLog` PDA: [`HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3`](https://explorer.solana.com/address/HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3?cluster=devnet) — owned by trustgate, score=100, slot 460466788
+- Tier-3 `agent_account`: [`5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y`](https://explorer.solana.com/address/5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y?cluster=devnet)
+- Tier-3 `atom_stats`: [`4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv`](https://explorer.solana.com/address/4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv?cluster=devnet)
+- Asset (Metaplex Core): [`C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B`](https://explorer.solana.com/address/C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B?cluster=devnet)
+- Facilitator authority PDA: [`4TWqmxoMQRSJTmH879TDWqvqgiEwr9akWnpPVg51Z5Bg`](https://explorer.solana.com/address/4TWqmxoMQRSJTmH879TDWqvqgiEwr9akWnpPVg51Z5Bg?cluster=devnet)
+
+Reproduce locally:
+
+```bash
+# 1. publish IDLs (one-time, ~0.03 SOL)
+anchor idl init --provider.cluster devnet --filepath target/idl/trustgate.json HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N
+anchor idl init --provider.cluster devnet --filepath target/idl/policy_vault.json 8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR
+anchor idl init --provider.cluster devnet --filepath target/idl/validation_registry.json Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv
+
+# 2. pre-warm 3 Quantu agents (one-time, ~0.04 SOL)
+pnpm --filter ./examples/pay-sh-demo exec ts-node scripts/prewarm-devnet.ts
+
+# 3. run the smoke (~0.03 SOL)
+pnpm --filter ./examples/pay-sh-demo exec ts-node scripts/devnet-smoke.ts
+```
+
+The full trace (signatures, PDAs, slot numbers) lands in `examples/pay-sh-demo/devnet-smoke.json`. Re-running is idempotent — TrustGateAuthority, test mint, payer keypair, and ATAs are reused if present.
+
+---
+
 ## Verification — don't trust this README
 
 Every claim on this page is independently checkable. From your terminal:

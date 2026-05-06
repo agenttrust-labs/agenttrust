@@ -1,0 +1,24 @@
+{
+  "network": "solana-devnet",
+  "facilitator": "4tSEHc2vCLqnYd8nK9jRa44vnn8JnPxUgxheEmhWQhRG",
+  "payer": "9APHgkXz4Zqb7ZBtK9ZzdiBCaVWkozpMJ8VVuuAwnpZ5",
+  "mint": "2EGGN4fB5nkhuJQJ1mE9DrCBqmuCECSAvocMU4xbNqMY",
+  "transferAmount": "1000",
+  "signedTransfer": {
+    "signature": "5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD",
+    "explorer": "https://explorer.solana.com/tx/5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD?cluster=devnet"
+  },
+  "emitFeedback": {
+    "signature": "jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag",
+    "explorer": "https://explorer.solana.com/tx/jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag?cluster=devnet",
+    "logPda": "HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3",
+    "slot": 460466788
+  },
+  "counterpartyAgent": {
+    "agentAccount": "5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y",
+    "asset": "C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B",
+    "atomStats": "4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv"
+  },
+  "facilitatorBalanceSol": "9.477407",
+  "capturedAt": "2026-05-06T10:40:05.487Z"
+}

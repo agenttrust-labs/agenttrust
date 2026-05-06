@@ -8,6 +8,18 @@ through the AgentTrust facilitator pipeline.
 pay --sandbox curl http://localhost:3402/protected
 ```
 
+## Live devnet trace (2026-05-06)
+
+> **AgentTrust + Pay.sh atomic settlement, live on Solana devnet.**
+
+| step | tx |
+|---|---|
+| signed SPL transfer | [`5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD`](https://explorer.solana.com/tx/5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD?cluster=devnet) |
+| emit_feedback CPI (PDA-signed → `agent_registry::give_feedback` → `atom_engine::update_stats`) | [`jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag`](https://explorer.solana.com/tx/jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag?cluster=devnet) |
+| FeedbackEmissionLog PDA (init-only, score=100) | [`HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3`](https://explorer.solana.com/address/HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3?cluster=devnet) |
+
+Captured in [`devnet-smoke.json`](./devnet-smoke.json). Reproduce with `scripts/devnet-smoke.ts`.
+
 ## What it shows
 
 The demo proves the full Pay.sh → AgentTrust loop without depending on a real

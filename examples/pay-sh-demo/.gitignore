@@ -1,0 +1,8 @@
+node_modules/
+dist/
+
+# Devnet-only test keypairs — payer and mint authority for the smoke script.
+# These hold secret keys; the smoke script regenerates fresh ones when missing
+# (cost ~0.01 SOL of devnet rent per regeneration).
+devnet-payer-keypair.json
+devnet-mint-keypair.json

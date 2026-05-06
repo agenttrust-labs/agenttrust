@@ -92,11 +92,13 @@ export async function makeRealPayShDeps(
     : await loadTrustGate(provider, trustgateId);
 
   const validateOnChainTx = makeValidateOnChainTx({ connection });
+  const quantuPrograms    = args.quantuPrograms ?? DEFAULT_DEVNET_QUANTU_IDS;
   const emitFeedbackCpi   = makeEmitFeedbackCpi({
     trustgate,
     trustgateId,
-    facilitator:   args.facilitator,
-    resolveQuantu: args.resolveQuantu,
+    agentRegistryId: quantuPrograms.agentRegistry,
+    facilitator:     args.facilitator,
+    resolveQuantu:   args.resolveQuantu,
   });
   const priorEmissionLookup = makePriorEmissionLookup({
     trustgate,
