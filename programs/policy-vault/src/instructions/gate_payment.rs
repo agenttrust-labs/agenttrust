@@ -87,26 +87,59 @@ pub fn handler(
     _mint: Pubkey,
     policy_id: u32,
 ) -> Result<GateDecision> {
+    let decision = compose_and_apply(
+        &mut ctx.accounts.policy_account,
+        &mut ctx.accounts.velocity_ledger,
+        &ctx.accounts.kill_switch_state,
+        ctx.accounts.payer_atom_stats.as_ref(),
+        ctx.accounts.payee_atom_stats.as_ref(),
+        ctx.accounts.validation_attestation.as_ref(),
+        payer_agent_asset,
+        payee_agent_asset,
+        amount,
+        policy_id,
+    )?;
+    Ok(decision)
+}
+
+/// Shared-logic helper: snapshot accounts, compose the decision, apply state
+/// mutations on Allow, and emit the matching event. Returns the decision
+/// without forcing the caller's success/failure semantic.
+///
+/// `gate_payment` returns `Ok(decision)` for all three branches so the
+/// read-only /verify path can decode via Anchor's return-data channel.
+/// `gate_payment_strict` calls this same helper and converts non-Allow to
+/// `Err` so it can be safely composed inside an atomic settle tx.
+#[allow(clippy::too_many_arguments)]
+pub fn compose_and_apply<'info>(
+    policy_account:        &mut Account<'info, crate::state::PolicyAccount>,
+    velocity_ledger:       &mut Account<'info, crate::state::VelocityLedger>,
+    kill_switch_state:     &Account<'info, crate::state::KillSwitchState>,
+    payer_atom_stats:      Option<&UncheckedAccount<'info>>,
+    payee_atom_stats:      Option<&UncheckedAccount<'info>>,
+    validation_attestation: Option<&UncheckedAccount<'info>>,
+    payer_agent_asset:     Pubkey,
+    payee_agent_asset:     Pubkey,
+    amount:                u64,
+    policy_id:             u32,
+) -> Result<GateDecision> {
     let clock = Clock::get()?;
     let now_slot = clock.slot;
     let unix_ts  = clock.unix_timestamp;
 
-    // Snapshot all account state. PolicySnapshot / VelocityLedgerSnapshot /
-    // KillSwitchSnapshot are `Copy`, so the immutable borrows drop after
-    // these calls return — leaving us free to take `&mut` borrows below.
-    let policy_snapshot = PolicySnapshot::from(&*ctx.accounts.policy_account);
-    let ledger_snapshot = VelocityLedgerSnapshot::from(&*ctx.accounts.velocity_ledger);
-    let killswitch_snap = KillSwitchSnapshot::from(&*ctx.accounts.kill_switch_state);
+    let policy_snapshot = PolicySnapshot::from(&**policy_account);
+    let ledger_snapshot = VelocityLedgerSnapshot::from(&**velocity_ledger);
+    let killswitch_snap = KillSwitchSnapshot::from(&**kill_switch_state);
 
-    let payer_atom = match ctx.accounts.payer_atom_stats.as_ref() {
+    let payer_atom = match payer_atom_stats {
         Some(acct) => read_atom_stats_view(acct)?,
         None       => None,
     };
-    let payee_atom = match ctx.accounts.payee_atom_stats.as_ref() {
+    let payee_atom = match payee_atom_stats {
         Some(acct) => read_atom_stats_view(acct)?,
         None       => None,
     };
-    let attestation = match ctx.accounts.validation_attestation.as_ref() {
+    let attestation = match validation_attestation {
         Some(acct) => read_validation_attestation_view(acct)?,
         None       => None,
     };
@@ -127,10 +160,10 @@ pub fn handler(
     match result.decision {
         GateDecision::Allow => {
             if let Some(d) = result.spending_deltas.as_ref() {
-                spending::apply_deltas(&mut ctx.accounts.policy_account, d);
+                spending::apply_deltas(policy_account, d);
             }
             if let Some(d) = result.velocity_deltas.as_ref() {
-                velocity::apply_deltas(&mut ctx.accounts.velocity_ledger, d);
+                velocity::apply_deltas(velocity_ledger, d);
                 emit!(VelocityIncremented {
                     payer_agent_asset,
                     policy_id,

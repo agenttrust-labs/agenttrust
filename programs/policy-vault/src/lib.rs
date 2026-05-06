@@ -98,4 +98,22 @@ pub mod policy_vault {
             ctx, payer_agent_asset, payee_agent_asset, amount, mint, policy_id,
         )
     }
+
+    /// Strict variant: returns `Err` on Deny / RequireValidation so the
+    /// caller's tx reverts atomically. Allow path applies the same state
+    /// mutations as `gate_payment`. Used by `composeAtomicSettleTx` to
+    /// guarantee gate + transfer + emit_feedback commit-or-revert as a
+    /// unit.
+    pub fn gate_payment_strict(
+        ctx: Context<GatePayment>,
+        payer_agent_asset: Pubkey,
+        payee_agent_asset: Pubkey,
+        amount: u64,
+        mint: Pubkey,
+        policy_id: u32,
+    ) -> Result<()> {
+        instructions::gate_payment_strict::handler(
+            ctx, payer_agent_asset, payee_agent_asset, amount, mint, policy_id,
+        )
+    }
 }

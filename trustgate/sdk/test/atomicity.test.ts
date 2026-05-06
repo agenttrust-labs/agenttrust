@@ -157,9 +157,14 @@ interface FakeMethodsBuilder {
 }
 
 /** Fake Anchor `Program` whose `methods.<name>(...)` returns a chainable
- *  builder that produces a deterministic instruction stub. Keeps the
- *  composer test fully off-chain. */
-function fakeProgram(programId: PublicKey, ixTag: string): any {
+ *  builder that produces a deterministic instruction stub. Records the
+ *  method name accessed for invocation-asserting tests. */
+function fakeProgram(programId: PublicKey, ixTag: string): {
+  programId: PublicKey;
+  methods: any;
+  callLog: string[];
+} {
+  const callLog: string[] = [];
   const builder: any = {
     accounts: () => builder,
     remainingAccounts: () => builder,
@@ -171,8 +176,12 @@ function fakeProgram(programId: PublicKey, ixTag: string): any {
   };
   return {
     programId,
+    callLog,
     methods: new Proxy({}, {
-      get: () => (..._args: any[]) => builder,
+      get: (_, prop: string) => {
+        callLog.push(prop);
+        return (..._args: any[]) => builder;
+      },
     }),
   };
 }
@@ -194,11 +203,13 @@ describe("composeAtomicSettleTx", () => {
     payeeCollection:   Keypair.generate().publicKey,
   };
 
+  const policyVaultFake = fakeProgram(programIds.policyVault, "gate");
+  const trustgateFake   = fakeProgram(programIds.trustgate,   "feedback");
   const baseArgs = {
     atomicityEnforced: true as const,
     programIds,
-    policyVault: fakeProgram(programIds.policyVault, "gate"),
-    trustgate:   fakeProgram(programIds.trustgate,   "feedback"),
+    policyVault: policyVaultFake,
+    trustgate:   trustgateFake,
     facilitator,
     payer,
     payerAgentAsset,
@@ -265,6 +276,13 @@ describe("composeAtomicSettleTx", () => {
     const tokenProgram = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
     const composed = await composeAtomicSettleTx({ ...baseArgs, tokenProgram });
     expect(composed.instructions[1].programId.equals(tokenProgram)).to.equal(true);
+  });
+
+  it("invokes the strict gate variant (D2)", async () => {
+    policyVaultFake.callLog.length = 0;
+    await composeAtomicSettleTx(baseArgs);
+    expect(policyVaultFake.callLog).to.include("gatePaymentStrict");
+    expect(policyVaultFake.callLog).to.not.include("gatePayment");
   });
 
   it("deriveStandardAta yields a deterministic ATA from owner + mint", () => {

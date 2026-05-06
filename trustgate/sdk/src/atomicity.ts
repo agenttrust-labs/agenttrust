@@ -58,27 +58,24 @@ export function assertAtomicityEnforced(
 }
 
 // ---------------------------------------------------------------------------
-// composeAtomicSettleTx — gate_payment + SPL transfer + emit_feedback in
-// ONE Solana transaction. Replaces the v0.1 stub that threw
-// AtomicityNotEnforcedError.
+// composeAtomicSettleTx — gate_payment_strict + SPL transfer + emit_feedback
+// in ONE Solana transaction.
 //
-// Race-window note: the on-chain `gate_payment` handler intentionally
-// returns Ok(decision) for both Allow and Deny so the read-only
-// /verify path can decode the decision via Anchor's return-data channel.
-// "all three succeed or all three revert" therefore relies on the caller
-// having simulated first AND on the underlying state being stable across
-// the simulate→execute window (~150 slots / 60s blockhash lifetime).
+// Atomicity guarantee: the strict variant of gate_payment returns Err on
+// Deny / RequireValidation, so any non-Allow on the policy gate reverts
+// the entire tx atomically. Allow path applies the same state mutations
+// as the simulate-friendly `gate_payment`. The simulate-friendly variant
+// remains available for the read-only /verify path which still needs to
+// decode the decision via Anchor's return-data channel.
 //
-// Defenses against a stale Allow-then-Deny race:
+// Belt-and-suspenders: the strict gate is the canonical revert mechanism;
+// the layered defenses below stay in place to defeat off-chain forgery
+// (which on-chain semantics alone cannot prevent):
 //   1. SERVICE-signed challenge envelope binds the requirements to a
 //      specific paymentIdHash AND issuedAt (B5)
 //   2. on-chain `FeedbackEmissionLog` is init-only, keyed by
 //      paymentIdHash — at most one feedback emission per payment
 //   3. caller must submit before issuedAt + maxTimeoutSeconds
-//
-// A future contract addition (gate_payment_strict that returns Err on
-// non-Allow) will close the race entirely; for v1 the above defenses
-// reduce it to a non-issue at single-tenant scale.
 // ---------------------------------------------------------------------------
 import { BN, Program } from "@coral-xyz/anchor";
 import {
@@ -175,9 +172,10 @@ export async function composeAtomicSettleTx(
   const trustGateAuthority = deriveTrustGateAuthorityPda(args.programIds.trustgate, args.facilitator);
   const feedbackEmissionLog = deriveFeedbackLogPda(args.programIds.trustgate, Buffer.from(args.paymentIdHash));
 
-  // ix 0 — gate_payment
+  // ix 0 — gate_payment_strict (returns Err on Deny → reverts the whole tx).
+  // Uses the strict variant so non-Allow fails the entire atomic settle.
   const gateIx = await args.policyVault.methods
-    .gatePayment(args.payerAgentAsset, args.payeeAgentAsset, new BN(args.amount.toString()), args.mint, args.policyId)
+    .gatePaymentStrict(args.payerAgentAsset, args.payeeAgentAsset, new BN(args.amount.toString()), args.mint, args.policyId)
     .accounts({
       caller:                args.facilitator,
       policyAccount,
