@@ -26,10 +26,11 @@ pub const AGENT_ACCOUNT_SIZE: usize = 748;
 /// Validate that an `UncheckedAccount` looks like an initialised AgentAccount.
 /// Returns `Ok(())` only if owner + size match; returns the right typed error
 /// otherwise. Caller decides whether `lamports() == 0` → Unrated or Deny.
-pub fn require_agent_account_well_formed(
-    account: &UncheckedAccount,
-) -> Result<()> {
-    require!(account.lamports() > 0, PolicyVaultError::AgentAccountUninitialized);
+pub fn require_agent_account_well_formed(account: &UncheckedAccount) -> Result<()> {
+    require!(
+        account.lamports() > 0,
+        PolicyVaultError::AgentAccountUninitialized
+    );
     require_keys_eq!(
         *account.owner,
         AGENT_REGISTRY_ID,

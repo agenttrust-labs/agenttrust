@@ -7,7 +7,7 @@ use anchor_lang::prelude::*;
 // Pinned program IDs — devnet target.
 // ---------------------------------------------------------------------------
 pub const AGENT_REGISTRY_ID: Pubkey = pubkey!("8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C");
-pub const ATOM_ENGINE_ID:    Pubkey = pubkey!("AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF");
+pub const ATOM_ENGINE_ID: Pubkey = pubkey!("AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF");
 
 // ---------------------------------------------------------------------------
 // Anchor CPI discriminator for `agent_registry_8004::give_feedback`.

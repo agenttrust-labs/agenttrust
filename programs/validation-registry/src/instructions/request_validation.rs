@@ -40,24 +40,30 @@ pub struct RequestValidation<'info> {
 }
 
 pub fn handler(
-    ctx:             Context<RequestValidation>,
-    subject_asset:   Pubkey,
+    ctx: Context<RequestValidation>,
+    subject_asset: Pubkey,
     capability_hash: [u8; 32],
-    claim_uri_hash:  [u8; 32],
-    deadline:        u64,
+    claim_uri_hash: [u8; 32],
+    deadline: u64,
 ) -> Result<()> {
     let clock = Clock::get()?;
-    require!(deadline > clock.slot,                                 ValidationRegistryError::DeadlineInPast);
-    require!(deadline <= clock.slot + MAX_DEADLINE_SLOTS_AHEAD,     ValidationRegistryError::DeadlineTooFar);
+    require!(
+        deadline > clock.slot,
+        ValidationRegistryError::DeadlineInPast
+    );
+    require!(
+        deadline <= clock.slot + MAX_DEADLINE_SLOTS_AHEAD,
+        ValidationRegistryError::DeadlineTooFar
+    );
 
     let req = &mut ctx.accounts.validation_request;
-    req.subject_asset    = subject_asset;
-    req.capability_hash  = capability_hash;
-    req.requester        = ctx.accounts.requester.key();
-    req.claim_uri_hash   = claim_uri_hash;
-    req.created_at       = clock.slot;
-    req.deadline         = deadline;
-    req.bump             = ctx.bumps.validation_request;
+    req.subject_asset = subject_asset;
+    req.capability_hash = capability_hash;
+    req.requester = ctx.accounts.requester.key();
+    req.claim_uri_hash = claim_uri_hash;
+    req.created_at = clock.slot;
+    req.deadline = deadline;
+    req.bump = ctx.bumps.validation_request;
 
     emit!(RequestCreated {
         subject_asset,

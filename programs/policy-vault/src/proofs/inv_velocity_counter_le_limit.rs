@@ -17,16 +17,16 @@ use crate::policies::velocity::{evaluate, VelocityLedgerSnapshot, VelocityOutcom
 #[kani::unwind(2)]
 fn velocity_allow_implies_cumulative_le_max() {
     let state = VelocityState {
-        window_secs:   kani::any(),
+        window_secs: kani::any(),
         max_in_window: kani::any(),
     };
     let ledger = VelocityLedgerSnapshot {
         cumulative_amount: kani::any(),
         window_start_slot: kani::any(),
     };
-    let amount:     u64 = kani::any();
-    let payer_tier: u8  = kani::any();
-    let now_slot:   u64 = kani::any();
+    let amount: u64 = kani::any();
+    let payer_tier: u8 = kani::any();
+    let now_slot: u64 = kani::any();
 
     // Inductive precondition: the input ledger must already satisfy the
     // invariant. Every Allow path preserves it; init starts at 0 (trivially OK).

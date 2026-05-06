@@ -61,8 +61,7 @@ pub fn handler(
     // Collect all signing pubkeys: lead + every signer in remaining_accounts.
     // Non-signer accounts in remaining_accounts are rejected up front; we
     // don't error on non-member signers (they just don't count).
-    let mut signer_keys: Vec<Pubkey> =
-        Vec::with_capacity(1 + ctx.remaining_accounts.len());
+    let mut signer_keys: Vec<Pubkey> = Vec::with_capacity(1 + ctx.remaining_accounts.len());
     signer_keys.push(lead_key);
     for acct in ctx.remaining_accounts.iter() {
         require!(acct.is_signer, PolicyVaultError::MemberNotInAuthority);
@@ -82,17 +81,17 @@ pub fn handler(
     kill.paused = paused;
     if paused {
         kill.paused_at_slot = now_slot;
-        kill.paused_by      = lead_key;
+        kill.paused_by = lead_key;
     } else {
         kill.unpaused_at_slot = now_slot;
     }
 
     emit!(KillSwitchTriggered {
-        scope_kind:   kill.scope_kind,
-        scope_key:    kill.scope_key,
+        scope_kind: kill.scope_kind,
+        scope_key: kill.scope_key,
         paused,
         triggered_by: lead_key,
-        slot:         now_slot,
+        slot: now_slot,
     });
 
     Ok(())

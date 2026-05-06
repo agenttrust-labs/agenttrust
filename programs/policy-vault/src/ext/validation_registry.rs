@@ -20,23 +20,23 @@ pub const VALIDATION_REGISTRY_ID: Pubkey = pubkey!("Cx4RFa6ysw3qXYhugPkF8pFSWBkm
 // ---------------------------------------------------------------------------
 // Byte-offset constants (account-data-relative — discriminator is 0..8).
 // ---------------------------------------------------------------------------
-pub const VALIDATION_ATTESTATION_SIZE:        usize = 290;
-pub const VA_SUBJECT_ASSET_OFFSET:            usize = 8;    // Pubkey
-pub const VA_CAPABILITY_HASH_OFFSET:          usize = 40;   // [u8; 32]
-pub const VA_ATTESTOR_OFFSET:                 usize = 72;   // Pubkey
-pub const VA_EXPIRES_AT_OFFSET:               usize = 208;  // u64 LE
-pub const VA_REVOKED_OFFSET:                  usize = 216;  // bool
+pub const VALIDATION_ATTESTATION_SIZE: usize = 290;
+pub const VA_SUBJECT_ASSET_OFFSET: usize = 8; // Pubkey
+pub const VA_CAPABILITY_HASH_OFFSET: usize = 40; // [u8; 32]
+pub const VA_ATTESTOR_OFFSET: usize = 72; // Pubkey
+pub const VA_EXPIRES_AT_OFFSET: usize = 208; // u64 LE
+pub const VA_REVOKED_OFFSET: usize = 216; // bool
 
 // ---------------------------------------------------------------------------
 // View struct — plain data, no Anchor types.
 // ---------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ValidationAttestationView {
-    pub subject_asset:   Pubkey,
+    pub subject_asset: Pubkey,
     pub capability_hash: [u8; 32],
-    pub attestor:        Pubkey,
-    pub expires_at:      u64,    // 0 = never expires
-    pub revoked:         bool,
+    pub attestor: Pubkey,
+    pub expires_at: u64, // 0 = never expires
+    pub revoked: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -77,11 +77,11 @@ pub fn parse_validation_attestation_bytes(data: &[u8]) -> Result<ValidationAttes
         PolicyVaultError::AttestationSizeMismatch,
     );
 
-    let subject_asset   = read_pubkey(data, VA_SUBJECT_ASSET_OFFSET);
+    let subject_asset = read_pubkey(data, VA_SUBJECT_ASSET_OFFSET);
     let capability_hash = read_bytes32(data, VA_CAPABILITY_HASH_OFFSET);
-    let attestor        = read_pubkey(data, VA_ATTESTOR_OFFSET);
-    let expires_at      = u64::from_le_bytes(read_bytes8(data, VA_EXPIRES_AT_OFFSET));
-    let revoked         = data[VA_REVOKED_OFFSET] != 0;
+    let attestor = read_pubkey(data, VA_ATTESTOR_OFFSET);
+    let expires_at = u64::from_le_bytes(read_bytes8(data, VA_EXPIRES_AT_OFFSET));
+    let revoked = data[VA_REVOKED_OFFSET] != 0;
 
     Ok(ValidationAttestationView {
         subject_asset,
@@ -127,14 +127,15 @@ mod tests {
     }
 
     fn synth(
-        subject:   Pubkey,
-        cap_hash:  [u8; 32],
-        attestor:  Pubkey,
-        expires:   u64,
-        revoked:   bool,
+        subject: Pubkey,
+        cap_hash: [u8; 32],
+        attestor: Pubkey,
+        expires: u64,
+        revoked: bool,
     ) -> Vec<u8> {
         let mut buf = vec![0u8; VALIDATION_ATTESTATION_SIZE];
-        buf[VA_SUBJECT_ASSET_OFFSET..VA_SUBJECT_ASSET_OFFSET + 32].copy_from_slice(subject.as_ref());
+        buf[VA_SUBJECT_ASSET_OFFSET..VA_SUBJECT_ASSET_OFFSET + 32]
+            .copy_from_slice(subject.as_ref());
         buf[VA_CAPABILITY_HASH_OFFSET..VA_CAPABILITY_HASH_OFFSET + 32].copy_from_slice(&cap_hash);
         buf[VA_ATTESTOR_OFFSET..VA_ATTESTOR_OFFSET + 32].copy_from_slice(attestor.as_ref());
         buf[VA_EXPIRES_AT_OFFSET..VA_EXPIRES_AT_OFFSET + 8].copy_from_slice(&expires.to_le_bytes());
@@ -147,11 +148,11 @@ mod tests {
         let cap_hash = [0xAB; 32];
         let buf = synth(pk(1), cap_hash, pk(2), 1_000_000, false);
         let view = parse_validation_attestation_bytes(&buf).unwrap();
-        assert_eq!(view.subject_asset,   pk(1));
+        assert_eq!(view.subject_asset, pk(1));
         assert_eq!(view.capability_hash, cap_hash);
-        assert_eq!(view.attestor,        pk(2));
-        assert_eq!(view.expires_at,      1_000_000);
-        assert_eq!(view.revoked,         false);
+        assert_eq!(view.attestor, pk(2));
+        assert_eq!(view.expires_at, 1_000_000);
+        assert_eq!(view.revoked, false);
     }
 
     #[test]
@@ -187,7 +188,7 @@ mod tests {
         let buf = synth(pk(7), [0; 32], pk(11), 0, false);
         let view = parse_validation_attestation_bytes(&buf).unwrap();
         assert_eq!(view.subject_asset, pk(7));
-        assert_eq!(view.attestor,      pk(11));
+        assert_eq!(view.attestor, pk(11));
     }
 
     #[test]

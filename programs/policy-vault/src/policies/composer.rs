@@ -17,8 +17,7 @@
 use anchor_lang::prelude::*;
 
 use crate::constants::{
-    KIND_COUNTERPARTY_TIER, KIND_KILLSWITCH, KIND_REQUIRE_VALIDATION,
-    KIND_SPENDING, KIND_VELOCITY,
+    KIND_COUNTERPARTY_TIER, KIND_KILLSWITCH, KIND_REQUIRE_VALIDATION, KIND_SPENDING, KIND_VELOCITY,
 };
 use crate::ext::atom_engine::AtomStatsView;
 use crate::ext::validation_registry::ValidationAttestationView;
@@ -40,20 +39,20 @@ use crate::state::{DenyReason, GateDecision, PolicyAccount};
 #[derive(Clone, Copy, Debug)]
 pub struct PolicySnapshot {
     pub enabled_kinds_bitmask: u8,
-    pub spending:              SpendingState,
-    pub velocity:              VelocityState,
-    pub counterparty:          CounterpartyState,
-    pub require_validation:    RequireValidationState,
+    pub spending: SpendingState,
+    pub velocity: VelocityState,
+    pub counterparty: CounterpartyState,
+    pub require_validation: RequireValidationState,
 }
 
 impl From<&PolicyAccount> for PolicySnapshot {
     fn from(p: &PolicyAccount) -> Self {
         PolicySnapshot {
             enabled_kinds_bitmask: p.enabled_kinds_bitmask,
-            spending:              p.into(),
-            velocity:              p.into(),
-            counterparty:          p.into(),
-            require_validation:    p.into(),
+            spending: p.into(),
+            velocity: p.into(),
+            counterparty: p.into(),
+            require_validation: p.into(),
         }
     }
 }
@@ -64,21 +63,21 @@ impl From<&PolicyAccount> for PolicySnapshot {
 
 #[derive(Clone, Copy, Debug)]
 pub struct ComposerInput {
-    pub policy:             PolicySnapshot,
-    pub ledger:             VelocityLedgerSnapshot,
-    pub killswitch:         KillSwitchSnapshot,
-    pub payer_atom:         Option<AtomStatsView>,
-    pub payee_atom:         Option<AtomStatsView>,
-    pub attestation:        Option<ValidationAttestationView>,
-    pub amount:             u64,
-    pub payee_agent_asset:  Pubkey,
-    pub now_slot:           u64,
-    pub unix_ts:            i64,
+    pub policy: PolicySnapshot,
+    pub ledger: VelocityLedgerSnapshot,
+    pub killswitch: KillSwitchSnapshot,
+    pub payer_atom: Option<AtomStatsView>,
+    pub payee_atom: Option<AtomStatsView>,
+    pub attestation: Option<ValidationAttestationView>,
+    pub amount: u64,
+    pub payee_agent_asset: Pubkey,
+    pub now_slot: u64,
+    pub unix_ts: i64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ComposerResult {
-    pub decision:        GateDecision,
+    pub decision: GateDecision,
     /// Present iff `decision == Allow` AND Spending was enabled.
     /// The Anchor handler writes these to `PolicyAccount` on Allow.
     pub spending_deltas: Option<SpendingDeltas>,
@@ -89,7 +88,7 @@ pub struct ComposerResult {
 impl ComposerResult {
     fn deny(reason: DenyReason) -> Self {
         ComposerResult {
-            decision:        GateDecision::Deny(reason),
+            decision: GateDecision::Deny(reason),
             spending_deltas: None,
             velocity_deltas: None,
         }
@@ -97,7 +96,7 @@ impl ComposerResult {
 
     fn require_validation(hash: [u8; 32]) -> Self {
         ComposerResult {
-            decision:        GateDecision::RequireValidation(hash),
+            decision: GateDecision::RequireValidation(hash),
             spending_deltas: None,
             velocity_deltas: None,
         }
@@ -123,7 +122,7 @@ pub fn compose_decision(input: ComposerInput) -> ComposerResult {
     if bitmask & KIND_SPENDING != 0 {
         match spending::evaluate(input.policy.spending, input.amount, input.unix_ts) {
             SpendingOutcome::Allow(deltas) => spending_deltas = Some(deltas),
-            SpendingOutcome::Deny(reason)  => return ComposerResult::deny(reason),
+            SpendingOutcome::Deny(reason) => return ComposerResult::deny(reason),
         }
     }
 
@@ -139,7 +138,7 @@ pub fn compose_decision(input: ComposerInput) -> ComposerResult {
             input.now_slot,
         ) {
             VelocityOutcome::Allow(deltas) => velocity_deltas = Some(deltas),
-            VelocityOutcome::Deny(reason)  => return ComposerResult::deny(reason),
+            VelocityOutcome::Deny(reason) => return ComposerResult::deny(reason),
         }
     }
 
@@ -147,14 +146,14 @@ pub fn compose_decision(input: ComposerInput) -> ComposerResult {
     //    config (`default_unrated_treatment`).
     if bitmask & KIND_COUNTERPARTY_TIER != 0 {
         match counterparty_tier::evaluate(input.policy.counterparty, input.payee_atom) {
-            CounterpartyOutcome::Allow         => {}
-            CounterpartyOutcome::Deny(reason)  => return ComposerResult::deny(reason),
-            CounterpartyOutcome::Unrated       => {
+            CounterpartyOutcome::Allow => {}
+            CounterpartyOutcome::Deny(reason) => return ComposerResult::deny(reason),
+            CounterpartyOutcome::Unrated => {
                 match counterparty_tier::resolve_unrated(
                     input.policy.counterparty.default_unrated_treatment,
                 ) {
-                    UnratedResolution::Allow             => {}
-                    UnratedResolution::Deny              => {
+                    UnratedResolution::Allow => {}
+                    UnratedResolution::Deny => {
                         return ComposerResult::deny(DenyReason::UnratedTreatmentDeny);
                     }
                     UnratedResolution::RequireValidation => {
@@ -176,11 +175,11 @@ pub fn compose_decision(input: ComposerInput) -> ComposerResult {
             &input.payee_agent_asset,
             input.now_slot,
         ) {
-            RequireValidationOutcome::Allow                       => {}
-            RequireValidationOutcome::Deny(reason)                => {
+            RequireValidationOutcome::Allow => {}
+            RequireValidationOutcome::Deny(reason) => {
                 return ComposerResult::deny(reason);
             }
-            RequireValidationOutcome::RequiresAttestation(hash)   => {
+            RequireValidationOutcome::RequiresAttestation(hash) => {
                 return ComposerResult::require_validation(hash);
             }
         }
@@ -201,7 +200,9 @@ pub fn compose_decision(input: ComposerInput) -> ComposerResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::constants::{GATE_MODE_IMMEDIATE, UNRATED_ALLOW, UNRATED_DENY, UNRATED_REQUIRE_VALIDATION};
+    use crate::constants::{
+        GATE_MODE_IMMEDIATE, UNRATED_ALLOW, UNRATED_DENY, UNRATED_REQUIRE_VALIDATION,
+    };
 
     fn pk(byte: u8) -> Pubkey {
         let mut bytes = [0u8; 32];
@@ -216,48 +217,51 @@ mod tests {
         PolicySnapshot {
             enabled_kinds_bitmask: bitmask,
             spending: SpendingState {
-                per_tx_max:    1_000,
-                daily_max:     5_000,
-                weekly_max:    20_000,
-                today_used:    0,
-                week_used:     0,
-                today_anchor:  0,
-                week_anchor:   0,
+                per_tx_max: 1_000,
+                daily_max: 5_000,
+                weekly_max: 20_000,
+                today_used: 0,
+                week_used: 0,
+                today_anchor: 0,
+                week_anchor: 0,
             },
             velocity: VelocityState {
-                window_secs:   3_600,
+                window_secs: 3_600,
                 max_in_window: 10_000,
             },
             counterparty: CounterpartyState {
-                gate_mode:                  GATE_MODE_IMMEDIATE,
-                min_tier:                   0,
-                max_risk_score:             255,
-                min_confidence:             0,
-                default_unrated_treatment:  UNRATED_ALLOW,
+                gate_mode: GATE_MODE_IMMEDIATE,
+                min_tier: 0,
+                max_risk_score: 255,
+                min_confidence: 0,
+                default_unrated_treatment: UNRATED_ALLOW,
             },
             require_validation: RequireValidationState {
                 required_capability_hash: [0u8; 32],
-                accepted_attestors:       [Pubkey::default(); 2],
+                accepted_attestors: [Pubkey::default(); 2],
             },
         }
     }
 
     fn empty_ledger() -> VelocityLedgerSnapshot {
-        VelocityLedgerSnapshot { cumulative_amount: 0, window_start_slot: 0 }
+        VelocityLedgerSnapshot {
+            cumulative_amount: 0,
+            window_start_slot: 0,
+        }
     }
 
     fn input_with(bitmask: u8, amount: u64) -> ComposerInput {
         ComposerInput {
-            policy:            snapshot(bitmask),
-            ledger:            empty_ledger(),
-            killswitch:        KillSwitchSnapshot { paused: false },
-            payer_atom:        None,
-            payee_atom:        None,
-            attestation:       None,
+            policy: snapshot(bitmask),
+            ledger: empty_ledger(),
+            killswitch: KillSwitchSnapshot { paused: false },
+            payer_atom: None,
+            payee_atom: None,
+            attestation: None,
             amount,
             payee_agent_asset: pk(1),
-            now_slot:          100,
-            unix_ts:           TS_NOON,
+            now_slot: 100,
+            unix_ts: TS_NOON,
         }
     }
 
@@ -304,7 +308,10 @@ mod tests {
         // Even with Spending exceeding (would also Deny), KillSwitch wins.
         inp.amount = 999_999; // would exceed spending per_tx_max
         let r = compose_decision(inp);
-        assert_eq!(r.decision, GateDecision::Deny(DenyReason::KillSwitchEngaged));
+        assert_eq!(
+            r.decision,
+            GateDecision::Deny(DenyReason::KillSwitchEngaged)
+        );
     }
 
     #[test]
@@ -321,7 +328,10 @@ mod tests {
     #[test]
     fn spending_per_tx_exceeded_denies() {
         let r = compose_decision(input_with(KIND_SPENDING, 9_999));
-        assert_eq!(r.decision, GateDecision::Deny(DenyReason::SpendingPerTxExceeded));
+        assert_eq!(
+            r.decision,
+            GateDecision::Deny(DenyReason::SpendingPerTxExceeded)
+        );
         assert!(r.spending_deltas.is_none());
     }
 
@@ -332,7 +342,10 @@ mod tests {
         let mut inp = input_with(KIND_VELOCITY, 100);
         inp.ledger.cumulative_amount = 9_950; // max=10_000; +100 → exceeds
         let r = compose_decision(inp);
-        assert_eq!(r.decision, GateDecision::Deny(DenyReason::VelocityWindowExceeded));
+        assert_eq!(
+            r.decision,
+            GateDecision::Deny(DenyReason::VelocityWindowExceeded)
+        );
     }
 
     // -- CounterpartyTier --
@@ -342,10 +355,16 @@ mod tests {
         let mut inp = input_with(KIND_COUNTERPARTY_TIER, 100);
         inp.policy.counterparty.min_tier = 3;
         inp.payee_atom = Some(AtomStatsView {
-            tier_immediate: 1, tier_confirmed: 0, risk_score: 0, confidence: 0,
+            tier_immediate: 1,
+            tier_confirmed: 0,
+            risk_score: 0,
+            confidence: 0,
         });
         let r = compose_decision(inp);
-        assert_eq!(r.decision, GateDecision::Deny(DenyReason::CounterpartyTierBelowMin));
+        assert_eq!(
+            r.decision,
+            GateDecision::Deny(DenyReason::CounterpartyTierBelowMin)
+        );
     }
 
     #[test]
@@ -355,7 +374,10 @@ mod tests {
         inp.policy.counterparty.default_unrated_treatment = UNRATED_DENY;
         // payee_atom = None (uninitialised) → Unrated
         let r = compose_decision(inp);
-        assert_eq!(r.decision, GateDecision::Deny(DenyReason::UnratedTreatmentDeny));
+        assert_eq!(
+            r.decision,
+            GateDecision::Deny(DenyReason::UnratedTreatmentDeny)
+        );
     }
 
     #[test]
@@ -396,35 +418,44 @@ mod tests {
         let cap_hash = [0xAA; 32];
         inp.policy.require_validation.required_capability_hash = cap_hash;
         inp.attestation = Some(ValidationAttestationView {
-            subject_asset:   pk(1),
+            subject_asset: pk(1),
             capability_hash: cap_hash,
-            attestor:        pk(99),
-            expires_at:      0,
-            revoked:         true,
+            attestor: pk(99),
+            expires_at: 0,
+            revoked: true,
         });
         let r = compose_decision(inp);
-        assert_eq!(r.decision, GateDecision::Deny(DenyReason::AttestationRevoked));
+        assert_eq!(
+            r.decision,
+            GateDecision::Deny(DenyReason::AttestationRevoked)
+        );
     }
 
     // -- All-five enabled --
 
     #[test]
     fn all_five_policies_pass_returns_allow_with_both_deltas() {
-        let bitmask = KIND_KILLSWITCH | KIND_SPENDING | KIND_VELOCITY
-            | KIND_COUNTERPARTY_TIER | KIND_REQUIRE_VALIDATION;
+        let bitmask = KIND_KILLSWITCH
+            | KIND_SPENDING
+            | KIND_VELOCITY
+            | KIND_COUNTERPARTY_TIER
+            | KIND_REQUIRE_VALIDATION;
         let mut inp = input_with(bitmask, 100);
         inp.policy.counterparty.min_tier = 2;
         inp.payee_atom = Some(AtomStatsView {
-            tier_immediate: 3, tier_confirmed: 2, risk_score: 0, confidence: 0,
+            tier_immediate: 3,
+            tier_confirmed: 2,
+            risk_score: 0,
+            confidence: 0,
         });
         let cap_hash = [0xAA; 32];
         inp.policy.require_validation.required_capability_hash = cap_hash;
         inp.attestation = Some(ValidationAttestationView {
-            subject_asset:   pk(1),
+            subject_asset: pk(1),
             capability_hash: cap_hash,
-            attestor:        pk(99),
-            expires_at:      0,
-            revoked:         false,
+            attestor: pk(99),
+            expires_at: 0,
+            revoked: false,
         });
         let r = compose_decision(inp);
         assert_eq!(r.decision, GateDecision::Allow);
@@ -443,7 +474,10 @@ mod tests {
         inp.killswitch.paused = true;
         let r = compose_decision(inp);
         // KillSwitch is checked first → KillSwitchEngaged, not SpendingPerTxExceeded.
-        assert_eq!(r.decision, GateDecision::Deny(DenyReason::KillSwitchEngaged));
+        assert_eq!(
+            r.decision,
+            GateDecision::Deny(DenyReason::KillSwitchEngaged)
+        );
     }
 
     #[test]
@@ -455,7 +489,10 @@ mod tests {
         inp.ledger.cumulative_amount = 9_950; // also over velocity
         let r = compose_decision(inp);
         // Spending is checked first → SpendingPerTxExceeded.
-        assert_eq!(r.decision, GateDecision::Deny(DenyReason::SpendingPerTxExceeded));
+        assert_eq!(
+            r.decision,
+            GateDecision::Deny(DenyReason::SpendingPerTxExceeded)
+        );
     }
 
     // -- Allow on Deny path returns no deltas --

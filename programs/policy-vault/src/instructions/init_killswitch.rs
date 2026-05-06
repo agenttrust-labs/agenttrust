@@ -37,19 +37,16 @@ pub struct InitKillSwitch<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(
-    ctx: Context<InitKillSwitch>,
-    payer_agent_asset: Pubkey,
-) -> Result<()> {
+pub fn handler(ctx: Context<InitKillSwitch>, payer_agent_asset: Pubkey) -> Result<()> {
     let state = &mut ctx.accounts.kill_switch_state;
-    state.scope_kind       = SCOPE_PER_AGENT;
-    state.bump             = ctx.bumps.kill_switch_state;
-    state.paused           = false;
-    state._pad0            = 0;
-    state._pad1            = [0u8; 4];
-    state.scope_key        = payer_agent_asset.to_bytes();
-    state.paused_at_slot   = 0;
+    state.scope_kind = SCOPE_PER_AGENT;
+    state.bump = ctx.bumps.kill_switch_state;
+    state.paused = false;
+    state._pad0 = 0;
+    state._pad1 = [0u8; 4];
+    state.scope_key = payer_agent_asset.to_bytes();
+    state.paused_at_slot = 0;
     state.unpaused_at_slot = 0;
-    state.paused_by        = Pubkey::default();
+    state.paused_by = Pubkey::default();
     Ok(())
 }

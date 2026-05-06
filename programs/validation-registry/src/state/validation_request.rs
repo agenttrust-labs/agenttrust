@@ -10,13 +10,13 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(InitSpace)]
 pub struct ValidationRequest {
-    pub subject_asset:    Pubkey,
-    pub capability_hash:  [u8; 32],
-    pub requester:        Pubkey,         // can be subject's owner OR any third party
-    pub claim_uri_hash:   [u8; 32],       // SHA256 of off-chain claim URI
-    pub created_at:       u64,
-    pub deadline:         u64,            // slot after which the request is "abandoned"
-    pub bump:             u8,
+    pub subject_asset: Pubkey,
+    pub capability_hash: [u8; 32],
+    pub requester: Pubkey,        // can be subject's owner OR any third party
+    pub claim_uri_hash: [u8; 32], // SHA256 of off-chain claim URI
+    pub created_at: u64,
+    pub deadline: u64, // slot after which the request is "abandoned"
+    pub bump: u8,
 }
 
 impl ValidationRequest {

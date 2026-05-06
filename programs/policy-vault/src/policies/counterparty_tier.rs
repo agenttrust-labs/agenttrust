@@ -10,8 +10,8 @@
 //! Reference: docs/plan/research/04-policyvault-build-playbook.md §C.2
 
 use crate::constants::{
-    GATE_MODE_CONFIRMED, GATE_MODE_IMMEDIATE,
-    UNRATED_ALLOW, UNRATED_DENY, UNRATED_REQUIRE_VALIDATION,
+    GATE_MODE_CONFIRMED, GATE_MODE_IMMEDIATE, UNRATED_ALLOW, UNRATED_DENY,
+    UNRATED_REQUIRE_VALIDATION,
 };
 use crate::ext::atom_engine::AtomStatsView;
 use crate::state::{DenyReason, PolicyAccount};
@@ -21,20 +21,20 @@ use crate::state::{DenyReason, PolicyAccount};
 // ---------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CounterpartyState {
-    pub gate_mode:                  u8, // GATE_MODE_*
-    pub min_tier:                   u8,
-    pub max_risk_score:             u8, // 255 = no constraint
-    pub min_confidence:             u16,
-    pub default_unrated_treatment:  u8, // UNRATED_*
+    pub gate_mode: u8, // GATE_MODE_*
+    pub min_tier: u8,
+    pub max_risk_score: u8, // 255 = no constraint
+    pub min_confidence: u16,
+    pub default_unrated_treatment: u8, // UNRATED_*
 }
 
 impl From<&PolicyAccount> for CounterpartyState {
     fn from(p: &PolicyAccount) -> Self {
         CounterpartyState {
-            gate_mode:                 p.gate_mode,
-            min_tier:                  p.min_counterparty_tier,
-            max_risk_score:            p.max_risk_score,
-            min_confidence:            p.min_confidence,
+            gate_mode: p.gate_mode,
+            min_tier: p.min_counterparty_tier,
+            max_risk_score: p.max_risk_score,
+            min_confidence: p.min_confidence,
             default_unrated_treatment: p.default_unrated_treatment,
         }
     }
@@ -62,13 +62,13 @@ pub enum UnratedResolution {
 
 pub fn resolve_unrated(treatment: u8) -> UnratedResolution {
     match treatment {
-        UNRATED_ALLOW              => UnratedResolution::Allow,
+        UNRATED_ALLOW => UnratedResolution::Allow,
         UNRATED_REQUIRE_VALIDATION => UnratedResolution::RequireValidation,
         // UNRATED_DENY (0) — and any unrecognised byte — falls through to Deny.
         // InitPolicyArgs::validate() rejects bad encodings on input, so an
         // unrecognised value here implies on-chain corruption: Deny is the safe
         // landing.
-        _                          => UnratedResolution::Deny,
+        _ => UnratedResolution::Deny,
     }
 }
 
@@ -83,7 +83,7 @@ pub fn resolve_unrated(treatment: u8) -> UnratedResolution {
 pub fn evaluate(state: CounterpartyState, view: Option<AtomStatsView>) -> CounterpartyOutcome {
     let view = match view {
         Some(v) => v,
-        None    => return CounterpartyOutcome::Unrated,
+        None => return CounterpartyOutcome::Unrated,
     };
 
     // Pick the right tier byte per gate_mode. Anything other than the two
@@ -91,7 +91,7 @@ pub fn evaluate(state: CounterpartyState, view: Option<AtomStatsView>) -> Counte
     let tier = match state.gate_mode {
         GATE_MODE_IMMEDIATE => view.tier_immediate,
         GATE_MODE_CONFIRMED => view.tier_confirmed,
-        _                   => view.tier_confirmed,
+        _ => view.tier_confirmed,
     };
 
     if tier < state.min_tier {
@@ -122,8 +122,8 @@ mod tests {
         CounterpartyState {
             gate_mode,
             min_tier,
-            max_risk_score:            max_risk,
-            min_confidence:            min_conf,
+            max_risk_score: max_risk,
+            min_confidence: min_conf,
             default_unrated_treatment: UNRATED_DENY,
         }
     }
@@ -132,8 +132,8 @@ mod tests {
         AtomStatsView {
             tier_immediate: tier_imm,
             tier_confirmed: tier_conf,
-            risk_score:     risk,
-            confidence:     conf,
+            risk_score: risk,
+            confidence: conf,
         }
     }
 
@@ -228,7 +228,12 @@ mod tests {
     #[test]
     fn fail_fast_tier_before_risk_before_confidence() {
         // All three would fail; we should see TierBelowMin first.
-        let s = cfg(GATE_MODE_IMMEDIATE, /*min_tier*/ 3, /*max_risk*/ 50, /*min_conf*/ 5000);
+        let s = cfg(
+            GATE_MODE_IMMEDIATE,
+            /*min_tier*/ 3,
+            /*max_risk*/ 50,
+            /*min_conf*/ 5000,
+        );
         let v = view(/*imm*/ 1, 0, /*risk*/ 200, /*conf*/ 100);
         assert_eq!(
             evaluate(s, Some(v)),
@@ -263,7 +268,10 @@ mod tests {
 
     #[test]
     fn resolve_unrated_require_validation() {
-        assert_eq!(resolve_unrated(UNRATED_REQUIRE_VALIDATION), UnratedResolution::RequireValidation);
+        assert_eq!(
+            resolve_unrated(UNRATED_REQUIRE_VALIDATION),
+            UnratedResolution::RequireValidation
+        );
     }
 
     #[test]

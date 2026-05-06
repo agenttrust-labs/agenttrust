@@ -5,13 +5,13 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(InitSpace)]
 pub struct PolicyAuthority {
-    pub payer_agent_asset:  Pubkey,           // off  8..40
-    pub bump:               u8,               // off 40
-    pub threshold:          u8,               // off 41 — default 2
-    pub member_count:       u8,               // off 42 — 1..=7 in v1
-    pub _pad0:              u8,               // off 43
-    pub members:            [Pubkey; 7],      // off 44..268 — first 7 members
-    pub _reserved:          [u8; 4],          // off 268..272
+    pub payer_agent_asset: Pubkey, // off  8..40
+    pub bump: u8,                  // off 40
+    pub threshold: u8,             // off 41 — default 2
+    pub member_count: u8,          // off 42 — 1..=7 in v1
+    pub _pad0: u8,                 // off 43
+    pub members: [Pubkey; 7],      // off 44..268 — first 7 members
+    pub _reserved: [u8; 4],        // off 268..272
 }
 
 impl PolicyAuthority {
@@ -71,12 +71,12 @@ mod tests {
         }
         PolicyAuthority {
             payer_agent_asset: Pubkey::default(),
-            bump:              0,
+            bump: 0,
             threshold,
-            member_count:      members.len() as u8,
-            _pad0:             0,
-            members:           fixed,
-            _reserved:         [0u8; 4],
+            member_count: members.len() as u8,
+            _pad0: 0,
+            members: fixed,
+            _reserved: [0u8; 4],
         }
     }
 
@@ -101,7 +101,10 @@ mod tests {
     #[test]
     fn duplicate_signer_keys_dedupe_to_one() {
         let auth = make_auth(&[pk(1), pk(2), pk(3)], 2);
-        assert_eq!(auth.count_distinct_signing_members(&[pk(1), pk(1), pk(1)]), 1);
+        assert_eq!(
+            auth.count_distinct_signing_members(&[pk(1), pk(1), pk(1)]),
+            1
+        );
     }
 
     #[test]
@@ -119,7 +122,10 @@ mod tests {
     #[test]
     fn mixed_members_and_non_members_only_counts_members() {
         let auth = make_auth(&[pk(1), pk(2), pk(3)], 2);
-        assert_eq!(auth.count_distinct_signing_members(&[pk(99), pk(1), pk(100), pk(2)]), 2);
+        assert_eq!(
+            auth.count_distinct_signing_members(&[pk(99), pk(1), pk(100), pk(2)]),
+            2
+        );
     }
 
     #[test]
@@ -135,7 +141,10 @@ mod tests {
         let mut auth = make_auth(&[pk(1), pk(2), pk(3), pk(4), pk(5), pk(6), pk(7)], 2);
         auth.member_count = 3;
         assert_eq!(auth.count_distinct_signing_members(&[pk(4), pk(5)]), 0);
-        assert_eq!(auth.count_distinct_signing_members(&[pk(1), pk(2), pk(3), pk(4)]), 3);
+        assert_eq!(
+            auth.count_distinct_signing_members(&[pk(1), pk(2), pk(3), pk(4)]),
+            3
+        );
     }
 
     #[test]

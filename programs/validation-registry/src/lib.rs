@@ -39,11 +39,11 @@ pub mod validation_registry {
     /// Spam deterrent: rent (~0.0023 SOL).
     /// Caller MUST compute `namespace_hash = SHA256(name_utf8)` off-chain.
     pub fn register_namespace(
-        ctx:            Context<RegisterNamespace>,
+        ctx: Context<RegisterNamespace>,
         namespace_hash: [u8; 32],
-        name:           String,
-        version:        String,
-        schema_uri:     String,
+        name: String,
+        version: String,
+        schema_uri: String,
     ) -> Result<()> {
         instructions::register_namespace::handler(ctx, namespace_hash, name, version, schema_uri)
     }
@@ -51,7 +51,7 @@ pub mod validation_registry {
     /// Self-register as an attestor. Permissionless. Sybil deterrent: rent
     /// + lack of downstream-consumer trust (PolicyVault filters by attestor).
     pub fn register_attestor(
-        ctx:              Context<RegisterAttestor>,
+        ctx: Context<RegisterAttestor>,
         display_name_uri: String,
     ) -> Result<()> {
         instructions::register_attestor::handler(ctx, display_name_uri)
@@ -61,14 +61,18 @@ pub mod validation_registry {
     /// party can call. Off-chain attestors discover via the `RequestCreated`
     /// event.
     pub fn request_validation(
-        ctx:             Context<RequestValidation>,
-        subject_asset:   Pubkey,
+        ctx: Context<RequestValidation>,
+        subject_asset: Pubkey,
         capability_hash: [u8; 32],
-        claim_uri_hash:  [u8; 32],
-        deadline:        u64,
+        claim_uri_hash: [u8; 32],
+        deadline: u64,
     ) -> Result<()> {
         instructions::request_validation::handler(
-            ctx, subject_asset, capability_hash, claim_uri_hash, deadline,
+            ctx,
+            subject_asset,
+            capability_hash,
+            claim_uri_hash,
+            deadline,
         )
     }
 
@@ -77,29 +81,36 @@ pub mod validation_registry {
     /// `set_agent_wallet` pattern). Domain-separated message:
     /// `AGENTTRUST_ATTEST || subject || cap || payload || expires`.
     pub fn respond_to_validation(
-        ctx:                Context<RespondToValidation>,
-        subject_asset:      Pubkey,
-        capability_hash:    [u8; 32],
+        ctx: Context<RespondToValidation>,
+        subject_asset: Pubkey,
+        capability_hash: [u8; 32],
         claim_payload_hash: [u8; 32],
-        claim_uri_hash:     [u8; 32],
-        expires_at:         u64,
+        claim_uri_hash: [u8; 32],
+        expires_at: u64,
     ) -> Result<()> {
         instructions::respond_to_validation::handler(
-            ctx, subject_asset, capability_hash, claim_payload_hash,
-            claim_uri_hash, expires_at,
+            ctx,
+            subject_asset,
+            capability_hash,
+            claim_payload_hash,
+            claim_uri_hash,
+            expires_at,
         )
     }
 
     /// Original attestor revokes their own attestation. Sets `revoked=true`
     /// (audit-trail preserving — accounts are not closed).
     pub fn revoke_validation(
-        ctx:                    Context<RevokeValidation>,
-        subject_asset:          Pubkey,
-        capability_hash:        [u8; 32],
+        ctx: Context<RevokeValidation>,
+        subject_asset: Pubkey,
+        capability_hash: [u8; 32],
         revocation_reason_hash: [u8; 32],
     ) -> Result<()> {
         instructions::revoke_validation::handler(
-            ctx, subject_asset, capability_hash, revocation_reason_hash,
+            ctx,
+            subject_asset,
+            capability_hash,
+            revocation_reason_hash,
         )
     }
 }

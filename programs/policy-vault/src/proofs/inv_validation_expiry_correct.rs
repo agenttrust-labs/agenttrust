@@ -8,13 +8,15 @@
 use anchor_lang::prelude::Pubkey;
 
 use crate::ext::validation_registry::ValidationAttestationView;
-use crate::policies::require_validation::{evaluate, RequireValidationOutcome, RequireValidationState};
+use crate::policies::require_validation::{
+    evaluate, RequireValidationOutcome, RequireValidationState,
+};
 
 #[kani::proof]
 #[kani::unwind(40)]
 fn validation_expiry_correct() {
     let expires_at: u64 = kani::any();
-    let now_slot:   u64 = kani::any();
+    let now_slot: u64 = kani::any();
 
     // Force the attestation to be EXPIRED.
     // Spec: expired iff (expires_at != 0 AND expires_at <= now_slot).
@@ -29,16 +31,16 @@ fn validation_expiry_correct() {
     kani::assume(cap_hash != [0u8; 32]);
 
     let view = ValidationAttestationView {
-        subject_asset:   Pubkey::default(),
+        subject_asset: Pubkey::default(),
         capability_hash: cap_hash,
-        attestor:        Pubkey::default(),
+        attestor: Pubkey::default(),
         expires_at,
-        revoked:         false,
+        revoked: false,
     };
 
     let state = RequireValidationState {
         required_capability_hash: cap_hash,
-        accepted_attestors:       [Pubkey::default(); 2], // permissionless
+        accepted_attestors: [Pubkey::default(); 2], // permissionless
     };
 
     let outcome = evaluate(state, Some(view), &Pubkey::default(), now_slot);

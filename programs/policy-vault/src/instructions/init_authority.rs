@@ -44,12 +44,14 @@ pub fn handler(
 
     let count = members.len();
     require!(
-        count >= AUTHORITY_MEMBERS_MIN as usize
-            && count <= AUTHORITY_MEMBERS_MAX as usize,
+        count >= AUTHORITY_MEMBERS_MIN as usize && count <= AUTHORITY_MEMBERS_MAX as usize,
         PolicyVaultError::MemberCountOutOfRange,
     );
     require!(threshold >= 1, PolicyVaultError::ThresholdExceedsMembers);
-    require!((threshold as usize) <= count, PolicyVaultError::ThresholdExceedsMembers);
+    require!(
+        (threshold as usize) <= count,
+        PolicyVaultError::ThresholdExceedsMembers
+    );
 
     // Reject duplicates — a duplicated member silently lowers the effective
     // signer floor (e.g., [A, A, B] threshold=2 is functionally 2-of-2, not 2-of-3).
@@ -71,10 +73,10 @@ pub fn handler(
 
     let authority = &mut ctx.accounts.policy_authority;
     authority.payer_agent_asset = payer_agent_asset;
-    authority.bump              = ctx.bumps.policy_authority;
-    authority.threshold         = threshold;
-    authority.member_count      = count as u8;
-    authority._pad0             = 0;
+    authority.bump = ctx.bumps.policy_authority;
+    authority.threshold = threshold;
+    authority.member_count = count as u8;
+    authority._pad0 = 0;
 
     let mut fixed = [Pubkey::default(); AUTHORITY_MEMBERS_MAX as usize];
     for (i, m) in members.iter().enumerate() {

@@ -43,12 +43,12 @@ fn multisig_threshold_enforced() {
 
     let auth = PolicyAuthority {
         payer_agent_asset: Pubkey::default(),
-        bump:              0,
-        threshold:         1, // unused by count_distinct_signing_members itself
+        bump: 0,
+        threshold: 1, // unused by count_distinct_signing_members itself
         member_count,
-        _pad0:             0,
+        _pad0: 0,
         members,
-        _reserved:         [0u8; 4],
+        _reserved: [0u8; 4],
     };
 
     let signer_keys = [pk(s0_byte), pk(s1_byte), pk(s2_byte)];
@@ -61,10 +61,7 @@ fn multisig_threshold_enforced() {
     );
 
     // Property B: count cannot exceed member_count (can't credit non-members).
-    kani::assert(
-        count <= member_count,
-        "count cannot exceed member_count",
-    );
+    kani::assert(count <= member_count, "count cannot exceed member_count");
 
     // Property C (the threshold-enforcement contrapositive):
     // if there are FEWER unique signers than `threshold`, count < threshold.

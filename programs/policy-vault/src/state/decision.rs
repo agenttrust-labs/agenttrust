@@ -39,21 +39,21 @@ impl DenyReason {
     /// Independent of Borsh wire-format ordering.
     pub const fn code(self) -> u8 {
         match self {
-            DenyReason::KillSwitchEngaged           => 1,
-            DenyReason::SpendingPerTxExceeded       => 2,
-            DenyReason::SpendingDailyExceeded       => 3,
-            DenyReason::SpendingWeeklyExceeded      => 4,
-            DenyReason::VelocityWindowExceeded      => 5,
-            DenyReason::CounterpartyTierBelowMin    => 6,
-            DenyReason::CounterpartyRiskAboveMax    => 7,
+            DenyReason::KillSwitchEngaged => 1,
+            DenyReason::SpendingPerTxExceeded => 2,
+            DenyReason::SpendingDailyExceeded => 3,
+            DenyReason::SpendingWeeklyExceeded => 4,
+            DenyReason::VelocityWindowExceeded => 5,
+            DenyReason::CounterpartyTierBelowMin => 6,
+            DenyReason::CounterpartyRiskAboveMax => 7,
             DenyReason::CounterpartyConfidenceBelow => 8,
-            DenyReason::AtomStatsWrongOwner         => 9,
-            DenyReason::AtomStatsSchemaMismatch     => 10,
-            DenyReason::AttestationMissing          => 11,
-            DenyReason::AttestationExpired          => 12,
-            DenyReason::AttestationRevoked          => 13,
+            DenyReason::AtomStatsWrongOwner => 9,
+            DenyReason::AtomStatsSchemaMismatch => 10,
+            DenyReason::AttestationMissing => 11,
+            DenyReason::AttestationExpired => 12,
+            DenyReason::AttestationRevoked => 13,
             DenyReason::AttestationAttestorRejected => 14,
-            DenyReason::UnratedTreatmentDeny        => 15,
+            DenyReason::UnratedTreatmentDeny => 15,
         }
     }
 }

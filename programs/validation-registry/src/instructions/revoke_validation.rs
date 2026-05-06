@@ -30,18 +30,21 @@ pub struct RevokeValidation<'info> {
 }
 
 pub fn handler(
-    ctx:                  Context<RevokeValidation>,
-    subject_asset:        Pubkey,
-    capability_hash:      [u8; 32],
+    ctx: Context<RevokeValidation>,
+    subject_asset: Pubkey,
+    capability_hash: [u8; 32],
     revocation_reason_hash: [u8; 32],
 ) -> Result<()> {
     let att = &mut ctx.accounts.attestation;
-    require!(att.attestor == ctx.accounts.attestor.key(), ValidationRegistryError::NotOriginalAttestor);
+    require!(
+        att.attestor == ctx.accounts.attestor.key(),
+        ValidationRegistryError::NotOriginalAttestor
+    );
     require!(!att.revoked, ValidationRegistryError::AlreadyRevoked);
 
     let now_slot = Clock::get()?.slot;
-    att.revoked                = true;
-    att.revoked_at             = now_slot;
+    att.revoked = true;
+    att.revoked_at = now_slot;
     att.revocation_reason_hash = revocation_reason_hash;
 
     let profile = &mut ctx.accounts.attestor_profile;
@@ -53,7 +56,7 @@ pub fn handler(
     emit!(AttestationRevoked {
         subject_asset,
         capability_hash,
-        attestor:   ctx.accounts.attestor.key(),
+        attestor: ctx.accounts.attestor.key(),
         revoked_at: now_slot,
     });
     Ok(())

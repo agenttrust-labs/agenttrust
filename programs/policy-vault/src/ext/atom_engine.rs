@@ -18,13 +18,13 @@ pub const ATOM_ENGINE_ID: Pubkey = pubkey!("AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfY
 // ---------------------------------------------------------------------------
 // Byte-offset constants — DO NOT re-derive; verified against pinned commit.
 // ---------------------------------------------------------------------------
-pub const ATOM_STATS_SIZE:                       usize = 561;
-pub const ATOM_STATS_RISK_SCORE_OFFSET:          usize = 549;
-pub const ATOM_STATS_TRUST_TIER_OFFSET:          usize = 551; // immediate (v1 demo default)
-pub const ATOM_STATS_TIER_CONFIRMED_OFFSET:      usize = 555; // post-vesting (production mode)
-pub const ATOM_STATS_CONFIDENCE_OFFSET:          usize = 557; // u16 LE — bytes 557..559
-pub const ATOM_STATS_SCHEMA_VERSION_OFFSET:      usize = 560;
-pub const ATOM_STATS_SCHEMA_VERSION_EXPECTED:    u8    = 1;
+pub const ATOM_STATS_SIZE: usize = 561;
+pub const ATOM_STATS_RISK_SCORE_OFFSET: usize = 549;
+pub const ATOM_STATS_TRUST_TIER_OFFSET: usize = 551; // immediate (v1 demo default)
+pub const ATOM_STATS_TIER_CONFIRMED_OFFSET: usize = 555; // post-vesting (production mode)
+pub const ATOM_STATS_CONFIDENCE_OFFSET: usize = 557; // u16 LE — bytes 557..559
+pub const ATOM_STATS_SCHEMA_VERSION_OFFSET: usize = 560;
+pub const ATOM_STATS_SCHEMA_VERSION_EXPECTED: u8 = 1;
 
 /// Maximum tier value per ATOM spec. A tier byte above this is fail-loud
 /// (`AtomStatsSchemaMismatch`) — if Quantu ever extends the tier range we
@@ -39,8 +39,8 @@ pub const ATOM_TIER_MAX: u8 = 4;
 pub struct AtomStatsView {
     pub tier_immediate: u8,
     pub tier_confirmed: u8,
-    pub risk_score:     u8,
-    pub confidence:     u16,
+    pub risk_score: u8,
+    pub confidence: u16,
 }
 
 // ---------------------------------------------------------------------------
@@ -56,9 +56,7 @@ pub struct AtomStatsView {
 /// - `Err(PolicyVaultError::*)` — account exists but fails owner / size /
 ///   schema-version / tier-range checks. Fail-loud so a Quantu schema bump
 ///   or a tampered account can't silently pass through.
-pub fn read_atom_stats_view(
-    account: &UncheckedAccount,
-) -> Result<Option<AtomStatsView>> {
+pub fn read_atom_stats_view(account: &UncheckedAccount) -> Result<Option<AtomStatsView>> {
     // Uninitialised: no rent OR no data → return None for graceful degradation.
     if account.lamports() == 0 || account.data_is_empty() {
         return Ok(None);
@@ -91,8 +89,8 @@ pub fn parse_atom_stats_bytes(data: &[u8]) -> Result<AtomStatsView> {
 
     let tier_immediate = data[ATOM_STATS_TRUST_TIER_OFFSET];
     let tier_confirmed = data[ATOM_STATS_TIER_CONFIRMED_OFFSET];
-    let risk_score     = data[ATOM_STATS_RISK_SCORE_OFFSET];
-    let confidence     = u16::from_le_bytes([
+    let risk_score = data[ATOM_STATS_RISK_SCORE_OFFSET];
+    let confidence = u16::from_le_bytes([
         data[ATOM_STATS_CONFIDENCE_OFFSET],
         data[ATOM_STATS_CONFIDENCE_OFFSET + 1],
     ]);
@@ -127,20 +125,20 @@ mod tests {
 
     /// Build a 561-byte AtomStats with the given field values.
     fn synth_atom_stats(
-        risk_score:     u8,
+        risk_score: u8,
         tier_immediate: u8,
         tier_confirmed: u8,
-        confidence:     u16,
+        confidence: u16,
         schema_version: u8,
     ) -> Vec<u8> {
         let mut buf = vec![0u8; ATOM_STATS_SIZE];
-        buf[ATOM_STATS_RISK_SCORE_OFFSET]      = risk_score;
-        buf[ATOM_STATS_TRUST_TIER_OFFSET]      = tier_immediate;
-        buf[ATOM_STATS_TIER_CONFIRMED_OFFSET]  = tier_confirmed;
+        buf[ATOM_STATS_RISK_SCORE_OFFSET] = risk_score;
+        buf[ATOM_STATS_TRUST_TIER_OFFSET] = tier_immediate;
+        buf[ATOM_STATS_TIER_CONFIRMED_OFFSET] = tier_confirmed;
         let conf = confidence.to_le_bytes();
-        buf[ATOM_STATS_CONFIDENCE_OFFSET]      = conf[0];
-        buf[ATOM_STATS_CONFIDENCE_OFFSET + 1]  = conf[1];
-        buf[ATOM_STATS_SCHEMA_VERSION_OFFSET]  = schema_version;
+        buf[ATOM_STATS_CONFIDENCE_OFFSET] = conf[0];
+        buf[ATOM_STATS_CONFIDENCE_OFFSET + 1] = conf[1];
+        buf[ATOM_STATS_SCHEMA_VERSION_OFFSET] = schema_version;
         buf
     }
 
@@ -148,10 +146,10 @@ mod tests {
     fn happy_path_extracts_all_fields() {
         let buf = synth_atom_stats(42, 3, 2, 8500, 1);
         let view = parse_atom_stats_bytes(&buf).unwrap();
-        assert_eq!(view.risk_score,     42);
+        assert_eq!(view.risk_score, 42);
         assert_eq!(view.tier_immediate, 3);
         assert_eq!(view.tier_confirmed, 2);
-        assert_eq!(view.confidence,     8500);
+        assert_eq!(view.confidence, 8500);
     }
 
     #[test]
@@ -172,7 +170,10 @@ mod tests {
     fn rejects_schema_version_zero() {
         let buf = synth_atom_stats(0, 0, 0, 0, 0);
         let err = parse_atom_stats_bytes(&buf).unwrap_err();
-        assert_eq!(format!("{:?}", err).contains("AtomStatsSchemaMismatch"), true);
+        assert_eq!(
+            format!("{:?}", err).contains("AtomStatsSchemaMismatch"),
+            true
+        );
     }
 
     #[test]
@@ -180,7 +181,10 @@ mod tests {
         // Quantu v0.7.0 canary — fail loud rather than silently misread fields.
         let buf = synth_atom_stats(10, 2, 1, 5000, 2);
         let err = parse_atom_stats_bytes(&buf).unwrap_err();
-        assert_eq!(format!("{:?}", err).contains("AtomStatsSchemaMismatch"), true);
+        assert_eq!(
+            format!("{:?}", err).contains("AtomStatsSchemaMismatch"),
+            true
+        );
     }
 
     #[test]
@@ -189,14 +193,20 @@ mod tests {
         // schema_version == 1 implies tampering or an undeclared spec change.
         let buf = synth_atom_stats(0, /*tier_imm*/ 5, /*tier_conf*/ 0, 0, 1);
         let err = parse_atom_stats_bytes(&buf).unwrap_err();
-        assert_eq!(format!("{:?}", err).contains("AtomStatsSchemaMismatch"), true);
+        assert_eq!(
+            format!("{:?}", err).contains("AtomStatsSchemaMismatch"),
+            true
+        );
     }
 
     #[test]
     fn rejects_tier_confirmed_above_max() {
         let buf = synth_atom_stats(0, /*tier_imm*/ 0, /*tier_conf*/ 9, 0, 1);
         let err = parse_atom_stats_bytes(&buf).unwrap_err();
-        assert_eq!(format!("{:?}", err).contains("AtomStatsSchemaMismatch"), true);
+        assert_eq!(
+            format!("{:?}", err).contains("AtomStatsSchemaMismatch"),
+            true
+        );
     }
 
     #[test]
@@ -211,7 +221,7 @@ mod tests {
     fn confidence_is_little_endian() {
         // 0x1234 in LE should be [0x34, 0x12]; we want to read it back as 0x1234.
         let mut buf = synth_atom_stats(0, 0, 0, 0, 1);
-        buf[ATOM_STATS_CONFIDENCE_OFFSET]     = 0x34;
+        buf[ATOM_STATS_CONFIDENCE_OFFSET] = 0x34;
         buf[ATOM_STATS_CONFIDENCE_OFFSET + 1] = 0x12;
         let view = parse_atom_stats_bytes(&buf).unwrap();
         assert_eq!(view.confidence, 0x1234);

@@ -23,24 +23,23 @@ pub struct RegisterAttestor<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(
-    ctx:              Context<RegisterAttestor>,
-    display_name_uri: String,
-) -> Result<()> {
+pub fn handler(ctx: Context<RegisterAttestor>, display_name_uri: String) -> Result<()> {
     require!(
         display_name_uri.len() <= MAX_DISPLAY_NAME_URI_LEN,
         ValidationRegistryError::UriTooLong,
     );
 
     let profile = &mut ctx.accounts.attestor_profile;
-    profile.attestor                  = ctx.accounts.attestor.key();
-    profile.display_name_uri          = display_name_uri;
-    profile.total_attestations        = 0;
+    profile.attestor = ctx.accounts.attestor.key();
+    profile.display_name_uri = display_name_uri;
+    profile.total_attestations = 0;
     profile.total_revoked_by_attestor = 0;
-    profile.total_revoked_externally  = 0;
-    profile.registered_at             = Clock::get()?.slot;
-    profile.bump                      = ctx.bumps.attestor_profile;
+    profile.total_revoked_externally = 0;
+    profile.registered_at = Clock::get()?.slot;
+    profile.bump = ctx.bumps.attestor_profile;
 
-    emit!(AttestorRegistered { attestor: ctx.accounts.attestor.key() });
+    emit!(AttestorRegistered {
+        attestor: ctx.accounts.attestor.key()
+    });
     Ok(())
 }

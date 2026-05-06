@@ -34,44 +34,52 @@ pub mod trustgate {
 
     /// Create a per-facilitator `TrustGateAuthority` PDA. Must be called once
     /// per facilitator deployment.
-    pub fn init_authority(
-        ctx:         Context<InitAuthority>,
-        facilitator: Pubkey,
-    ) -> Result<()> {
+    pub fn init_authority(ctx: Context<InitAuthority>, facilitator: Pubkey) -> Result<()> {
         instructions::init_authority::handler(ctx, facilitator)
     }
 
     /// PDA-signed CPI to `agent_registry_8004::give_feedback`. Idempotency
     /// enforced via `FeedbackEmissionLog::init`.
     pub fn emit_feedback<'info>(
-        ctx:             Context<'info, EmitFeedback<'info>>,
+        ctx: Context<'info, EmitFeedback<'info>>,
         payment_id_hash: [u8; 32],
-        facilitator:     Pubkey,
-        payee_asset:     Pubkey,
-        score:           u8,
-        tag1:            String,
-        tag2:            String,
-        endpoint:        String,
-        feedback_uri:    String,
+        facilitator: Pubkey,
+        payee_asset: Pubkey,
+        score: u8,
+        tag1: String,
+        tag2: String,
+        endpoint: String,
+        feedback_uri: String,
     ) -> Result<()> {
         instructions::emit_feedback::handler(
-            ctx, payment_id_hash, facilitator, payee_asset, score,
-            tag1, tag2, endpoint, feedback_uri,
+            ctx,
+            payment_id_hash,
+            facilitator,
+            payee_asset,
+            score,
+            tag1,
+            tag2,
+            endpoint,
+            feedback_uri,
         )
     }
 
     /// Emit a negative-score (`DISPUTE_SCORE`) feedback for a disputed payment.
     pub fn dispute_payment<'info>(
-        ctx:                 Context<'info, DisputePayment<'info>>,
-        payment_id_hash:     [u8; 32],
-        facilitator:         Pubkey,
-        payee_asset:         Pubkey,
+        ctx: Context<'info, DisputePayment<'info>>,
+        payment_id_hash: [u8; 32],
+        facilitator: Pubkey,
+        payee_asset: Pubkey,
         dispute_reason_hash: [u8; 32],
-        feedback_uri:        String,
+        feedback_uri: String,
     ) -> Result<()> {
         instructions::dispute_payment::handler(
-            ctx, payment_id_hash, facilitator, payee_asset,
-            dispute_reason_hash, feedback_uri,
+            ctx,
+            payment_id_hash,
+            facilitator,
+            payee_asset,
+            dispute_reason_hash,
+            feedback_uri,
         )
     }
 }

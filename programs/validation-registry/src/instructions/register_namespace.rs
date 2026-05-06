@@ -14,10 +14,10 @@ use crate::errors::ValidationRegistryError;
 use crate::events::NamespaceRegistered;
 use crate::state::CapabilityNamespace;
 
-const MAX_NAME_LEN:    usize = 32;
-const MIN_NAME_LEN:    usize = 3;
+const MAX_NAME_LEN: usize = 32;
+const MIN_NAME_LEN: usize = 3;
 const MAX_VERSION_LEN: usize = 16;
-const MAX_URI_LEN:     usize = 160;
+const MAX_URI_LEN: usize = 160;
 
 #[derive(Accounts)]
 #[instruction(namespace_hash: [u8; 32])]
@@ -38,26 +38,41 @@ pub struct RegisterNamespace<'info> {
 }
 
 pub fn handler(
-    ctx:            Context<RegisterNamespace>,
+    ctx: Context<RegisterNamespace>,
     namespace_hash: [u8; 32],
-    name:           String,
-    version:        String,
-    schema_uri:     String,
+    name: String,
+    version: String,
+    schema_uri: String,
 ) -> Result<()> {
-    require!(name.len() >= MIN_NAME_LEN,        ValidationRegistryError::NameTooShort);
-    require!(name.len() <= MAX_NAME_LEN,        ValidationRegistryError::NameTooLong);
-    require!(!name.contains(':'),               ValidationRegistryError::NamespaceColonForbidden);
-    require!(version.len() <= MAX_VERSION_LEN,  ValidationRegistryError::VersionTooLong);
-    require!(schema_uri.len() <= MAX_URI_LEN,   ValidationRegistryError::UriTooLong);
+    require!(
+        name.len() >= MIN_NAME_LEN,
+        ValidationRegistryError::NameTooShort
+    );
+    require!(
+        name.len() <= MAX_NAME_LEN,
+        ValidationRegistryError::NameTooLong
+    );
+    require!(
+        !name.contains(':'),
+        ValidationRegistryError::NamespaceColonForbidden
+    );
+    require!(
+        version.len() <= MAX_VERSION_LEN,
+        ValidationRegistryError::VersionTooLong
+    );
+    require!(
+        schema_uri.len() <= MAX_URI_LEN,
+        ValidationRegistryError::UriTooLong
+    );
 
     let ns = &mut ctx.accounts.namespace;
     ns.namespace_hash = namespace_hash;
-    ns.name           = name;
-    ns.version        = version;
-    ns.schema_uri     = schema_uri;
-    ns.registered_at  = Clock::get()?.slot;
-    ns.creator        = ctx.accounts.creator.key();
-    ns.bump           = ctx.bumps.namespace;
+    ns.name = name;
+    ns.version = version;
+    ns.schema_uri = schema_uri;
+    ns.registered_at = Clock::get()?.slot;
+    ns.creator = ctx.accounts.creator.key();
+    ns.bump = ctx.bumps.namespace;
 
     emit!(NamespaceRegistered {
         namespace_hash,

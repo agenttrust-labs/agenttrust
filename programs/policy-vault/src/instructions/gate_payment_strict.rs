@@ -56,20 +56,20 @@ pub fn handler(
 /// Stable mapping — add cases here whenever a new `DenyReason` lands.
 fn deny_reason_to_error(reason: DenyReason) -> PolicyVaultError {
     match reason {
-        DenyReason::KillSwitchEngaged           => PolicyVaultError::KillSwitchEngaged,
-        DenyReason::SpendingPerTxExceeded       => PolicyVaultError::SpendingPerTxExceeded,
-        DenyReason::SpendingDailyExceeded       => PolicyVaultError::SpendingDailyExceeded,
-        DenyReason::SpendingWeeklyExceeded      => PolicyVaultError::SpendingWeeklyExceeded,
-        DenyReason::VelocityWindowExceeded      => PolicyVaultError::VelocityWindowExceeded,
-        DenyReason::CounterpartyTierBelowMin    => PolicyVaultError::CounterpartyTierBelowMin,
-        DenyReason::CounterpartyRiskAboveMax    => PolicyVaultError::CounterpartyRiskAboveMax,
+        DenyReason::KillSwitchEngaged => PolicyVaultError::KillSwitchEngaged,
+        DenyReason::SpendingPerTxExceeded => PolicyVaultError::SpendingPerTxExceeded,
+        DenyReason::SpendingDailyExceeded => PolicyVaultError::SpendingDailyExceeded,
+        DenyReason::SpendingWeeklyExceeded => PolicyVaultError::SpendingWeeklyExceeded,
+        DenyReason::VelocityWindowExceeded => PolicyVaultError::VelocityWindowExceeded,
+        DenyReason::CounterpartyTierBelowMin => PolicyVaultError::CounterpartyTierBelowMin,
+        DenyReason::CounterpartyRiskAboveMax => PolicyVaultError::CounterpartyRiskAboveMax,
         DenyReason::CounterpartyConfidenceBelow => PolicyVaultError::CounterpartyConfidenceBelow,
-        DenyReason::AtomStatsWrongOwner         => PolicyVaultError::AtomStatsWrongOwner,
-        DenyReason::AtomStatsSchemaMismatch     => PolicyVaultError::AtomStatsSchemaMismatch,
-        DenyReason::AttestationMissing          => PolicyVaultError::AttestationMissing,
-        DenyReason::AttestationExpired          => PolicyVaultError::AttestationExpired,
-        DenyReason::AttestationRevoked          => PolicyVaultError::AttestationRevoked,
+        DenyReason::AtomStatsWrongOwner => PolicyVaultError::AtomStatsWrongOwner,
+        DenyReason::AtomStatsSchemaMismatch => PolicyVaultError::AtomStatsSchemaMismatch,
+        DenyReason::AttestationMissing => PolicyVaultError::AttestationMissing,
+        DenyReason::AttestationExpired => PolicyVaultError::AttestationExpired,
+        DenyReason::AttestationRevoked => PolicyVaultError::AttestationRevoked,
         DenyReason::AttestationAttestorRejected => PolicyVaultError::AttestationAttestorRejected,
-        DenyReason::UnratedTreatmentDeny        => PolicyVaultError::UnratedTreatmentDeny,
+        DenyReason::UnratedTreatmentDeny => PolicyVaultError::UnratedTreatmentDeny,
     }
 }

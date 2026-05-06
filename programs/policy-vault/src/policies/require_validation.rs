@@ -15,8 +15,8 @@ use anchor_lang::prelude::*;
 use crate::ext::validation_registry::ValidationAttestationView;
 use crate::state::{DenyReason, PolicyAccount};
 
-const ZERO_HASH:   [u8; 32] = [0u8; 32];
-const ZERO_PUBKEY: Pubkey   = Pubkey::new_from_array([0u8; 32]);
+const ZERO_HASH: [u8; 32] = [0u8; 32];
+const ZERO_PUBKEY: Pubkey = Pubkey::new_from_array([0u8; 32]);
 
 // ---------------------------------------------------------------------------
 // Snapshot
@@ -24,14 +24,14 @@ const ZERO_PUBKEY: Pubkey   = Pubkey::new_from_array([0u8; 32]);
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RequireValidationState {
     pub required_capability_hash: [u8; 32], // zeros = policy not enabled
-    pub accepted_attestors:       [Pubkey; 2], // both zeros = permissionless
+    pub accepted_attestors: [Pubkey; 2],    // both zeros = permissionless
 }
 
 impl From<&PolicyAccount> for RequireValidationState {
     fn from(p: &PolicyAccount) -> Self {
         RequireValidationState {
             required_capability_hash: p.required_capability_hash,
-            accepted_attestors:       p.accepted_attestors,
+            accepted_attestors: p.accepted_attestors,
         }
     }
 }
@@ -66,7 +66,9 @@ pub fn evaluate(
 
     let view = match attestation {
         Some(v) => v,
-        None    => return RequireValidationOutcome::RequiresAttestation(state.required_capability_hash),
+        None => {
+            return RequireValidationOutcome::RequiresAttestation(state.required_capability_hash)
+        }
     };
 
     // Subject check — attestation must be for THIS payee.
@@ -90,8 +92,8 @@ pub fn evaluate(
     }
 
     // Attestor whitelist. Both slots zero ⇒ permissionless (any attestor OK).
-    let permissionless = state.accepted_attestors[0] == ZERO_PUBKEY
-        && state.accepted_attestors[1] == ZERO_PUBKEY;
+    let permissionless =
+        state.accepted_attestors[0] == ZERO_PUBKEY && state.accepted_attestors[1] == ZERO_PUBKEY;
     if !permissionless {
         let in_list = state.accepted_attestors.iter().any(|a| *a == view.attestor);
         if !in_list {
@@ -124,23 +126,29 @@ mod tests {
     fn permissionless_state(required: [u8; 32]) -> RequireValidationState {
         RequireValidationState {
             required_capability_hash: required,
-            accepted_attestors:       [ZERO_PUBKEY, ZERO_PUBKEY],
+            accepted_attestors: [ZERO_PUBKEY, ZERO_PUBKEY],
         }
     }
 
     fn whitelist_state(required: [u8; 32], allowed: Pubkey) -> RequireValidationState {
         RequireValidationState {
             required_capability_hash: required,
-            accepted_attestors:       [allowed, ZERO_PUBKEY],
+            accepted_attestors: [allowed, ZERO_PUBKEY],
         }
     }
 
-    fn view(subject: Pubkey, cap: [u8; 32], attestor: Pubkey, expires: u64, revoked: bool) -> ValidationAttestationView {
+    fn view(
+        subject: Pubkey,
+        cap: [u8; 32],
+        attestor: Pubkey,
+        expires: u64,
+        revoked: bool,
+    ) -> ValidationAttestationView {
         ValidationAttestationView {
-            subject_asset:   subject,
+            subject_asset: subject,
             capability_hash: cap,
             attestor,
-            expires_at:      expires,
+            expires_at: expires,
             revoked,
         }
     }
@@ -149,7 +157,10 @@ mod tests {
     fn zero_hash_is_pass_through() {
         // Policy bit set but hash zero → not configured → Allow.
         let s = permissionless_state(ZERO_HASH);
-        assert_eq!(evaluate(s, None, &pk(1), 100), RequireValidationOutcome::Allow);
+        assert_eq!(
+            evaluate(s, None, &pk(1), 100),
+            RequireValidationOutcome::Allow
+        );
     }
 
     #[test]
@@ -165,7 +176,10 @@ mod tests {
     fn happy_path_permissionless() {
         let s = permissionless_state(hash(7));
         let v = view(pk(1), hash(7), pk(99), 0, false);
-        assert_eq!(evaluate(s, Some(v), &pk(1), 100), RequireValidationOutcome::Allow);
+        assert_eq!(
+            evaluate(s, Some(v), &pk(1), 100),
+            RequireValidationOutcome::Allow
+        );
     }
 
     #[test]
@@ -235,7 +249,10 @@ mod tests {
     fn whitelist_allows_listed_attestor() {
         let s = whitelist_state(hash(7), pk(50));
         let v = view(pk(1), hash(7), /*attestor*/ pk(50), 0, false);
-        assert_eq!(evaluate(s, Some(v), &pk(1), 100), RequireValidationOutcome::Allow);
+        assert_eq!(
+            evaluate(s, Some(v), &pk(1), 100),
+            RequireValidationOutcome::Allow
+        );
     }
 
     #[test]
@@ -255,8 +272,14 @@ mod tests {
         let v1 = view(pk(1), hash(7), pk(50), 0, false);
         let v2 = view(pk(1), hash(7), pk(60), 0, false);
         let v3 = view(pk(1), hash(7), pk(99), 0, false);
-        assert_eq!(evaluate(s, Some(v1), &pk(1), 100), RequireValidationOutcome::Allow);
-        assert_eq!(evaluate(s, Some(v2), &pk(1), 100), RequireValidationOutcome::Allow);
+        assert_eq!(
+            evaluate(s, Some(v1), &pk(1), 100),
+            RequireValidationOutcome::Allow
+        );
+        assert_eq!(
+            evaluate(s, Some(v2), &pk(1), 100),
+            RequireValidationOutcome::Allow
+        );
         assert_eq!(
             evaluate(s, Some(v3), &pk(1), 100),
             RequireValidationOutcome::Deny(DenyReason::AttestationAttestorRejected),

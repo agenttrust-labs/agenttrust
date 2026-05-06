@@ -112,20 +112,20 @@ pub fn handler(
 /// `Err` so it can be safely composed inside an atomic settle tx.
 #[allow(clippy::too_many_arguments)]
 pub fn compose_and_apply<'info>(
-    policy_account:        &mut Account<'info, crate::state::PolicyAccount>,
-    velocity_ledger:       &mut Account<'info, crate::state::VelocityLedger>,
-    kill_switch_state:     &Account<'info, crate::state::KillSwitchState>,
-    payer_atom_stats:      Option<&UncheckedAccount<'info>>,
-    payee_atom_stats:      Option<&UncheckedAccount<'info>>,
+    policy_account: &mut Account<'info, crate::state::PolicyAccount>,
+    velocity_ledger: &mut Account<'info, crate::state::VelocityLedger>,
+    kill_switch_state: &Account<'info, crate::state::KillSwitchState>,
+    payer_atom_stats: Option<&UncheckedAccount<'info>>,
+    payee_atom_stats: Option<&UncheckedAccount<'info>>,
     validation_attestation: Option<&UncheckedAccount<'info>>,
-    payer_agent_asset:     Pubkey,
-    payee_agent_asset:     Pubkey,
-    amount:                u64,
-    policy_id:             u32,
+    payer_agent_asset: Pubkey,
+    payee_agent_asset: Pubkey,
+    amount: u64,
+    policy_id: u32,
 ) -> Result<GateDecision> {
     let clock = Clock::get()?;
     let now_slot = clock.slot;
-    let unix_ts  = clock.unix_timestamp;
+    let unix_ts = clock.unix_timestamp;
 
     let policy_snapshot = PolicySnapshot::from(&**policy_account);
     let ledger_snapshot = VelocityLedgerSnapshot::from(&**velocity_ledger);
@@ -133,21 +133,21 @@ pub fn compose_and_apply<'info>(
 
     let payer_atom = match payer_atom_stats {
         Some(acct) => read_atom_stats_view(acct)?,
-        None       => None,
+        None => None,
     };
     let payee_atom = match payee_atom_stats {
         Some(acct) => read_atom_stats_view(acct)?,
-        None       => None,
+        None => None,
     };
     let attestation = match validation_attestation {
         Some(acct) => read_validation_attestation_view(acct)?,
-        None       => None,
+        None => None,
     };
 
     let result = compose_decision(ComposerInput {
-        policy:            policy_snapshot,
-        ledger:            ledger_snapshot,
-        killswitch:        killswitch_snap,
+        policy: policy_snapshot,
+        ledger: ledger_snapshot,
+        killswitch: killswitch_snap,
         payer_atom,
         payee_atom,
         attestation,
@@ -168,7 +168,7 @@ pub fn compose_and_apply<'info>(
                     payer_agent_asset,
                     policy_id,
                     new_cumulative: d.new_cumulative_amount,
-                    slot:           now_slot,
+                    slot: now_slot,
                 });
             }
             emit!(PolicyAllowed {
@@ -186,7 +186,7 @@ pub fn compose_and_apply<'info>(
                 amount,
                 policy_id,
                 reason: reason.code(),
-                slot:   now_slot,
+                slot: now_slot,
             });
         }
         GateDecision::RequireValidation(hash) => {
@@ -194,7 +194,7 @@ pub fn compose_and_apply<'info>(
                 payer_agent_asset,
                 payee_agent_asset,
                 capability_hash: hash,
-                slot:            now_slot,
+                slot: now_slot,
             });
         }
     }

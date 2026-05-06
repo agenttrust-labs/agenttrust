@@ -8,10 +8,10 @@
 // ---------------------------------------------------------------------------
 // Policy-kind bitmask flags — `PolicyAccount.enabled_kinds_bitmask`
 // ---------------------------------------------------------------------------
-pub const KIND_KILLSWITCH:         u8 = 0x01;
-pub const KIND_SPENDING:           u8 = 0x02;
-pub const KIND_VELOCITY:           u8 = 0x04;
-pub const KIND_COUNTERPARTY_TIER:  u8 = 0x08;
+pub const KIND_KILLSWITCH: u8 = 0x01;
+pub const KIND_SPENDING: u8 = 0x02;
+pub const KIND_VELOCITY: u8 = 0x04;
+pub const KIND_COUNTERPARTY_TIER: u8 = 0x08;
 pub const KIND_REQUIRE_VALIDATION: u8 = 0x10;
 
 // ---------------------------------------------------------------------------
@@ -25,15 +25,15 @@ pub const GATE_MODE_CONFIRMED: u8 = 1;
 // ---------------------------------------------------------------------------
 // KillSwitch scope encoding
 // ---------------------------------------------------------------------------
-pub const SCOPE_GLOBAL:         u8 = 0;
+pub const SCOPE_GLOBAL: u8 = 0;
 pub const SCOPE_PER_COLLECTION: u8 = 1;
-pub const SCOPE_PER_AGENT:      u8 = 2;
+pub const SCOPE_PER_AGENT: u8 = 2;
 
 // ---------------------------------------------------------------------------
 // default_unrated_treatment — what to do when AtomStats is uninitialised
 // ---------------------------------------------------------------------------
-pub const UNRATED_DENY:               u8 = 0;
-pub const UNRATED_ALLOW:              u8 = 1;
+pub const UNRATED_DENY: u8 = 0;
+pub const UNRATED_ALLOW: u8 = 1;
 pub const UNRATED_REQUIRE_VALIDATION: u8 = 2;
 
 // ---------------------------------------------------------------------------

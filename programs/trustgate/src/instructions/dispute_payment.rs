@@ -11,9 +11,7 @@ use anchor_lang::prelude::*;
 use crate::constants::{DISPUTE_SCORE, DISPUTE_TAG1};
 use crate::errors::TrustGateError;
 use crate::events::PaymentDisputed;
-use crate::ext::agent_registry::{
-    invoke_give_feedback, GiveFeedbackAccounts, GiveFeedbackArgs,
-};
+use crate::ext::agent_registry::{invoke_give_feedback, GiveFeedbackAccounts, GiveFeedbackArgs};
 use crate::state::{FeedbackEmissionLog, TrustGateAuthority};
 
 const ZERO_HASH: [u8; 32] = [0u8; 32];
@@ -45,12 +43,12 @@ pub struct DisputePayment<'info> {
 }
 
 pub fn handler<'info>(
-    ctx:                 Context<'info, DisputePayment<'info>>,
-    payment_id_hash:     [u8; 32],
-    facilitator:         Pubkey,
-    payee_asset:         Pubkey,
+    ctx: Context<'info, DisputePayment<'info>>,
+    payment_id_hash: [u8; 32],
+    facilitator: Pubkey,
+    payee_asset: Pubkey,
     dispute_reason_hash: [u8; 32],
-    feedback_uri:        String,
+    feedback_uri: String,
 ) -> Result<()> {
     // Auth: only the facilitator can file disputes under their own authority.
     // Same rationale as emit_feedback — protects on-chain reputation from
@@ -61,8 +59,11 @@ pub fn handler<'info>(
         TrustGateError::FacilitatorSignerMismatch,
     );
 
-    require!(dispute_reason_hash != ZERO_HASH, TrustGateError::DisputeReasonRequired);
-    require!(feedback_uri.len() <= 256,        TrustGateError::UriTooLong);
+    require!(
+        dispute_reason_hash != ZERO_HASH,
+        TrustGateError::DisputeReasonRequired
+    );
+    require!(feedback_uri.len() <= 256, TrustGateError::UriTooLong);
 
     let now_slot = Clock::get()?.slot;
 
@@ -71,13 +72,13 @@ pub fn handler<'info>(
     let tag2 = hex_prefix(&dispute_reason_hash, 8);
 
     let args = GiveFeedbackArgs {
-        value:              0,
-        value_decimals:     0,
-        score:              Some(DISPUTE_SCORE),
+        value: 0,
+        value_decimals: 0,
+        score: Some(DISPUTE_SCORE),
         feedback_file_hash: Some(dispute_reason_hash),
-        tag1:               String::from(DISPUTE_TAG1),
+        tag1: String::from(DISPUTE_TAG1),
         tag2,
-        endpoint:           String::from(""),
+        endpoint: String::from(""),
         feedback_uri,
     };
 
@@ -96,12 +97,12 @@ pub fn handler<'info>(
 
     let log = &mut ctx.accounts.emission_log;
     log.payment_id_hash = payment_id_hash;
-    log.bump            = ctx.bumps.emission_log;
-    log.score           = DISPUTE_SCORE;
-    log.is_dispute      = 1;
-    log._pad0           = [0u8; 5];
+    log.bump = ctx.bumps.emission_log;
+    log.score = DISPUTE_SCORE;
+    log.is_dispute = 1;
+    log._pad0 = [0u8; 5];
     log.emitted_at_slot = now_slot;
-    log._reserved       = [0u8; 16];
+    log._reserved = [0u8; 16];
 
     let auth = &mut ctx.accounts.authority;
     auth.dispute_count = auth.dispute_count.saturating_add(1);
@@ -128,26 +129,29 @@ fn hex_prefix(bytes: &[u8; 32], n: usize) -> String {
 
 fn unpack_cpi_accounts<'info>(
     remaining: &[AccountInfo<'info>],
-    client:    &AccountInfo<'info>,
+    client: &AccountInfo<'info>,
 ) -> Result<GiveFeedbackAccounts<'info>> {
-    require!(remaining.len() >= 4, TrustGateError::AgentRegistryProgramMismatch);
+    require!(
+        remaining.len() >= 4,
+        TrustGateError::AgentRegistryProgramMismatch
+    );
 
-    let agent_account  = remaining[0].clone();
-    let asset          = remaining[1].clone();
-    let collection     = remaining[2].clone();
+    let agent_account = remaining[0].clone();
+    let asset = remaining[1].clone();
+    let collection = remaining[2].clone();
     let system_program = remaining[3].clone();
 
-    let (atom_config, atom_stats, atom_engine_program, registry_authority) =
-        if remaining.len() >= 8 {
-            (
-                Some(remaining[4].clone()),
-                Some(remaining[5].clone()),
-                Some(remaining[6].clone()),
-                Some(remaining[7].clone()),
-            )
-        } else {
-            (None, None, None, None)
-        };
+    let (atom_config, atom_stats, atom_engine_program, registry_authority) = if remaining.len() >= 8
+    {
+        (
+            Some(remaining[4].clone()),
+            Some(remaining[5].clone()),
+            Some(remaining[6].clone()),
+            Some(remaining[7].clone()),
+        )
+    } else {
+        (None, None, None, None)
+    };
 
     Ok(GiveFeedbackAccounts {
         client: client.clone(),

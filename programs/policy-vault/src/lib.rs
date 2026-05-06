@@ -23,14 +23,15 @@ pub mod proofs;
 // at crate root so the `#[program]` macro can resolve them. Named imports
 // (not glob) — globbing all four modules would cause `handler` symbol
 // collisions since each instruction module exports its own `pub fn handler`.
-pub use state::{DenyReason, GateDecision};
 pub use instructions::gate_payment::GatePayment;
 pub use instructions::init_authority::InitAuthority;
 pub use instructions::init_killswitch::InitKillSwitch;
 pub use instructions::init_policy::{
-    CounterpartyConfig, InitPolicy, InitPolicyArgs, SpendingConfig, ValidationConfig, VelocityConfig,
+    CounterpartyConfig, InitPolicy, InitPolicyArgs, SpendingConfig, ValidationConfig,
+    VelocityConfig,
 };
 pub use instructions::set_killswitch::SetKillSwitch;
+pub use state::{DenyReason, GateDecision};
 // Anchor-generated `__client_accounts_*` modules are `pub(crate)`; bring them
 // to crate root so the `#[program]` macro can resolve `crate::__client_accounts_*`.
 pub(crate) use instructions::gate_payment::__client_accounts_gate_payment;
@@ -55,10 +56,7 @@ pub mod policy_vault {
     }
 
     /// Create a per-agent `KillSwitchState` PDA (initial state: paused = false).
-    pub fn init_killswitch(
-        ctx: Context<InitKillSwitch>,
-        payer_agent_asset: Pubkey,
-    ) -> Result<()> {
+    pub fn init_killswitch(ctx: Context<InitKillSwitch>, payer_agent_asset: Pubkey) -> Result<()> {
         instructions::init_killswitch::handler(ctx, payer_agent_asset)
     }
 
@@ -95,7 +93,12 @@ pub mod policy_vault {
         policy_id: u32,
     ) -> Result<GateDecision> {
         instructions::gate_payment::handler(
-            ctx, payer_agent_asset, payee_agent_asset, amount, mint, policy_id,
+            ctx,
+            payer_agent_asset,
+            payee_agent_asset,
+            amount,
+            mint,
+            policy_id,
         )
     }
 
@@ -113,7 +116,12 @@ pub mod policy_vault {
         policy_id: u32,
     ) -> Result<()> {
         instructions::gate_payment_strict::handler(
-            ctx, payer_agent_asset, payee_agent_asset, amount, mint, policy_id,
+            ctx,
+            payer_agent_asset,
+            payee_agent_asset,
+            amount,
+            mint,
+            policy_id,
         )
     }
 }

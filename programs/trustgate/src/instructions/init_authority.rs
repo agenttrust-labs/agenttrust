@@ -31,18 +31,18 @@ pub struct InitAuthority<'info> {
 pub fn handler(ctx: Context<InitAuthority>, facilitator: Pubkey) -> Result<()> {
     let now_slot = Clock::get()?.slot;
     let auth = &mut ctx.accounts.authority;
-    auth.facilitator     = facilitator;
-    auth.bump            = ctx.bumps.authority;
-    auth._pad0           = [0u8; 7];
-    auth.feedback_count  = 0;
-    auth.dispute_count   = 0;
+    auth.facilitator = facilitator;
+    auth.bump = ctx.bumps.authority;
+    auth._pad0 = [0u8; 7];
+    auth.feedback_count = 0;
+    auth.dispute_count = 0;
     auth.created_at_slot = now_slot;
-    auth._reserved       = [0u8; 32];
+    auth._reserved = [0u8; 32];
 
     emit!(AuthorityInitialized {
         facilitator,
         authority: ctx.accounts.authority.key(),
-        slot:      now_slot,
+        slot: now_slot,
     });
     Ok(())
 }
