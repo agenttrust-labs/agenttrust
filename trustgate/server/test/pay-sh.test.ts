@@ -18,7 +18,10 @@ import {
   PayShDeps,
   ReplayCache,
   VerifyContext,
+  bytesToHex,
+  canonicalChallengeBytes,
   deriveMemoHash,
+  signEnvelope,
 } from "../src/facilitators";
 
 // ---------------------------------------------------------------------------
@@ -26,7 +29,12 @@ import {
 // ---------------------------------------------------------------------------
 
 const NETWORK = "solana-devnet";
-const FEE_PAYER = Keypair.generate().publicKey;
+
+// Facilitator keypair pulls double duty in the tests:
+//   - .publicKey is `deps.feePayer`, the verification key for B5
+//   - .secretKey signs the test fixtures via canonicalChallengeBytes
+const FACILITATOR_KP = Keypair.generate();
+const FEE_PAYER      = FACILITATOR_KP.publicKey;
 
 const PAYER_AGENT  = Keypair.generate().publicKey;
 const PAYEE_AGENT  = Keypair.generate().publicKey;
@@ -42,32 +50,95 @@ function reqWith(body: unknown): FakeReq {
   return { body, header: () => undefined };
 }
 
-function makeRequirements(overrides: Record<string, unknown> = {}): Record<string, unknown> {
-  const base = {
-    scheme:            "exact",
-    network:           NETWORK,
-    maxAmountRequired: "1000",
-    asset:             MINT_USDC.toBase58(),
-    payTo:             PAYEE_RECIP.toBase58(),
-    resource:          "/protected",
-    maxTimeoutSeconds: 60,
-    extra: {
-      feePayer:   FEE_PAYER.toBase58(),
-      memo:       MEMO_HEX,
-      agentTrust: {
-        payerAgentAsset: PAYER_AGENT.toBase58(),
-        payeeAgentAsset: PAYEE_AGENT.toBase58(),
-        payeeRecipient:  PAYEE_RECIP.toBase58(),
-        policyId:        1,
-      },
-    },
-  };
-  return { ...base, ...overrides };
+interface MakeRequirementsOptions {
+  readonly overrides?: Record<string, unknown>;
+  readonly signer?:    Keypair;
+  readonly issuedAt?:  number;
+  /** Set true to skip signing — produces a fixture with bogus sig. */
+  readonly skipSign?:  boolean;
+  /** When skipSign=false but you want to inject a wrong sig, set this. */
+  readonly forceSignatureHex?: string;
 }
 
-function makeBody(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function makeRequirements(opts: MakeRequirementsOptions = {}): Record<string, unknown> {
+  const overrides = opts.overrides ?? {};
+  const signer    = opts.signer    ?? FACILITATOR_KP;
+  const issuedAt  = opts.issuedAt  ?? Date.now();
+
+  // Top-level fields are mergeable; `extra` is its own merge layer.
+  const extraOverride = (overrides.extra as Record<string, unknown> | undefined) ?? {};
+  const agentTrustOverride = (extraOverride.agentTrust as Record<string, unknown> | undefined) ?? {};
+  const memo = (extraOverride.memo as string | undefined) ?? MEMO_HEX;
+
+  const network          = (overrides.network          as string | undefined) ?? NETWORK;
+  const amount           = (overrides.maxAmountRequired as string | undefined) ?? "1000";
+  const asset            = (overrides.asset            as string | undefined) ?? MINT_USDC.toBase58();
+  const payTo            = (overrides.payTo            as string | undefined) ?? PAYEE_RECIP.toBase58();
+  const payerAgentAsset  = (agentTrustOverride.payerAgentAsset as string | undefined) ?? PAYER_AGENT.toBase58();
+  const payeeAgentAsset  = (agentTrustOverride.payeeAgentAsset as string | undefined) ?? PAYEE_AGENT.toBase58();
+  const payeeRecipient   = (agentTrustOverride.payeeRecipient  as string | undefined) ?? PAYEE_RECIP.toBase58();
+  const policyId         = (agentTrustOverride.policyId         as number | undefined) ?? 1;
+
+  const memoHash = deriveMemoHash(memo);
+  const sigHex = opts.forceSignatureHex
+    ? opts.forceSignatureHex
+    : opts.skipSign
+      ? "00".repeat(64)
+      : bytesToHex(signEnvelope(
+          canonicalChallengeBytes({
+            issuedAt,
+            network,
+            amount: BigInt(amount),
+            asset,
+            payTo,
+            payerAgentAsset,
+            payeeAgentAsset,
+            payeeRecipient,
+            policyId,
+            paymentIdHashHex: bytesToHex(memoHash),
+          }),
+          signer.secretKey,
+        ));
+
+  const baseExtra = {
+    feePayer:   FEE_PAYER.toBase58(),
+    memo,
+    agentTrust: {
+      payerAgentAsset,
+      payeeAgentAsset,
+      payeeRecipient,
+      policyId,
+      issuedAt,
+      serviceSignature: sigHex,
+      ...(agentTrustOverride.expectedNetwork !== undefined
+        ? { expectedNetwork: agentTrustOverride.expectedNetwork }
+        : {}),
+    },
+  };
+
+  // Drop the merge keys we already consumed.
+  const {
+    network: _n, maxAmountRequired: _m, asset: _a, payTo: _p,
+    extra: _e,
+    ...rest
+  } = overrides;
+
   return {
-    paymentRequirements: makeRequirements(overrides),
+    scheme:            "exact",
+    network,
+    maxAmountRequired: amount,
+    asset,
+    payTo,
+    resource:          "/protected",
+    maxTimeoutSeconds: 60,
+    extra:             baseExtra,
+    ...rest,
+  };
+}
+
+function makeBody(overrides: Record<string, unknown> = {}, signOpts: MakeRequirementsOptions = {}): Record<string, unknown> {
+  return {
+    paymentRequirements: makeRequirements({ ...signOpts, overrides }),
     paymentPayload: {
       x402Version: 2,
       payload: { transaction: "BASE64TXBYTES" },
@@ -197,6 +268,63 @@ describe("PaySh.parseRequest", () => {
 
   it("accepts when payTo equals payeeRecipient (B2 happy path)", async () => {
     const ctx = await adapter.parseRequest(reqWith(makeBody()) as any);
+    expect(ctx).to.not.equal(null);
+  });
+
+  // B5 — SERVICE-signed challenges. Schema requires serviceSignature +
+  // issuedAt; parseRequest verifies signature against deps.feePayer and
+  // enforces issuedAt + maxTimeoutSeconds expiry.
+
+  it("accepts a valid signature signed by the facilitator (B5 happy)", async () => {
+    const ctx = await adapter.parseRequest(reqWith(makeBody()) as any);
+    expect(ctx).to.not.equal(null);
+  });
+
+  it("rejects a request signed by a different keypair (B5 mismatched pubkey)", async () => {
+    const otherKp = Keypair.generate();
+    const body = makeBody({}, { signer: otherKp });
+    expect(await adapter.parseRequest(reqWith(body) as any)).to.equal(null);
+  });
+
+  it("rejects a tampered signature (B5 bad sig)", async () => {
+    const body = makeBody({}, { forceSignatureHex: "00".repeat(64) });
+    expect(await adapter.parseRequest(reqWith(body) as any)).to.equal(null);
+  });
+
+  it("rejects a sig that authenticates wrong fields (B5 schema drift)", async () => {
+    // Sign canonical bytes with a *different* policyId from what's in the
+    // requirements — the sig won't verify against the on-the-wire fields.
+    const sigOverDifferentFields = bytesToHex(signEnvelope(
+      canonicalChallengeBytes({
+        issuedAt:        Date.now(),
+        network:         NETWORK,
+        amount:          1000n,
+        asset:           MINT_USDC.toBase58(),
+        payTo:           PAYEE_RECIP.toBase58(),
+        payerAgentAsset: PAYER_AGENT.toBase58(),
+        payeeAgentAsset: PAYEE_AGENT.toBase58(),
+        payeeRecipient:  PAYEE_RECIP.toBase58(),
+        policyId:        999,                // ← lies
+        paymentIdHashHex: bytesToHex(deriveMemoHash(MEMO_HEX)),
+      }),
+      FACILITATOR_KP.secretKey,
+    ));
+    const body = makeBody({}, { forceSignatureHex: sigOverDifferentFields });
+    expect(await adapter.parseRequest(reqWith(body) as any)).to.equal(null);
+  });
+
+  it("rejects an expired challenge (B5 issuedAt + maxTimeoutSeconds < now)", async () => {
+    // 2 minutes ago + 60s timeout + 60s clock skew = still 0s expired.
+    const issuedAt = Date.now() - 121_000;
+    const body = makeBody({}, { issuedAt });
+    expect(await adapter.parseRequest(reqWith(body) as any)).to.equal(null);
+  });
+
+  it("accepts a challenge near expiry (within clockSkew)", async () => {
+    // 30s ago + 60s timeout + 60s skew = 90s of headroom. Still valid.
+    const issuedAt = Date.now() - 30_000;
+    const body = makeBody({}, { issuedAt });
+    const ctx = await adapter.parseRequest(reqWith(body) as any);
     expect(ctx).to.not.equal(null);
   });
 });

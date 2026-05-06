@@ -25,6 +25,10 @@ import { createHash } from "crypto";
 import {
   PaySh,
   ReplayCache,
+  bytesToHex,
+  canonicalChallengeBytes,
+  deriveMemoHash,
+  signEnvelope,
 } from "@agenttrust/trustgate-server";
 
 import { makeDemoPayShDeps } from "./deps";
@@ -103,45 +107,39 @@ export function createDemoApp(opts: CreateDemoAppOptions = {}): DemoApp {
 
   const decide = makeTierDecide(counterparties, minTier);
 
-  const requirementsBuilder = buildPaymentRequirements({
+  const memoToHashHex = (memo: string): string => bytesToHex(deriveMemoHash(memo));
+
+  const agentTrustFor = (req: Request) => {
+    const payerHint = (req.header("X-Demo-Payer-Agent") ?? "").trim();
+    const fallbackEntry = counterparties.keys().next().value;
+    const payerB58 = payerHint.length > 0
+      ? payerHint
+      : fallbackEntry ?? payeeAgent.toBase58();
+    return {
+      payerAgentAsset: payerB58,
+      payeeAgentAsset: payeeAgent.toBase58(),
+      payeeRecipient:  payeeRecipient.toBase58(),
+      policyId:        DEMO_POLICY_ID,
+    };
+  };
+
+  const buildForRequest = buildPaymentRequirements({
     scheme:            "exact",
     network,
     amount:            DEMO_AMOUNT_ATOMIC,
     asset:             mint,
-    payTo:             payeeWallet.toBase58(),
+    payTo:             payeeRecipient.toBase58(),
     resource:          "/protected",
     description:       "AgentTrust demo — counterparty-tier gated resource",
     maxTimeoutSeconds: DEMO_MAX_TIMEOUT_SECONDS,
     feePayer:          facilitator.publicKey.toBase58(),
-    agentTrust: {
-      payerAgentAsset: "",         // overridden per request below
-      payeeAgentAsset: payeeAgent.toBase58(),
-      payeeRecipient:  payeeRecipient.toBase58(),
-      policyId:        DEMO_POLICY_ID,
-    },
+    agentTrustFor,
     memoFor: deriveDemoMemo,
+    signChallenge: (bytes) => signEnvelope(bytes, facilitator.secretKey),
+    canonicalBytesOf: canonicalChallengeBytes,
+    bytesToHex,
+    paymentIdHashHexFor: memoToHashHex,
   });
-
-  const buildForRequest = (req: Request) => {
-    const payerHint = (req.header("X-Demo-Payer-Agent") ?? "").trim();
-    const fallbackEntry = counterparties.values().next().value;
-    const payerB58 = payerHint.length > 0
-      ? payerHint
-      : fallbackEntry
-        ? fallbackEntry.agent
-        : payeeAgent.toBase58();
-    const base = requirementsBuilder(req);
-    return {
-      ...base,
-      extra: {
-        ...base.extra,
-        agentTrust: {
-          ...base.extra.agentTrust,
-          payerAgentAsset: payerB58,
-        },
-      },
-    };
-  };
 
   const app = express();
   app.use(express.json({ limit: "256kb" }));

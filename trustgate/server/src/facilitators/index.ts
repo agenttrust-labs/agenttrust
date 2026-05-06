@@ -44,6 +44,7 @@ export {
   type EmitFeedbackFn,
   type EmitFeedbackInput,
   type FeedbackFields,
+  type SignDecisionFn,
   PayShFacilitatorBodySchema,
   PayShPaymentPayloadSchema,
   PayShPaymentRequirementsSchema,
@@ -58,6 +59,14 @@ export {
   bytesToHex,
   sameNetwork,
   DEFAULT_FEEDBACK_SCORE,
+  canonicalChallengeBytes,
+  canonicalDecisionBytes,
+  hexToBytes,
+  signEnvelope,
+  verifyEnvelope,
+  SIGNATURE_HEX_LEN,
+  type ChallengeSignArgs,
+  type DecisionSignArgs,
 } from "./pay-sh";
 
 export { NotImplementedAdapter } from "./stubs/_base";

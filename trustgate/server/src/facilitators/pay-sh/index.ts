@@ -59,6 +59,13 @@ import {
   rejection,
 } from "./proof-validator";
 import { sanitizeDetail } from "./helpers";
+import {
+  canonicalChallengeBytes,
+  canonicalDecisionBytes,
+  hexToBytes,
+  signEnvelope,
+  verifyEnvelope,
+} from "./sig";
 import { PayShRawMeta, attachMeta, readMeta } from "./request-meta";
 import {
   FacilitatorBodySchema,
@@ -83,12 +90,19 @@ export interface OnChainTxValidation {
 
 export type ValidateOnChainTxFn = (txBase64: string) => Promise<OnChainTxValidation>;
 
+/** Function that signs canonical envelope bytes with the facilitator
+ *  keypair. Used by `formatChallenge` to authenticate the verify-response
+ *  decision so the SERVICE can detect tampering in transit.
+ *  Optional — when absent the response decision is unsigned. */
+export type SignDecisionFn = (envelopeBytes: Uint8Array) => Uint8Array;
+
 export interface PayShDeps {
   /** Network slug ("solana-devnet" | "solana-mainnet" | "localnet") the
    *  facilitator gates against. parseRequest rejects mismatches. */
   readonly signingNetwork: string;
   /** Pay.sh-side fee payer. The transfer authority MUST NOT equal this — the
-   *  x402 SVM spec requires the facilitator fee payer be a separate principal. */
+   *  x402 SVM spec requires the facilitator fee payer be a separate principal.
+   *  Also the verification key for inbound SERVICE-signed challenges (B5). */
   readonly feePayer: PublicKey;
   /** Validates a base64 VersionedTransaction and extracts the load-bearing
    *  fields. Production: RPC + parser. Tests: deterministic stub. */
@@ -104,6 +118,12 @@ export interface PayShDeps {
   /** Replay cache. Defaults to a fresh in-memory LRU; pass an external one
    *  to share across processes or persist. */
   readonly replayCache?: ReplayCache;
+  /** B5 — sign verify-response decision envelopes for caller verification.
+   *  Optional; when absent `formatChallenge` returns an unsigned body. */
+  readonly signDecision?: SignDecisionFn;
+  /** Allowed clock skew between SERVICE and AgentTrust facilitator when
+   *  validating `extra.issuedAt`. Defaults to 60_000 ms. */
+  readonly clockSkewMs?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -146,6 +166,20 @@ export class PaySh implements FacilitatorAdapter {
     // different account than the verify-time policy gate analysed.
     if (pr.payTo !== pr.extra.agentTrust.payeeRecipient) return null;
 
+    // B5 — verify the SERVICE-signed challenge and enforce expiry. The
+    // signature binds these requirements to the facilitator that emitted
+    // the 402; without it, an attacker who saw a confirmed Solana tx
+    // could fabricate fresh requirements with their own paymentIdHash and
+    // race the legitimate /settle call.
+    const memoHash = deriveMemoHash(pr.extra.memo);
+    if (!this.verifyServiceSignature(pr, memoHash, amountBig)) return null;
+
+    const skew = this.deps.clockSkewMs ?? 60_000;
+    const expiresAtMs = pr.extra.agentTrust.issuedAt
+      + (pr.maxTimeoutSeconds ?? 60) * 1000
+      + skew;
+    if (Date.now() > expiresAtMs) return null;
+
     const meta: PayShRawMeta = {
       expectedRecipient: new PublicKey(pr.extra.agentTrust.payeeRecipient),
       network: pr.network,
@@ -161,10 +195,33 @@ export class PaySh implements FacilitatorAdapter {
         policyId:      pr.extra.agentTrust.policyId,
         facilitator:   this.name,
         // memo is required at the schema layer — paymentIdHash is always populated.
-        paymentIdHash: deriveMemoHash(pr.extra.memo),
+        paymentIdHash: memoHash,
       },
       meta,
     );
+  }
+
+  private verifyServiceSignature(
+    pr:        import("./schemas").PaymentRequirements,
+    memoHash:  Uint8Array,
+    amount:    bigint,
+  ): boolean {
+    const sigHex = pr.extra.agentTrust.serviceSignature;
+    let sig: Uint8Array;
+    try { sig = hexToBytes(sigHex); } catch { return false; }
+    const message = canonicalChallengeBytes({
+      issuedAt:        pr.extra.agentTrust.issuedAt,
+      network:         pr.network,
+      amount,
+      asset:           pr.asset,
+      payTo:           pr.payTo,
+      payerAgentAsset: pr.extra.agentTrust.payerAgentAsset,
+      payeeAgentAsset: pr.extra.agentTrust.payeeAgentAsset,
+      payeeRecipient:  pr.extra.agentTrust.payeeRecipient,
+      policyId:        pr.extra.agentTrust.policyId,
+      paymentIdHashHex: bytesToHex(memoHash),
+    });
+    return verifyEnvelope(message, sig, this.deps.feePayer.toBytes());
   }
 
   formatChallenge(decision: GateDecision, ctx: VerifyContext): ChallengeResponse {
@@ -198,6 +255,29 @@ export class PaySh implements FacilitatorAdapter {
         };
         break;
     }
+
+    // B5 — sign the outbound decision envelope so the SERVICE can verify
+    // the verify-response wasn't tampered with in transit.
+    if (this.deps.signDecision && ctx.paymentIdHash) {
+      const issuedAt = Date.now();
+      const decisionJson = JSON.stringify(decision);
+      const envelope = canonicalDecisionBytes({
+        issuedAt,
+        paymentIdHashHex: bytesToHex(ctx.paymentIdHash),
+        decisionJson,
+      });
+      const sig = this.deps.signDecision(envelope);
+      body = {
+        ...body,
+        envelope: {
+          issuedAt,
+          paymentIdHash:    bytesToHex(ctx.paymentIdHash),
+          signature:        bytesToHex(sig),
+          signedDecision:   decisionJson,
+        },
+      };
+    }
+
     return { status: httpStatus, headers, body };
   }
 
@@ -331,6 +411,16 @@ function pickAmount(pr: PaymentRequirements): string | null {
 
 // Re-exports for tests + external consumers.
 export { ReplayCache } from "./proof-validator";
+export {
+  canonicalChallengeBytes,
+  canonicalDecisionBytes,
+  hexToBytes,
+  signEnvelope,
+  verifyEnvelope,
+  SIGNATURE_HEX_LEN,
+  type ChallengeSignArgs,
+  type DecisionSignArgs,
+} from "./sig";
 export {
   AgentTrustExtraSchema,
   AmountString,

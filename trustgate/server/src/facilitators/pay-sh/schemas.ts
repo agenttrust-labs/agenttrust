@@ -36,6 +36,11 @@ export const AmountString = z.string().regex(
  *  - `policyId`: u32 PolicyVault seed.
  *  - `expectedNetwork`: optional override of `paymentRequirements.network` —
  *    rare; only set when the SERVICE wants stricter network gating.
+ *  - `issuedAt`: unix ms timestamp at challenge emission (B5).
+ *  - `serviceSignature`: 64-byte hex ed25519 signature of the canonical
+ *    challenge envelope (B5). Verified at parseRequest against the
+ *    facilitator pubkey; binds the requirements to the SERVICE that
+ *    issued them, defeating fabricated-requirements race attacks.
  */
 export const AgentTrustExtraSchema = z.object({
   payerAgentAsset: PubkeyString,
@@ -43,6 +48,11 @@ export const AgentTrustExtraSchema = z.object({
   payeeRecipient:  PubkeyString,
   policyId:        z.number().int().min(0).max(0xFFFF_FFFF),
   expectedNetwork: z.string().optional(),
+  issuedAt:        z.number().int().nonnegative(),
+  serviceSignature: z.string().regex(
+    /^[0-9a-fA-F]{128}$/,
+    "serviceSignature must be a 64-byte ed25519 sig as 128-char hex",
+  ),
 }).strict();
 
 /** `extra` block of x402 PaymentRequirements. Strict on AgentTrust fields,
