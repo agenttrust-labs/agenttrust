@@ -28,9 +28,19 @@ agenttrust-grant/
 !trustgate/sdk/PUBLISHING.md
 !trustgate/sdk/README.md
 !examples/**/README.md
+!mcp/README.md
 .cache/
 .secrets/
+.audit/
 .playwright-mcp/
 .claude/
 .claude.json
 .vercel
+
+# Local visual QA captures
+/*.png
+/*.jpg
+/*.jpeg
+
+# Generated video/reference drafts
+docs/video-scripts/

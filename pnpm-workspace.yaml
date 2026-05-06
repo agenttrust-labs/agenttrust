@@ -4,3 +4,4 @@ packages:
   - "trustgate/sdk"
   - "trustgate/server"
   - "examples/*"
+  - "mcp"
