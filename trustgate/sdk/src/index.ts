@@ -69,6 +69,32 @@ export {
   type MakePriorEmissionLookupOptions,
 } from "./emit-feedback";
 
+// ValidationRegistry — the third leg of the ERC-8004 trust stack.
+export {
+  VALIDATION_REGISTRY_DEVNET_ID,
+  deriveCapabilityNamespacePda,
+  deriveAttestorProfilePda,
+  deriveValidationRequestPda,
+  deriveValidationAttestationPda,
+  computeNamespaceHash,
+  computeCapabilityHash,
+  loadValidationRegistry,
+  buildRegisterNamespaceIx,
+  buildRegisterAttestorIx,
+  buildRequestValidationIx,
+  buildRespondToValidationIx,
+  buildRevokeValidationIx,
+  fetchValidationAttestation,
+  fetchValidationRequest,
+  fetchAttestorProfile,
+  fetchCapabilityNamespace,
+  type BuildRegisterNamespaceArgs,
+  type BuildRegisterAttestorArgs,
+  type BuildRequestValidationArgs,
+  type BuildRespondToValidationArgs,
+  type BuildRevokeValidationArgs,
+} from "./validation-registry";
+
 export {
   derivePolicyPda, deriveVelocityPda, deriveKillSwitchPda,
   deriveFeedbackLogPda, deriveTrustGateAuthorityPda,
