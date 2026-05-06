@@ -1,0 +1,51 @@
+name: MCP protocol conformance
+
+# Catches a regression in the stdio JSON-RPC framing or any of the
+# load-bearing protocol methods (initialize, tools/list, resources/
+# list, prompts/list) — the surface Claude Desktop / Cursor / a
+# generic MCP client uses to talk to us.
+#
+# The companion check in mcp/test/integration.test.ts uses the SDK's
+# in-memory transport — that catches handler bugs but skips the
+# stdio framing layer (newline-delimited JSON-RPC). This workflow
+# spawns dist/index.js as a subprocess + drives the handshake by
+# hand, exactly as Claude Desktop would.
+#
+# Pre-merge gate: any failed conformance check exits the script
+# with code 1 and lists the failing assertion in the workflow log.
+#
+# Trigger: PR touching mcp/**.
+
+on:
+  pull_request:
+    paths:
+      - 'mcp/**'
+      - '.github/workflows/mcp-protocol-conformance.yml'
+  workflow_dispatch:
+
+jobs:
+  stdio-conformance:
+    name: stdio JSON-RPC handshake + 18-tool surface
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      # SDK is a dependency of mcp; its dist/ must exist before the
+      # mcp build picks up the typed exports.
+      - run: pnpm --filter ./trustgate/sdk run build
+      - run: pnpm --filter ./mcp run build
+
+      # Driver script: spawns dist/index.js, drives initialize +
+      # tools/list + resources/{list,read} + prompts/{list,get} +
+      # an invalid-method check + path-traversal rejection. Exits
+      # 0 only when every assertion passes.
+      - run: pnpm --filter ./mcp run test:conformance
