@@ -268,9 +268,20 @@ describe("policy-vault", () => {
       const stranger  = Keypair.generate();
       const [authPda] = deriveAuthorityPda(program.programId, agent);
 
-      // Fund the stranger so they can pay tx fees.
-      const airdropSig = await provider.connection.requestAirdrop(stranger.publicKey, 1_000_000_000);
-      await provider.connection.confirmTransaction(airdropSig, "confirmed");
+      // Fund the stranger from the genesis-funded provider wallet rather
+      // than via requestAirdrop. The faucet on shared devnet rate-limits
+      // (HTTP 429) and the user-controlled wallet on a local validator is
+      // genesis-funded — a SystemProgram.transfer works in both contexts
+      // without ever touching the faucet.
+      await provider.sendAndConfirm(
+        new anchor.web3.Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: wallet,
+            toPubkey:   stranger.publicKey,
+            lamports:   1_000_000_000,
+          }),
+        ),
+      );
 
       // Authority has wallet only — stranger is NOT a member.
       await initAuthorityFor(agent, [wallet], 1);
@@ -777,11 +788,13 @@ describe("policy-vault", () => {
       const b = Keypair.generate();
       const [authPda] = deriveAuthorityPda(program.programId, agent);
 
-      // Fund both extra signers so they can co-sign the tx.
-      for (const k of [a, b]) {
-        const sig = await provider.connection.requestAirdrop(k.publicKey, 1_000_000_000);
-        await provider.connection.confirmTransaction(sig, "confirmed");
-      }
+      // Fund both extra signers from the provider wallet — see the
+      // MemberNotInAuthority test above for why we never use
+      // requestAirdrop in tests.
+      const fundTx = new anchor.web3.Transaction()
+        .add(SystemProgram.transfer({ fromPubkey: wallet, toPubkey: a.publicKey, lamports: 1_000_000_000 }))
+        .add(SystemProgram.transfer({ fromPubkey: wallet, toPubkey: b.publicKey, lamports: 1_000_000_000 }));
+      await provider.sendAndConfirm(fundTx);
 
       await program.methods
         .initAuthority(agent, [wallet, a.publicKey, b.publicKey], 3)
