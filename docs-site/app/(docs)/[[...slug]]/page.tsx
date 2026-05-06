@@ -50,7 +50,11 @@ export default async function Page(props: DocsPageProps) {
   const kicker = getPageKicker(params.slug);
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
+    <DocsPage
+      toc={page.data.toc}
+      full={page.data.full}
+      breadcrumb={{ enabled: false }}
+    >
       <div className="docs-page-kicker" aria-label="Page section">
         {kicker.map((item) => (
           <span key={item}>{item}</span>
