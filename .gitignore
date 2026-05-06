@@ -11,14 +11,23 @@ build/
 # Internal docs and artifacts (do not ship)
 plan/
 research/
-docs/
+# Selectively ignore docs subdirs (instead of the whole docs/ tree) so the
+# public docs/proofs/ subdir can be tracked.
+docs/internal/
+docs/plan/
+docs/research/
+docs/references/
 references/
 agenttrust-grant/
 *.md
 !README.md
 !execution.md
+# Whitelist public docs
+!docs/proofs/
+!docs/proofs/**
 .cache/
 .secrets/
 .playwright-mcp/
 .claude/
 .claude.json
+.vercel
