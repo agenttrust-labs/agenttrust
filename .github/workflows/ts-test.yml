@@ -61,6 +61,12 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - name: Install workspace deps
         run: pnpm install --frozen-lockfile
+      # SDK dist must exist before server can typecheck — server
+      # imports from @agenttrust-sdk/trustgate which resolves to
+      # trustgate/sdk/dist/index.{js,d.ts} via the package's `main`
+      # + `types` fields.
+      - name: Build SDK (server workspace dep)
+        run: pnpm --filter ./trustgate/sdk run build
       - name: Type-check server
         run: pnpm --filter ./trustgate/server exec tsc --noEmit
       - name: Server unit tests
@@ -80,6 +86,12 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - name: Install workspace deps
         run: pnpm install --frozen-lockfile
+      # SDK + server dist must both exist before demo can typecheck.
+      # Demo imports from @agenttrust-sdk/trustgate AND
+      # @agenttrust/trustgate-server; both resolve through their
+      # respective dist/ outputs.
+      - name: Build SDK (demo transitive dep)
+        run: pnpm --filter ./trustgate/sdk run build
       - name: Build trustgate-server (demo workspace dep)
         run: pnpm --filter ./trustgate/server run build
       - name: Type-check + build demo
