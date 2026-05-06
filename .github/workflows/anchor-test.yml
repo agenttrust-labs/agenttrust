@@ -80,6 +80,26 @@ jobs:
           avm install 1.0.1
           avm use 1.0.1
 
+      - name: Restore program keypairs from keys/
+        # `anchor build` emits target/deploy/<program>-keypair.json
+        # if it doesn't exist; on a fresh CI checkout the keypair is
+        # randomly generated and its pubkey diverges from the
+        # source-code declare_id!. Anchor 1.0.1 hard-fails the build
+        # with "Program ID mismatch detected" in that case.
+        #
+        # The keys/ dir holds the canonical keypairs that generate
+        # the deployed program IDs (8Y6f… / HF8z… / Cx4R…) — these
+        # are NOT secrets (any deploy authority is a separate key),
+        # they just identify the on-chain program. Copy them into
+        # target/deploy/ before `anchor build` so the keypair check
+        # passes and the produced .so files can be deployed (in
+        # `anchor test`) at the source-declared IDs.
+        run: |
+          mkdir -p target/deploy
+          cp keys/policy_vault-keypair.json        target/deploy/policy_vault-keypair.json
+          cp keys/trustgate-keypair.json           target/deploy/trustgate-keypair.json
+          cp keys/validation_registry-keypair.json target/deploy/validation_registry-keypair.json
+
       - name: Anchor build (skip-lint disabled per Anchor.toml)
         run: anchor build
 
