@@ -175,6 +175,22 @@ Once installed, try these in Claude Desktop:
 - "Search the AgentTrust docs for the validation registry data flow."
 - "Walk me through adding a new x402 facilitator adapter."
 
+## IDL fetch
+
+All three Anchor IDLs are published on devnet. Re-verify any time with:
+
+```bash
+anchor idl fetch 8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR --provider.cluster devnet  # policy_vault
+anchor idl fetch HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N --provider.cluster devnet  # trustgate
+anchor idl fetch Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv --provider.cluster devnet  # validation_registry
+```
+
+The MCP server bundles snapshots at `src/idl/*.json` as a defensive
+fallback (saves an RPC round-trip on cold start; keeps the server bootable
+in offline / air-gapped harnesses). The latest evidence snapshot is in
+[`../docs/proofs/idl-on-chain.json`](../docs/proofs/idl-on-chain.json) —
+includes SHA256 hashes + instruction counts for each IDL.
+
 ## Build + test
 
 ```bash

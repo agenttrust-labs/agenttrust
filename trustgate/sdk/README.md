@@ -132,6 +132,18 @@ This is the load-bearing safety property of the SDK.
 
 Override via the `programIds` config field for mainnet redeploys.
 
+All three Anchor IDLs are published on devnet. Verify with:
+
+```bash
+anchor idl fetch <programId> --provider.cluster devnet
+```
+
+`loadPolicyVault` / `loadTrustGate` / `loadValidationRegistry` fetch the
+IDL from chain by default. Pass an explicit `idl` argument to use a bundled
+snapshot instead — useful when avoiding an extra RPC hop in latency-
+sensitive paths or when running against a freshly redeployed program
+before `anchor idl upgrade` has run.
+
 ## Formal verification
 
 PolicyVault's five core safety properties are machine-checked by Kani:

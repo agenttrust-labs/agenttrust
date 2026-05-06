@@ -176,10 +176,17 @@ export class ChainClient {
 }
 
 // ---------------------------------------------------------------------------
-// Bundled IDLs — loaded eagerly via require so resolveJsonModule isn't
-// required, and so the bundle survives the dist/ flatten without a copy
-// step. The JSON files are committed under src/idl/ as snapshots of
-// target/idl at the time the program was deployed.
+// Bundled IDLs — defensive fallback. All three IDLs ARE published on
+// devnet (verified via `anchor idl fetch <programId> --provider.cluster
+// devnet`; see docs/proofs/idl-on-chain.json for the latest evidence
+// snapshot), but bundling them statically:
+//   • saves an RPC round-trip on every cold start
+//   • keeps the MCP server bootable in offline / air-gapped harnesses
+//   • survives the rare window after a fresh redeploy when `anchor idl
+//     upgrade` hasn't yet been run
+// The JSON files are committed under src/idl/ as snapshots of target/idl
+// at the time of the latest deploy. The build step copies them into
+// dist/idl/ so the runtime require() resolves post-install.
 // ---------------------------------------------------------------------------
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires

@@ -1,0 +1,54 @@
+{
+  "verifiedAt": "2026-05-06T16:32:03.809302Z",
+  "cluster": "devnet",
+  "rpcUrl": "https://api.devnet.solana.com",
+  "method": "anchor idl fetch <programId> --provider.cluster devnet",
+  "anchorVersion": "1.0.1",
+  "solanaVersion": "3.1.14",
+  "programs": [
+    {
+      "name": "policy_vault",
+      "programId": "8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR",
+      "idlPublished": true,
+      "idlSizeBytes": 37258,
+      "idlSha256": "50c3047a6089ae3a5ea2cdc0169779b72987195f2c00c5f05e27bfed6439c671",
+      "instructionCount": 6,
+      "instructions": [
+        "gate_payment",
+        "gate_payment_strict",
+        "init_authority",
+        "init_killswitch",
+        "init_policy",
+        "set_killswitch"
+      ]
+    },
+    {
+      "name": "trustgate",
+      "programId": "HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N",
+      "idlPublished": true,
+      "idlSizeBytes": 12350,
+      "idlSha256": "ef4571125bb115c2cda4c1581518529977b8deedb129c34d9da638b20b9c7aca",
+      "instructionCount": 3,
+      "instructions": [
+        "dispute_payment",
+        "emit_feedback",
+        "init_authority"
+      ]
+    },
+    {
+      "name": "validation_registry",
+      "programId": "Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv",
+      "idlPublished": true,
+      "idlSizeBytes": 21437,
+      "idlSha256": "5b10f8c010896269bb00f6650f026c97984a9757a837d7a97b7ac3d5992258ed",
+      "instructionCount": 5,
+      "instructions": [
+        "register_attestor",
+        "register_namespace",
+        "request_validation",
+        "respond_to_validation",
+        "revoke_validation"
+      ]
+    }
+  ]
+}

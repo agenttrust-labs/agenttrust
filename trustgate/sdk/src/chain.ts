@@ -94,6 +94,16 @@ export function makeProvider(cfg: ProviderConfig): AnchorProvider {
   return new AnchorProvider(conn, wallet, { commitment: "confirmed" });
 }
 
+/**
+ * Load the policy_vault Anchor `Program`. By default fetches the IDL from
+ * chain (the canonical, single-source-of-truth path). Pass an explicit
+ * `idl` to skip the on-chain fetch — useful as a defensive fallback for
+ * clients that bundle a known-good IDL snapshot, or to avoid an extra RPC
+ * hop in latency-sensitive paths.
+ *
+ * Re-verify the IDL is on chain with:
+ *   anchor idl fetch <programId> --provider.cluster devnet
+ */
 export async function loadPolicyVault(
   provider:  AnchorProvider,
   programId: PublicKey,
@@ -105,6 +115,7 @@ export async function loadPolicyVault(
   return new Program(fetched, provider);
 }
 
+/** See `loadPolicyVault` for the IDL-fetch / fallback contract. */
 export async function loadTrustGate(
   provider:  AnchorProvider,
   programId: PublicKey,

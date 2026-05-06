@@ -52,9 +52,14 @@ export function readProgramsResource(cfg: AgentTrustConfig): ResourceContent {
       },
     },
     notes:
-      "Anchor IDLs are fetched at runtime via Program.fetchIdl. The MCP server " +
-      "does this transparently; consumers running the SDK directly use " +
-      "loadPolicyVault / loadTrustGate / loadValidationRegistry.",
+      "All three Anchor IDLs are published on devnet (verify with " +
+      "`anchor idl fetch <programId> --provider.cluster devnet`; latest " +
+      "evidence in docs/proofs/idl-on-chain.json). The MCP server bundles " +
+      "snapshots under mcp/src/idl/ as a defensive fallback (saves an RPC " +
+      "round-trip on cold start; lets the server boot in offline harnesses). " +
+      "SDK consumers can reach the IDLs the same two ways via " +
+      "loadPolicyVault / loadTrustGate / loadValidationRegistry — pass an " +
+      "`idl` arg to use the bundled snapshot, omit it to fetch from chain.",
   };
   return {
     uri:      PROGRAMS_RESOURCE_URI,

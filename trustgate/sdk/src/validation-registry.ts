@@ -162,9 +162,13 @@ export function computeCapabilityHash(capabilityName: string): Uint8Array {
 // Program loader
 // ---------------------------------------------------------------------------
 
-/** Load the validation_registry Anchor `Program` from chain.
- *  Falls back to a caller-supplied `idl` for the case where the IDL hasn't
- *  been published on chain yet (common during dev). */
+/** Load the validation_registry Anchor `Program`. By default fetches the
+ *  IDL from chain (verify any time with
+ *  `anchor idl fetch <programId> --provider.cluster <network>`). Pass an
+ *  explicit `idl` as a defensive fallback — useful for clients that bundle
+ *  a known-good IDL snapshot, want to avoid an extra RPC hop, or are
+ *  pointing at a freshly-redeployed program before `anchor idl init` has
+ *  run. */
 export async function loadValidationRegistry(
   provider:  AnchorProvider,
   programId: PublicKey = VALIDATION_REGISTRY_DEVNET_ID,
