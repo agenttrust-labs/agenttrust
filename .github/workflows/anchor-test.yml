@@ -66,8 +66,12 @@ jobs:
           solana-test-validator --version
 
       - name: Install Rust toolchain
+        # 1.86.0 is the floor for current Anchor source — the icu_*
+        # crates pulled by the Anchor 1.0.x build chain require it
+        # (`error: package icu_normalizer requires rustc 1.86`).
+        # Bumped from 1.85.0 (which we'd just bumped to from 1.83).
         run: |
-          rustup default 1.85.0
+          rustup default 1.86.0
           rustup component add rustfmt clippy
 
       - name: Install AVM + Anchor 1.0.1
