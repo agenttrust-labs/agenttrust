@@ -19,7 +19,7 @@
  * mocked as cloned mainnet accounts under `anchor test`).
  */
 
-import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
+import { AnchorProvider, Idl, Program, Wallet } from "@coral-xyz/anchor";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 
 import {
@@ -58,6 +58,10 @@ export interface MakeRealPayShDepsArgs {
   readonly quantuPrograms?:  QuantuProgramIds;
   /** Optional replay cache override (defaults to a fresh in-memory LRU). */
   readonly replayCache?:     ReplayCache;
+  /** Optional locally-loaded Anchor IDL. When set, the demo skips the
+   *  on-chain IDL fetch (useful when the program is deployed but the IDL
+   *  hasn't been published via `anchor idl init`). */
+  readonly trustgateIdl?:    Idl;
 }
 
 export interface RealPayShDepsBundle {
@@ -83,7 +87,9 @@ export async function makeRealPayShDeps(
   const connection = new Connection(args.rpcUrl, "confirmed");
   const wallet     = new Wallet(args.facilitator);
   const provider   = new AnchorProvider(connection, wallet, { commitment: "confirmed" });
-  const trustgate  = await loadTrustGate(provider, trustgateId);
+  const trustgate  = args.trustgateIdl
+    ? new Program(args.trustgateIdl, provider)
+    : await loadTrustGate(provider, trustgateId);
 
   const validateOnChainTx = makeValidateOnChainTx({ connection });
   const emitFeedbackCpi   = makeEmitFeedbackCpi({

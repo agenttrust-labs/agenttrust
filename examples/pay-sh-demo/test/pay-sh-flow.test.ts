@@ -172,13 +172,21 @@ integrationDescribe("real devnet integration", function () {
     const { Keypair } = await import("@solana/web3.js");
     const bs58 = (await import("bs58")).default;
     const { createRealDemoApp } = await import("../src");
+    const fs = await import("fs");
+    const path = await import("path");
 
     const facilitator = Keypair.fromSecretKey(bs58.decode(facilitatorB58));
 
-    // Static Quantu resolver — empty; the integration test below only
-    // exercises /health and 402-emission paths, neither of which trigger
-    // emit_feedback. Full end-to-end emit_feedback is a manual-smoke
-    // step that requires Quantu agents pre-registered on devnet.
+    // Load IDL from local target/. The trustgate program is deployed on
+    // devnet but the IDL hasn't been published via `anchor idl init` —
+    // anchor build leaves the IDL at target/idl/trustgate.json.
+    const idlPath = path.resolve(__dirname, "../../../target/idl/trustgate.json");
+    const trustgateIdl = JSON.parse(fs.readFileSync(idlPath, "utf-8"));
+
+    // Static Quantu resolver — empty; this integration test only exercises
+    // /health and 402-emission paths, neither of which trigger
+    // emit_feedback. Full end-to-end emit_feedback is a manual smoke step
+    // that requires Quantu agents pre-registered on devnet.
     const resolveQuantu = async () => {
       throw new Error("Quantu resolver not configured — manual smoke only");
     };
@@ -189,6 +197,7 @@ integrationDescribe("real devnet integration", function () {
         rpcUrl,
         signingNetwork: process.env.NETWORK ?? "solana-devnet",
         resolveQuantu,
+        trustgateIdl,
       },
     });
     const res = await request(demo.app).get("/health");
