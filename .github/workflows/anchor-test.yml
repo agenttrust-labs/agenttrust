@@ -72,6 +72,20 @@ jobs:
           solana --version
           solana-test-validator --version
 
+      - name: Bootstrap a fresh provider wallet
+        # Anchor.toml's [provider] wallet defaults to
+        # ~/.config/solana/id.json. The CI runner has no such file;
+        # without it anchor test errors with
+        # `Unable to read keypair file (~/.config/solana/id.json)`.
+        # Generate a throwaway keypair — the local validator anchor
+        # spins up airdrops genesis SOL to it for the duration of
+        # the test run.
+        run: |
+          mkdir -p "$HOME/.config/solana"
+          solana-keygen new --no-bip39-passphrase --force \
+            --outfile "$HOME/.config/solana/id.json"
+          solana config set --keypair "$HOME/.config/solana/id.json"
+
       - name: Install Rust toolchain
         # 1.86.0 is the floor for current Anchor source — the icu_*
         # crates pulled by the Anchor 1.0.x build chain require it
