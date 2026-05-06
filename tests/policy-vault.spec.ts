@@ -544,4 +544,108 @@ describe("policy-vault", () => {
       expect(ledgerAfter.cumulativeAmount.toNumber()).to.equal(1000);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // gate_payment_strict (D2) — Allow returns Ok, non-Allow reverts the tx.
+  // Same accounts and args as gate_payment; the difference is the
+  // caller-visible result. Used by SDK's composeAtomicSettleTx so a Deny
+  // on the gate fails the entire atomic settle (gate + transfer + emit).
+  // ---------------------------------------------------------------------------
+
+  describe("gate_payment_strict", () => {
+    const BITMASK_SPENDING_PLUS_KILLSWITCH = 0x03;
+
+    async function setupForStrict(
+      bitmask: number,
+      policyId: number,
+      perTxMax: number = 100,
+    ) {
+      const agent = freshAgent();
+      const ksPda     = deriveKillSwitchPda(program.programId, agent)[0];
+      const authPda   = deriveAuthorityPda(program.programId, agent)[0];
+      const policyPda = derivePolicyPda(program.programId, agent, policyId)[0];
+      const ledgerPda = deriveVelocityPda(program.programId, agent, policyId)[0];
+
+      await initAuthorityFor(agent);
+      await initKillSwitchFor(agent);
+
+      const args = { ...defaultArgs(policyId), enabledKindsBitmask: bitmask };
+      args.spending.perTxMax  = new BN(perTxMax);
+      args.spending.dailyMax  = new BN(perTxMax * 5);
+      args.spending.weeklyMax = new BN(perTxMax * 20);
+      args.velocity.maxInWindow = new BN(perTxMax * 10);
+      await initPolicyFor(agent, args);
+
+      return { agent, authPda, ksPda, policyPda, ledgerPda };
+    }
+
+    async function callStrict(
+      env:      Awaited<ReturnType<typeof setupForStrict>>,
+      payee:    PublicKey,
+      amount:   number,
+      policyId: number,
+    ) {
+      return program.methods
+        .gatePaymentStrict(env.agent, payee, new BN(amount), PublicKey.default, policyId)
+        .accounts({
+          caller:                wallet,
+          policyAccount:         env.policyPda,
+          velocityLedger:        env.ledgerPda,
+          killSwitchState:       env.ksPda,
+          payerAtomStats:        null,
+          payeeAtomStats:        null,
+          validationAttestation: null,
+        })
+        .rpc();
+    }
+
+    it("Allow path returns Ok + commits the same state mutations as gate_payment", async () => {
+      const env = await setupForStrict(BITMASK_SPENDING_PLUS_KILLSWITCH, 200);
+      await callStrict(env, freshAgent(), 50, 200);
+
+      const policy = await program.account.policyAccount.fetch(env.policyPda);
+      expect(policy.spendingTodayUsed.toNumber()).to.equal(50);
+    });
+
+    it("Deny on Spending per-tx limit reverts the tx with SpendingPerTxExceeded", async () => {
+      const env = await setupForStrict(BITMASK_SPENDING_PLUS_KILLSWITCH, 201, /*perTxMax*/ 100);
+      try {
+        await callStrict(env, freshAgent(), 200, 201);
+        expect.fail("expected gate_payment_strict to revert on per-tx exceed");
+      } catch (e) {
+        expect(String(e)).to.match(/SpendingPerTxExceeded|6001/);
+      }
+      const policy = await program.account.policyAccount.fetch(env.policyPda);
+      expect(policy.spendingTodayUsed.toNumber()).to.equal(0); // unchanged
+    });
+
+    it("KillSwitch paused reverts the tx with KillSwitchEngaged", async () => {
+      const env = await setupForStrict(BITMASK_SPENDING_PLUS_KILLSWITCH, 202);
+      await program.methods
+        .setKillswitch(env.agent, true)
+        .accounts({ signer: wallet, policyAuthority: env.authPda, killSwitchState: env.ksPda })
+        .rpc();
+
+      try {
+        await callStrict(env, freshAgent(), 50, 202);
+        expect.fail("expected gate_payment_strict to revert when paused");
+      } catch (e) {
+        expect(String(e)).to.match(/KillSwitchEngaged|6040/);
+      }
+    });
+
+    it("Allow then Deny flips correctly — only the Allow leaks state", async () => {
+      const env = await setupForStrict(BITMASK_SPENDING_PLUS_KILLSWITCH, 203, /*perTxMax*/ 100);
+      await callStrict(env, freshAgent(), 80, 203); // Allow → spending = 80
+
+      try {
+        await callStrict(env, freshAgent(), 200, 203); // Deny → reverts
+        expect.fail("expected revert");
+      } catch (e) {
+        expect(String(e)).to.match(/SpendingPerTxExceeded|6001/);
+      }
+      const policy = await program.account.policyAccount.fetch(env.policyPda);
+      expect(policy.spendingTodayUsed.toNumber()).to.equal(80);
+    });
+  });
 });
