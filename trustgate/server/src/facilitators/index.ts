@@ -70,8 +70,6 @@ export {
 } from "./pay-sh";
 
 export { NotImplementedAdapter } from "./stubs/_base";
-export { Atxp }   from "./stubs/atxp";
-export { McPay }  from "./stubs/mcpay";
 
 export {
   Dexter,
@@ -88,3 +86,37 @@ export {
   type DexterAgentTrustExtra,
   type DexterExtra,
 } from "./dexter";
+
+export {
+  Atxp,
+  type AtxpDeps,
+  type AtxpJwtClaims,
+  type VerifyAtxpJwtFn,
+  AtxpFacilitatorBodySchema,
+  AtxpPaymentRequirementsSchema,
+  AtxpPaymentPayloadSchema,
+  AtxpAgentTrustExtraSchema,
+  AtxpExtraSchema,
+  AtxpRequirementsExtraSchema,
+  type AtxpFacilitatorBody,
+  type AtxpPaymentRequirements,
+  type AtxpPaymentPayload,
+  type AtxpAgentTrustExtra,
+  type AtxpExtra,
+} from "./atxp";
+
+export {
+  McPay,
+  type McPayDeps,
+  McPayFacilitatorBodySchema,
+  McPayPaymentRequirementsSchema,
+  McPayPaymentPayloadSchema,
+  McPayAgentTrustExtraSchema,
+  McPayExtraSchema,
+  McPayRequirementsExtraSchema,
+  type McPayFacilitatorBody,
+  type McPayPaymentRequirements,
+  type McPayPaymentPayload,
+  type McPayAgentTrustExtra,
+  type McPayExtra,
+} from "./mcpay";
