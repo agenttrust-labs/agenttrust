@@ -4,7 +4,7 @@
 
 [![Web app](https://img.shields.io/badge/web-live-c2410c?style=flat-square)](https://www.agenttrust.tech)
 [![SDK on npm](https://img.shields.io/npm/v/@agenttrust-sdk/trustgate?style=flat-square&color=c2410c&label=sdk)](https://www.npmjs.com/package/@agenttrust-sdk/trustgate)
-[![MCP on npm](https://img.shields.io/badge/mcp-npx-c2410c?style=flat-square)](https://www.npmjs.com/package/@agenttrust/mcp)
+[![MCP on npm](https://img.shields.io/badge/mcp-npx-c2410c?style=flat-square)](https://www.npmjs.com/package/@agenttrust-sdk/mcp)
 [![Kani 5/5](https://img.shields.io/badge/kani-5%2F5_proven-c2410c?style=flat-square)](.github/workflows/kani-prove.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-c2410c?style=flat-square)](./LICENSE)
 
@@ -21,7 +21,7 @@ Three live surfaces. No `git clone` required.
 npm i @agenttrust-sdk/trustgate
 
 # 2. Add the MCP server to Claude Desktop / Cursor
-npx -y @agenttrust/mcp
+npx -y @agenttrust-sdk/mcp
 
 # 3. Hit the live demo (real devnet — no setup)
 curl -i https://demo.agenttrust.tech/protected
@@ -32,7 +32,7 @@ curl -i https://demo.agenttrust.tech/protected
 | Demo (live `/protected` → `/settle` round-trip) | https://demo.agenttrust.tech |
 | Facilitator API (x402 `/verify` + `/settle`) | https://api.agenttrust.tech |
 | MCP HTTP endpoint (hosted) | https://mcp.agenttrust.tech |
-| MCP stdio package | `npx -y @agenttrust/mcp` (after operator publish) |
+| MCP stdio package | `npx -y @agenttrust-sdk/mcp` (after operator publish) |
 | SDK | `npm i @agenttrust-sdk/trustgate` |
 | Docs | https://docs.agenttrust.tech |
 

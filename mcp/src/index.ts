@@ -24,7 +24,7 @@ INSTALL — Claude Desktop
     "mcpServers": {
       "agenttrust": {
         "command": "npx",
-        "args":    ["-y", "@agenttrust/mcp"],
+        "args":    ["-y", "@agenttrust-sdk/mcp"],
         "env":     { "RPC_URL": "https://api.devnet.solana.com",
                      "NETWORK": "solana-devnet" }
       }

@@ -1,7 +1,8 @@
 {
   "name": "@agenttrust-sdk/trustgate",
   "version": "0.1.1",
-  "description": "Drop-in TrustGate middleware for x402 facilitators on Solana — adds gate_payment + emit_feedback to any Express app with atomic-tx invariant enforcement",
+  "description": "TrustGate SDK for Solana x402 facilitators — atomic gate_payment + emit_feedback Express middleware",
+  "author": "AgentTrust Labs (https://agenttrust.tech)",
   "license": "MIT",
   "homepage": "https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/sdk#readme",
   "repository": {

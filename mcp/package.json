@@ -1,7 +1,8 @@
 {
-  "name": "@agenttrust/mcp",
+  "name": "@agenttrust-sdk/mcp",
   "version": "0.1.0",
-  "description": "AgentTrust MCP server — exposes the deployed AgentTrust programs as natural-language tools, resources, and prompts in Claude Desktop / Cursor / any MCP client",
+  "description": "MCP server for AgentTrust — query and call deployed Solana programs from Claude Desktop / Cursor / any MCP client",
+  "author": "AgentTrust Labs (https://agenttrust.tech)",
   "license": "MIT",
   "homepage": "https://github.com/agenttrust-labs/agenttrust/tree/main/mcp#readme",
   "repository": {

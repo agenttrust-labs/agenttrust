@@ -1,4 +1,4 @@
-# `@agenttrust/mcp`
+# `@agenttrust-sdk/mcp`
 
 Model Context Protocol (MCP) server for AgentTrust. Drop the binary
 into Claude Desktop, Cursor, or any MCP client and interact with the
