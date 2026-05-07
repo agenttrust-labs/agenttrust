@@ -133,6 +133,11 @@ jobs:
           # The smoke proof captures the log PDA address. Confirm the
           # deployed trustgate program owns it — catches a redeploy /
           # program-ID rotation that would break consumers.
+          #
+          # The smoke confirms tx at "confirmed" commitment but
+          # getAccountInfo defaults to "finalized" (~32 slots / ~13s
+          # behind). Match the smoke's commitment + poll a few times to
+          # bridge the seconds-long gap.
           node -e '
             const fs = require("fs");
             const path = require("path");
@@ -142,20 +147,26 @@ jobs:
             ));
             const pda = proof.emitFeedback.logPda;
             const TRUSTGATE = "HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N";
-            (async () => {
+            const fetchAccount = async (commitment) => {
               const res = await fetch(process.env.RPC_URL, {
                 method: "POST",
                 headers: { "content-type": "application/json" },
                 body: JSON.stringify({
                   jsonrpc: "2.0", id: 1,
                   method:  "getAccountInfo",
-                  params:  [pda, { encoding: "base64" }],
+                  params:  [pda, { encoding: "base64", commitment }],
                 }),
               });
-              const j = await res.json();
-              const owner = j?.result?.value?.owner;
+              return (await res.json())?.result?.value?.owner ?? null;
+            };
+            (async () => {
+              let owner = null;
+              for (let i = 0; i < 12 && !owner; i++) {
+                owner = await fetchAccount("confirmed");
+                if (!owner) await new Promise((r) => setTimeout(r, 2_500));
+              }
               if (!owner) {
-                console.error(`::error::FeedbackEmissionLog ${pda} not on devnet`);
+                console.error(`::error::FeedbackEmissionLog ${pda} not on devnet after 30s @ confirmed`);
                 process.exit(1);
               }
               if (owner !== TRUSTGATE) {
