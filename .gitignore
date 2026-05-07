@@ -22,14 +22,19 @@ agenttrust-grant/
 *.md
 !README.md
 !execution.md
+!SECURITY.md
+!CONTRIBUTING.md
 # Whitelist public docs
 !docs/proofs/
 !docs/proofs/**
 !docs/COMPLETING-THE-TRUST-STACK.md
 !trustgate/sdk/PUBLISHING.md
 !trustgate/sdk/README.md
+!trustgate/sdk/CHANGELOG.md
+!trustgate/server/src/facilitators/README.md
 !examples/**/README.md
 !mcp/README.md
+!mcp/CHANGELOG.md
 .cache/
 .secrets/
 .audit/

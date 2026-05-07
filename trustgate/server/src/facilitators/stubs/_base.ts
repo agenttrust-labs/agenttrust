@@ -1,19 +1,21 @@
 /**
  * Shared base for not-yet-implemented FacilitatorAdapter stubs.
  *
- * Each future facilitator (Dexter / atxp_ai / MCPay / Latinum / Corbits) gets
- * its own file in this directory. Until the integration is built they extend
- * this base, which throws `NotImplementedError` from every method. Routes
- * catch that error and return 501 with the adapter name so callers know to
- * switch facilitators or wait for the rollout.
+ * Pay.sh, Dexter, atxp, and MCPay are all live full adapters as of
+ * Phase D (see sibling directories). New facilitators that ship in
+ * stages can register a placeholder via this base first; until the
+ * integration is built they extend this class, which throws
+ * `NotImplementedError` from every method. Routes catch that error and
+ * return 501 with the adapter name so callers know to switch
+ * facilitators or wait for the rollout.
  *
- * Adding a new stub:
+ * Adding a new stub (replace `<your-facilitator>` with the real name):
  *
  *   ```ts
- *   export class Dexter extends NotImplementedAdapter {
- *     readonly name = "dexter";
- *     readonly description = "Cascade Dexter — x402 facilitator (TODO Q3 2026)";
- *     readonly protocols = ["x402"] as const;
+ *   export class YourFacilitator extends NotImplementedAdapter {
+ *     readonly name        = "your-facilitator";
+ *     readonly description = "<short pitch — x402 facilitator stub>";
+ *     readonly protocols   = ["x402"] as const;
  *   }
  *   ```
  */

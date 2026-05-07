@@ -168,22 +168,25 @@ supertest — no real CLI required for CI.
 
 ### 8. (Optional) Stub adapters before full integration
 
-If your adapter ships in stages, register a placeholder first via the
-[`stubs/`](./stubs/) pattern:
+Pay.sh, Dexter, atxp, and MCPay are all live full adapters today
+(Phase D promotion). New facilitators that ship in stages can register
+a placeholder first via the [`stubs/`](./stubs/) pattern:
 
 ```ts
-// stubs/dexter.ts
+// stubs/your-facilitator.ts
 import { NotImplementedAdapter } from "./_base";
-export class Dexter extends NotImplementedAdapter {
-  readonly name = "dexter";
-  readonly description = "Cascade Dexter (TODO Q3 2026)";
-  readonly protocols = ["x402"] as const;
+export class YourFacilitator extends NotImplementedAdapter {
+  readonly name        = "your-facilitator";
+  readonly description = "<short pitch — x402 facilitator stub>";
+  readonly protocols   = ["x402"] as const;
 }
 ```
 
 Stub methods throw `NotImplementedError`; routes catch this and surface
 501 with the adapter name. Callers know the integration is on the
-roadmap, not absent by accident.
+roadmap, not absent by accident. The `agenttrust_list_facilitators`
+MCP tool reports each adapter's status — full vs stub — so a consumer
+can choose accordingly.
 
 ## Things to NOT do
 
