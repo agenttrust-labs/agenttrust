@@ -53,7 +53,7 @@ pnpm --filter ./examples/pay-sh-demo dev
 ```
 
 ```bash
-pay --sandbox curl http://localhost:3402/protected
+pay --sandbox curl https://agenttrust-demo.fly.dev/protected
 ```
 
 The demo uses three deterministic counterparties:
@@ -67,7 +67,7 @@ The demo uses three deterministic counterparties:
 Get the exact payer agent keys:
 
 ```bash
-curl -s http://localhost:3402/health | jq '.counterparties'
+curl -s https://agenttrust-demo.fly.dev/health | jq '.counterparties'
 ```
 
 ## Production wiring

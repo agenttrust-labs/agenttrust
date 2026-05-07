@@ -37,27 +37,27 @@ The server listens on `:3402` and exposes:
 Without a payment proof, `/protected` returns `402 Payment Required` with a base64 x402 v2 challenge.
 
 ```bash
-curl -i http://localhost:3402/protected
+curl -i https://agenttrust-demo.fly.dev/protected
 ```
 
 With Pay.sh installed, let the CLI pay and retry.
 
 ```bash
-pay --sandbox curl http://localhost:3402/protected
+pay --sandbox curl https://agenttrust-demo.fly.dev/protected
 ```
 
 For a deterministic Allow path, use the tier-3 demo counterparty.
 
 ```bash
-PAYER=$(curl -s http://localhost:3402/health | jq -r '.counterparties[2].agent')
-pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" http://localhost:3402/protected
+PAYER=$(curl -s https://agenttrust-demo.fly.dev/health | jq -r '.counterparties[2].agent')
+pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" https://agenttrust-demo.fly.dev/protected
 ```
 
 For a deterministic Deny path, use tier 0.
 
 ```bash
-PAYER=$(curl -s http://localhost:3402/health | jq -r '.counterparties[0].agent')
-pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" http://localhost:3402/protected
+PAYER=$(curl -s https://agenttrust-demo.fly.dev/health | jq -r '.counterparties[0].agent')
+pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" https://agenttrust-demo.fly.dev/protected
 ```
 
 ## 5. Run the same flow without the CLI
