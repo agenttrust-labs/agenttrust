@@ -1,0 +1,9 @@
+# Next.js build output + caches
+.next/
+out/
+node_modules/
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel deploy state — operator-only
+.vercel

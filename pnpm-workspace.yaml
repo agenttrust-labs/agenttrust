@@ -1,6 +1,7 @@
 packages:
   - "web"
   - "docs-site"
+  - "status-page"
   - "trustgate/sdk"
   - "trustgate/server"
   - "examples/*"

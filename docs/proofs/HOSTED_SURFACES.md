@@ -26,7 +26,7 @@ ships.
 | surface | planned URL | what it is |
 |---|---|---|
 | MCP npm package | https://www.npmjs.com/package/@agenttrust/mcp | scoped public npm package — `npx @agenttrust/mcp` for stdio installs (Claude Desktop / Cursor). Tarball verified via dry-run; awaits operator publish. |
-| Status page | https://status.agenttrust.tech | hourly health checks across all five hosted surfaces, public uptime badge |
+| Status page | https://status.agenttrust.tech | Next.js workspace at `status-page/` — server-rendered + client-refreshed every 30s, polls 6 surfaces. Builds clean locally; awaits operator `vercel --prod` from `status-page/`. |
 
 When a Roadmap surface goes live, move it to the Live table + open a UI integration pass that surfaces it (hero CTA / Try-it button / integrations grid / status badge / quickstart command updates).
 
