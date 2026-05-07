@@ -25,7 +25,7 @@ ships.
 
 | surface | planned URL | what it is |
 |---|---|---|
-| MCP npm package | https://www.npmjs.com/package/@agenttrust/mcp | scoped public npm package — `npx @agenttrust/mcp` for stdio installs (Claude Desktop / Cursor). Tarball verified via dry-run; awaits operator publish. |
+| MCP npm package | https://www.npmjs.com/package/@agenttrust-sdk/mcp | scoped public npm package — `npx @agenttrust-sdk/mcp` for stdio installs (Claude Desktop / Cursor). Tarball verified via dry-run; awaits operator publish. |
 | Status page | https://status.agenttrust.tech | Next.js workspace at `status-page/` — server-rendered + client-refreshed every 30s, polls 6 surfaces. Builds clean locally; awaits operator `vercel --prod` from `status-page/`. |
 
 When a Roadmap surface goes live, move it to the Live table + open a UI integration pass that surfaces it (hero CTA / Try-it button / integrations grid / status badge / quickstart command updates).
@@ -51,7 +51,7 @@ When a Roadmap surface goes live, move it to the Live table + open a UI integrat
 9. **When you spot a Roadmap surface gone live**, propose a discrete follow-up PR that integrates it across the UI (don't bundle into an unrelated PR). Examples of integration shapes:
    - **Hero CTA**: "Try the SDK" / "Connect via MCP" / "Hit the live demo" buttons
    - **Integrations grid**: tile per facilitator + per surface, status indicator (live / roadmap)
-   - **Quickstart command**: `npx @agenttrust/mcp` once the package publishes
+   - **Quickstart command**: `npx @agenttrust-sdk/mcp` once the package publishes
    - **Status badge**: footer/header pill linking to status page
    - **Code samples**: swap localhost references for hosted URLs
 
