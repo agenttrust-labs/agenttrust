@@ -31,8 +31,6 @@ on:
       - 'programs/**'
       - 'Anchor.toml'
       - '.github/workflows/idl-diff.yml'
-    paths-ignore:
-      - '**.md'
   workflow_dispatch:
 
 concurrency:

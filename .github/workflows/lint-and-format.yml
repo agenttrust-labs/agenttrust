@@ -26,11 +26,6 @@ on:
       - 'Cargo.lock'
       - 'pnpm-lock.yaml'
       - '.github/workflows/lint-and-format.yml'
-    paths-ignore:
-      - '**.md'
-      - '**.mdx'
-      - 'docs/**'
-      - 'references/**'
   workflow_dispatch:
 
 concurrency:

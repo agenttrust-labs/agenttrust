@@ -27,8 +27,6 @@ on:
       - 'trustgate/server/src/types.ts'
       - 'trustgate/server/test/cross-adapter.test.ts'
       - '.github/workflows/adapter-contract-conformance.yml'
-    paths-ignore:
-      - '**.md'
   workflow_dispatch:
 
 concurrency:

@@ -14,8 +14,6 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.github/workflows/kani-prove.yml'
-    paths-ignore:
-      - '**.md'
   push:
     branches: [main]
     paths:

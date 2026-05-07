@@ -22,8 +22,6 @@ on:
       - 'mcp/**'
       - 'trustgate/sdk/src/**'
       - '.github/workflows/mcp-protocol-conformance.yml'
-    paths-ignore:
-      - '**.md'
   workflow_dispatch:
 
 concurrency:

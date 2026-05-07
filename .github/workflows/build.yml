@@ -14,11 +14,6 @@ on:
       - 'Cargo.lock'
       - 'Anchor.toml'
       - '.github/workflows/build.yml'
-    paths-ignore:
-      - '**.md'
-      - '**.mdx'
-      - 'docs/**'
-      - 'references/**'
   push:
     branches: [main]
     paths:

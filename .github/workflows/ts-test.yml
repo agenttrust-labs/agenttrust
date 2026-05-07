@@ -14,11 +14,6 @@ on:
       - 'pnpm-workspace.yaml'
       - '**/tsconfig*.json'
       - '.github/workflows/ts-test.yml'
-    paths-ignore:
-      - '**.md'
-      - '**.mdx'
-      - 'docs/**'
-      - 'references/**'
   push:
     branches: [main]
     paths:

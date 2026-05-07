@@ -11,13 +11,11 @@ on:
       - 'trustgate/sdk/src/**'
       - 'keys/**'
       - '.github/workflows/anchor-test.yml'
-    # Anchor build + test is the heaviest workflow (~15 min cold);
-    # never run it for a docs-only diff.
-    paths-ignore:
-      - '**.md'
-      - '**.mdx'
-      - 'docs/**'
-      - 'references/**'
+    # NOTE on docs-only diffs: GitHub Actions rejects `paths` +
+    # `paths-ignore` at the same trigger level (HTTP 422 "you may
+    # only define one"). The allowlist above is tight enough that a
+    # **.md or docs/** edit doesn't match — so docs-only changes
+    # don't trigger this workflow without a separate ignore-list.
   push:
     branches: [main]
     paths:
