@@ -350,3 +350,24 @@ package size: 114.2 kB / unpacked 464.7 kB / 145 files
 Phase N closes the four ergonomics bugs from Phase M. The npm-install
 experience now matches the local-clone experience for every documented
 read tool, resource, and prompt.
+
+### Full M1–M4 re-run on 0.2.3 — `42/42` PASS
+
+Driver: `/tmp/phase-n/full-e2e.js` against
+`/tmp/phase-n/node_modules/.bin/agenttrust-mcp` (fresh `npm install
+@agenttrust-sdk/mcp@0.2.3` in a scratch dir) plus
+`https://mcp.agenttrust.tech/` for the HTTP half.
+
+| section | checks | pass | detail |
+|---|---:|---:|---|
+| M1.1 protocol layer | 4 | ✅ 4/4 | `serverInfo.version=0.2.3`, tools/list=18, resources/list=36, prompts/list=3 |
+| M1.2 read + discovery tools | 14 | ✅ 14/14 | all PDAs match the live on-chain values; `simulate_payment` no-caller returns the actionable error; docs search returns ranked hits; walkthrough returns 3267-byte content + 9704-byte services README |
+| M1.3 write tool schemas | 5 | ✅ 5/5 | `init_policy`, `set_killswitch`, `request_validation`, `respond_to_validation`, `emit_feedback` all present with correct `required` |
+| M1.4 resources/read | 3 | ✅ 3/3 | `agenttrust://devnet/programs` valid JSON, sample MDX 3716 bytes, path-traversal blocked |
+| M1.5 prompts/get | 4 | ✅ 4/4 | all 3 prompts return non-empty messages; missing required arg blocked cleanly |
+| M2 HTTP transport | 6 | ✅ 6/6 | `/healthz` reports 0.2.3, initialize/tools-list/demo_state/simulate match stdio, 3 concurrent sessions get 3 distinct session ids and 18 tools each, no errors |
+| M3 on-chain ground truth | 6 | ✅ 6/6 | every PDA the MCP returns matches the expected program owner (policy_vault / trustgate / atom_engine / validation_registry) |
+
+**Total: 42/42 PASS.** No FAIL. Identical results stdio vs HTTP. Every
+tool that was degraded under Phase M now returns the same data on a
+fresh `npx`-style install as it does from a local clone.
