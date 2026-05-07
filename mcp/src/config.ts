@@ -26,8 +26,10 @@ export interface AgentTrustConfig {
   readonly network:                Network;
   readonly rpcUrl:                 string;
   readonly explorerCluster:        "devnet" | "mainnet";
+  /** All three AgentTrust program IDs. SDK 0.2.0 made this object the
+   *  single source of truth — `validationRegistry` is now part of the
+   *  shape rather than a sibling field on AgentTrustConfig. */
   readonly programs:               ProgramIds;
-  readonly validationRegistryId:   PublicKey;
   readonly quantu:                 QuantuProgramIds;
   /** Optional signer keypair. Loaded from KEYPAIR_B58. Write tools require this. */
   readonly signer?:                Keypair;
@@ -81,23 +83,19 @@ export function loadConfig(): AgentTrustConfig {
   // program IDs default to devnet placeholders — overridable via env once
   // mainnet deployment lands.
   const programs: ProgramIds = {
-    policyVault: parsePubkeyEnv("POLICY_VAULT_PROGRAM_ID", DEFAULT_DEVNET_PROGRAM_IDS.policyVault),
-    trustgate:   parsePubkeyEnv("TRUSTGATE_PROGRAM_ID",    DEFAULT_DEVNET_PROGRAM_IDS.trustgate),
+    policyVault:        parsePubkeyEnv("POLICY_VAULT_PROGRAM_ID",         DEFAULT_DEVNET_PROGRAM_IDS.policyVault),
+    trustGate:          parsePubkeyEnv("TRUSTGATE_PROGRAM_ID",            DEFAULT_DEVNET_PROGRAM_IDS.trustGate),
+    validationRegistry: parsePubkeyEnv("VALIDATION_REGISTRY_PROGRAM_ID",  VALIDATION_REGISTRY_DEVNET_ID),
   };
   const quantu: QuantuProgramIds = network === "solana-mainnet"
     ? MAINNET_QUANTU_IDS
     : DEFAULT_DEVNET_QUANTU_IDS;
-  const validationRegistryId = parsePubkeyEnv(
-    "VALIDATION_REGISTRY_PROGRAM_ID",
-    VALIDATION_REGISTRY_DEVNET_ID,
-  );
 
   return {
     network,
     rpcUrl,
     explorerCluster:      network === "solana-mainnet" ? "mainnet" : "devnet",
     programs,
-    validationRegistryId,
     quantu,
     signer:               readSigner(),
     transport,

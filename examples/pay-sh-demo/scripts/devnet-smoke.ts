@@ -73,7 +73,7 @@ const PAYER_KEYPAIR_FILE  = path.resolve(__dirname, "..", "devnet-payer-keypair.
 const MINT_KEYPAIR_FILE   = path.resolve(__dirname, "..", "devnet-mint-keypair.json");
 
 // Pinned program IDs.
-const TRUSTGATE_ID    = DEFAULT_DEVNET_PROGRAM_IDS.trustgate;
+const TRUSTGATE_ID    = DEFAULT_DEVNET_PROGRAM_IDS.trustGate;
 
 // SPL Token instruction discriminators.
 const SPL_INIT_MINT2          = 20;

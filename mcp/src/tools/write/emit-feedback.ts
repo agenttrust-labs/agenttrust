@@ -69,10 +69,10 @@ export const emitFeedbackTool: Tool<Input, Output> = {
     const baseCollection = parsePubkey(input.base_collection, "base_collection");
 
     const authorityPda = deriveTrustGateAuthorityPda(
-      ctx.chain.cfg.programs.trustgate, facilitator.publicKey,
+      ctx.chain.cfg.programs.trustGate, facilitator.publicKey,
     );
     const emissionLogPda = deriveFeedbackLogPda(
-      ctx.chain.cfg.programs.trustgate, Buffer.from(paymentIdHash),
+      ctx.chain.cfg.programs.trustGate, Buffer.from(paymentIdHash),
     );
     const agentAccount = deriveAgentAccountPda(ctx.chain.cfg.quantu, payeeAsset);
 

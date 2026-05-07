@@ -170,7 +170,7 @@ export async function startProduction(cfg: ProductionConfig): Promise<{
   const trustgateIdl   = (cfg.trustgateIdl   ?? require("./idl/trustgate.json"))   as Idl;
 
   const policyVault = await loadPolicyVault(provider, DEFAULT_DEVNET_PROGRAM_IDS.policyVault, policyVaultIdl);
-  const trustgate   = await loadTrustGate(provider, DEFAULT_DEVNET_PROGRAM_IDS.trustgate, trustgateIdl);
+  const trustgate   = await loadTrustGate(provider, DEFAULT_DEVNET_PROGRAM_IDS.trustGate, trustgateIdl);
 
   // PaySh adapter wiring.
   const validateOnChainTx = makeValidateOnChainTx({ connection });
@@ -181,14 +181,14 @@ export async function startProduction(cfg: ProductionConfig): Promise<{
 
   const emitFeedbackCpi = makeEmitFeedbackCpi({
     trustgate,
-    trustgateId:     DEFAULT_DEVNET_PROGRAM_IDS.trustgate,
+    trustgateId:     DEFAULT_DEVNET_PROGRAM_IDS.trustGate,
     agentRegistryId: DEFAULT_DEVNET_QUANTU_IDS.agentRegistry,
     facilitator:     cfg.facilitator,
     resolveQuantu,
   });
   const priorEmissionLookup = makePriorEmissionLookup({
     trustgate,
-    trustgateId: DEFAULT_DEVNET_PROGRAM_IDS.trustgate,
+    trustgateId: DEFAULT_DEVNET_PROGRAM_IDS.trustGate,
     connection,
   });
   const replayCache = new ReplayCache();

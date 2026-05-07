@@ -22,8 +22,8 @@ describe("programs resource", () => {
     const parsed = JSON.parse(r.text);
     expect(parsed.network).to.equal("solana-devnet");
     expect(parsed.programs.policyVault.programId).to.equal(cfg.programs.policyVault.toBase58());
-    expect(parsed.programs.trustgate.programId).to.equal(cfg.programs.trustgate.toBase58());
-    expect(parsed.programs.validationRegistry.programId).to.equal(cfg.validationRegistryId.toBase58());
+    expect(parsed.programs.trustgate.programId).to.equal(cfg.programs.trustGate.toBase58());
+    expect(parsed.programs.validationRegistry.programId).to.equal(cfg.programs.validationRegistry.toBase58());
   });
 
   it("includes Quantu mainnet IDs when network=solana-mainnet", () => {

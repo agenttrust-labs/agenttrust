@@ -62,7 +62,7 @@ export async function mountTrustGate(
   });
 
   const policyVault = await loadPolicyVault(provider, programIds.policyVault);
-  const trustgate   = await loadTrustGate(provider, programIds.trustgate);
+  const trustgate   = await loadTrustGate(provider, programIds.trustGate);
 
   // Lazy import to keep `express` as an optional peerDependency.
   const { Router } = await import("express");
@@ -141,7 +141,7 @@ function makeReceiptRoute(deps: {
         return res.status(400).json({ error: "paymentIdHashHex must be 64 hex chars" });
       }
       const paymentIdHash = Buffer.from(hex, "hex");
-      const pda = deriveFeedbackLogPda(deps.programIds.trustgate, paymentIdHash);
+      const pda = deriveFeedbackLogPda(deps.programIds.trustGate, paymentIdHash);
 
       const account = await (deps.trustgate.account as any).feedbackEmissionLog
         .fetchNullable(pda);

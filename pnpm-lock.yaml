@@ -207,7 +207,7 @@ importers:
   mcp:
     dependencies:
       '@agenttrust-sdk/trustgate':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../trustgate/sdk
       '@coral-xyz/anchor':
         specifier: ^0.31.1

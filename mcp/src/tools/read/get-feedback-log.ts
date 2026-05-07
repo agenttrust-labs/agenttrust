@@ -40,7 +40,7 @@ export const getFeedbackLogTool: Tool<Input, Output> = {
   async handler(input: Input, ctx: ToolContext): Promise<Output> {
     const hashBytes = hexToBytes(input.payment_id_hash);
     if (hashBytes.length !== 32) throw new Error("payment_id_hash must decode to 32 bytes");
-    const pda = deriveFeedbackLogPda(ctx.chain.cfg.programs.trustgate, Buffer.from(hashBytes));
+    const pda = deriveFeedbackLogPda(ctx.chain.cfg.programs.trustGate, Buffer.from(hashBytes));
     const trustgate = await ctx.chain.trustgate();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await (trustgate.account as any).feedbackEmissionLog.fetchNullable(pda);

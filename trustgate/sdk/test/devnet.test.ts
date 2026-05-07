@@ -193,7 +193,7 @@ integrationDescribe("SDK ↔ devnet (read-only)", function () {
       // address. Fetch the account info to confirm.
       return conn.getAccountInfo(logPda).then((info) => {
         expect(info, "FeedbackEmissionLog PDA missing on devnet").to.exist;
-        expect(info!.owner.toBase58()).to.equal(DEFAULT_DEVNET_PROGRAM_IDS.trustgate.toBase58());
+        expect(info!.owner.toBase58()).to.equal(DEFAULT_DEVNET_PROGRAM_IDS.trustGate.toBase58());
       });
     });
 
@@ -212,8 +212,8 @@ integrationDescribe("SDK ↔ devnet (read-only)", function () {
     it("deriveTrustGateAuthorityPda is unique per facilitator", () => {
       const f1 = Keypair.generate().publicKey;
       const f2 = Keypair.generate().publicKey;
-      const a1 = deriveTrustGateAuthorityPda(DEFAULT_DEVNET_PROGRAM_IDS.trustgate, f1);
-      const a2 = deriveTrustGateAuthorityPda(DEFAULT_DEVNET_PROGRAM_IDS.trustgate, f2);
+      const a1 = deriveTrustGateAuthorityPda(DEFAULT_DEVNET_PROGRAM_IDS.trustGate, f1);
+      const a2 = deriveTrustGateAuthorityPda(DEFAULT_DEVNET_PROGRAM_IDS.trustGate, f2);
       expect(a1.toBase58()).to.not.equal(a2.toBase58());
     });
   });

@@ -93,10 +93,10 @@ export const respondToValidationTool: Tool<Input, Output> = {
     const txSignature = await ctx.chain.provider.sendAndConfirm(tx, [signer]);
 
     const attestationPda = deriveValidationAttestationPda(
-      ctx.chain.cfg.validationRegistryId, subject, capHash, signer.publicKey,
+      ctx.chain.cfg.programs.validationRegistry, subject, capHash, signer.publicKey,
     );
     const attestorProfilePda = deriveAttestorProfilePda(
-      ctx.chain.cfg.validationRegistryId, signer.publicKey,
+      ctx.chain.cfg.programs.validationRegistry, signer.publicKey,
     );
 
     return {

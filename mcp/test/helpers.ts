@@ -8,7 +8,6 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import {
   DEFAULT_DEVNET_PROGRAM_IDS,
   DEFAULT_DEVNET_QUANTU_IDS,
-  VALIDATION_REGISTRY_DEVNET_ID,
 } from "@agenttrust-sdk/trustgate";
 
 import type { AgentTrustConfig } from "../src/config";
@@ -19,7 +18,6 @@ export function buildTestConfig(over: Partial<AgentTrustConfig> = {}): AgentTrus
     rpcUrl:               "http://localhost:0",          // unreachable; tests must not actually call
     explorerCluster:      "devnet",
     programs:             DEFAULT_DEVNET_PROGRAM_IDS,
-    validationRegistryId: VALIDATION_REGISTRY_DEVNET_ID,
     quantu:               DEFAULT_DEVNET_QUANTU_IDS,
     transport:            "stdio",
     httpPort:             8765,

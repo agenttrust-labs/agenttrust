@@ -1,6 +1,6 @@
 {
   "name": "@agenttrust-sdk/mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for AgentTrust — query and call deployed Solana programs from Claude Desktop / Cursor / any MCP client",
   "author": "AgentTrust Labs (https://agenttrust.tech)",
   "license": "MIT",
@@ -52,7 +52,7 @@
     "publish:dry": "npm publish --dry-run"
   },
   "dependencies": {
-    "@agenttrust-sdk/trustgate": "workspace:*",
+    "@agenttrust-sdk/trustgate": "workspace:^",
     "@coral-xyz/anchor": "^0.31.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@solana/web3.js": "^1.98.0",

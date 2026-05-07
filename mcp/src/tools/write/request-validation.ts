@@ -74,7 +74,7 @@ export const requestValidationTool: Tool<Input, Output> = {
     const tx = new Transaction().add(ix);
     const txSignature = await ctx.chain.provider.sendAndConfirm(tx, [signer]);
     const requestPda = deriveValidationRequestPda(
-      ctx.chain.cfg.validationRegistryId, subject, capHash, signer.publicKey,
+      ctx.chain.cfg.programs.validationRegistry, subject, capHash, signer.publicKey,
     );
 
     return {

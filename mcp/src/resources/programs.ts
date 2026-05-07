@@ -33,12 +33,12 @@ export function readProgramsResource(cfg: AgentTrustConfig): ResourceContent {
         explorerUrl: explorerUrl(cfg, "address", cfg.programs.policyVault.toBase58()),
       },
       trustgate: {
-        programId:   cfg.programs.trustgate.toBase58(),
-        explorerUrl: explorerUrl(cfg, "address", cfg.programs.trustgate.toBase58()),
+        programId:   cfg.programs.trustGate.toBase58(),
+        explorerUrl: explorerUrl(cfg, "address", cfg.programs.trustGate.toBase58()),
       },
       validationRegistry: {
-        programId:   cfg.validationRegistryId.toBase58(),
-        explorerUrl: explorerUrl(cfg, "address", cfg.validationRegistryId.toBase58()),
+        programId:   cfg.programs.validationRegistry.toBase58(),
+        explorerUrl: explorerUrl(cfg, "address", cfg.programs.validationRegistry.toBase58()),
       },
     },
     quantu: {

@@ -169,8 +169,8 @@ export async function composeAtomicSettleTx(
   const policyAccount   = derivePolicyPda(args.programIds.policyVault, args.payerAgentAsset, args.policyId);
   const velocityLedger  = deriveVelocityPda(args.programIds.policyVault, args.payerAgentAsset, args.policyId);
   const killSwitchState = deriveKillSwitchPda(args.programIds.policyVault, args.payerAgentAsset);
-  const trustGateAuthority = deriveTrustGateAuthorityPda(args.programIds.trustgate, args.facilitator);
-  const feedbackEmissionLog = deriveFeedbackLogPda(args.programIds.trustgate, Buffer.from(args.paymentIdHash));
+  const trustGateAuthority = deriveTrustGateAuthorityPda(args.programIds.trustGate, args.facilitator);
+  const feedbackEmissionLog = deriveFeedbackLogPda(args.programIds.trustGate, Buffer.from(args.paymentIdHash));
 
   // ix 0 — gate_payment_strict (returns Err on Deny → reverts the whole tx).
   // Uses the strict variant so non-Allow fails the entire atomic settle.

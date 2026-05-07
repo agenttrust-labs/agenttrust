@@ -159,7 +159,7 @@ export class ChainClient {
   async trustgate(): Promise<Program> {
     if (!this._trustgate) {
       this._trustgate = await loadTrustGate(
-        this.provider, this.cfg.programs.trustgate, BUNDLED_IDLS.trustgate,
+        this.provider, this.cfg.programs.trustGate, BUNDLED_IDLS.trustgate,
       );
     }
     return this._trustgate;
@@ -168,7 +168,7 @@ export class ChainClient {
   async validationRegistry(): Promise<Program> {
     if (!this._validationRegistry) {
       this._validationRegistry = await loadValidationRegistry(
-        this.provider, this.cfg.validationRegistryId, BUNDLED_IDLS.validationRegistry,
+        this.provider, this.cfg.programs.validationRegistry, BUNDLED_IDLS.validationRegistry,
       );
     }
     return this._validationRegistry;

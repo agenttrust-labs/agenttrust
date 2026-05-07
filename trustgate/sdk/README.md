@@ -23,6 +23,33 @@ AgentTrust ships day-one Pay.sh adapter as the canonical reference impl.
 > `npx @agenttrust-sdk/mcp` and query the deployed AgentTrust programs
 > via natural language.
 
+## Breaking changes (0.2.0)
+
+The `ProgramIds` shape and the `DEFAULT_DEVNET_PROGRAM_IDS` constant changed:
+
+| 0.1.x | 0.2.0 |
+|---|---|
+| `ProgramIds.trustgate` | `ProgramIds.trustGate` (camelCase, matches `policyVault`) |
+| `ProgramIds = { policyVault, trustgate }` | `ProgramIds = { policyVault, trustGate, validationRegistry }` |
+
+**One-line migration in consumer code:** search-and-replace `.trustgate` →
+`.trustGate` for every `programIds.*` / `DEFAULT_DEVNET_PROGRAM_IDS.*`
+field access. The new `validationRegistry` field defaults to the live
+devnet program ID `Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv`; previous
+callers who imported `VALIDATION_REGISTRY_DEVNET_ID` separately can keep
+that import or switch to `DEFAULT_DEVNET_PROGRAM_IDS.validationRegistry`.
+
+```ts
+// 0.1.x
+import { DEFAULT_DEVNET_PROGRAM_IDS } from "@agenttrust-sdk/trustgate";
+DEFAULT_DEVNET_PROGRAM_IDS.trustgate.toBase58();
+
+// 0.2.0
+import { DEFAULT_DEVNET_PROGRAM_IDS } from "@agenttrust-sdk/trustgate";
+DEFAULT_DEVNET_PROGRAM_IDS.trustGate.toBase58();
+DEFAULT_DEVNET_PROGRAM_IDS.validationRegistry.toBase58();   // new
+```
+
 ## Install
 
 ```bash

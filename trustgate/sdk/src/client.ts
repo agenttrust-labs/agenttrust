@@ -108,7 +108,7 @@ export async function settle(req: SettleRequest): Promise<TransactionSignature> 
   const programIds = req.programIds ?? DEFAULT_DEVNET_PROGRAM_IDS;
   const provider   = makeProvider({ rpcUrl: req.rpcUrl, wallet: req.facilitator });
   const policyVault = await loadPolicyVault(provider, programIds.policyVault);
-  const trustgate   = await loadTrustGate(provider, programIds.trustgate);
+  const trustgate   = await loadTrustGate(provider, programIds.trustGate);
 
   const { tx } = await composeAtomicSettleTx({
     atomicityEnforced: true,

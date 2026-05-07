@@ -211,6 +211,6 @@ describe("MCP devnet round-trip (INTEGRATION=1 only)", function () {
     };
     const info = await conn.getAccountInfo(new PublicKey(smoke.emitFeedback.logPda));
     expect(info, "FeedbackEmissionLog PDA missing on devnet").to.not.equal(null);
-    expect(info!.owner.toBase58()).to.equal(cfg.programs.trustgate.toBase58());
+    expect(info!.owner.toBase58()).to.equal(cfg.programs.trustGate.toBase58());
   });
 });

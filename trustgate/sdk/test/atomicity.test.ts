@@ -204,7 +204,7 @@ describe("composeAtomicSettleTx", () => {
   };
 
   const policyVaultFake = fakeProgram(programIds.policyVault, "gate");
-  const trustgateFake   = fakeProgram(programIds.trustgate,   "feedback");
+  const trustgateFake   = fakeProgram(programIds.trustGate,   "feedback");
   const baseArgs = {
     atomicityEnforced: true as const,
     programIds,
@@ -242,7 +242,7 @@ describe("composeAtomicSettleTx", () => {
     expect(composed.instructions).to.have.lengthOf(3);
     expect(composed.instructions[0].programId.equals(programIds.policyVault)).to.equal(true);
     expect(composed.instructions[1].programId.equals(TOKEN_PROGRAM_ID)).to.equal(true);
-    expect(composed.instructions[2].programId.equals(programIds.trustgate)).to.equal(true);
+    expect(composed.instructions[2].programId.equals(programIds.trustGate)).to.equal(true);
   });
 
   it("derives the canonical PDAs for policy / velocity / killswitch / feedback log / authority", async () => {
@@ -257,10 +257,10 @@ describe("composeAtomicSettleTx", () => {
       deriveKillSwitchPda(programIds.policyVault, payerAgentAsset),
     )).to.equal(true);
     expect(composed.accounts.feedbackEmissionLog.equals(
-      deriveFeedbackLogPda(programIds.trustgate, Buffer.from(paymentIdHash)),
+      deriveFeedbackLogPda(programIds.trustGate, Buffer.from(paymentIdHash)),
     )).to.equal(true);
     expect(composed.accounts.trustGateAuthority.equals(
-      deriveTrustGateAuthorityPda(programIds.trustgate, facilitator),
+      deriveTrustGateAuthorityPda(programIds.trustGate, facilitator),
     )).to.equal(true);
   });
 

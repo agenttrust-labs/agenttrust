@@ -82,7 +82,7 @@ export interface RealPayShDepsBundle {
 export async function makeRealPayShDeps(
   args: MakeRealPayShDepsArgs,
 ): Promise<RealPayShDepsBundle> {
-  const trustgateId = args.trustgateProgramId ?? DEFAULT_DEVNET_PROGRAM_IDS.trustgate;
+  const trustgateId = args.trustgateProgramId ?? DEFAULT_DEVNET_PROGRAM_IDS.trustGate;
 
   const connection = new Connection(args.rpcUrl, "confirmed");
   const wallet     = new Wallet(args.facilitator);
