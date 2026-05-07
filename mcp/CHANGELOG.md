@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.3] — 2026-05-07
+
+Tag: `mcp-v0.2.3` · Path-resolution fix follow-up to 0.2.2.
+
+### Fixed
+
+- 0.2.2 bundled the embedded-docs / embedded-examples assets correctly but the consumer `path.resolve(__dirname, "…")` had an off-by-one — `dist/tools/discovery/__dirname + "../../../embedded-docs"` resolved to `<package-root>/embedded-docs`, missing the `dist/` segment. Files were in the tarball but the loaders couldn't find them. Three relative paths corrected (discovery/docs.ts, discovery/facilitator-walkthrough.ts, resources/docs.ts). Fresh `npx` install now returns full corpus + walkthrough content.
+
+## [0.2.2] — 2026-05-07
+
+Tag: `mcp-v0.2.2` · Phase N — Phase M E2E surfaced three bugs; this release closes all three plus the SERVER_VERSION fix that landed in 0.2.1.
+
+### Fixed
+
+- `agenttrust_demo_state` no longer reports `available: false` on a fresh `npx` install. The build script now bundles the live devnet JSON snapshots (counterparties, demo-policies, smoke, attestor-trace, namespaces, chained-validation) into `dist/embedded-data/`. The tool prefers the bundled path; a local clone still wins the source-of-truth `examples/.../...json` lookup. (Phase M Bug #2)
+- `agenttrust_docs` now returns ranked hits from the full MDX corpus (27 pages) on `npx` installs. The build script materialises `docs-site/content/docs/**/*.mdx` into `dist/embedded-docs/`; the doc loader prefers that directory and falls back to the live tree on a local clone. The `agenttrust://docs/*` resource scheme works the same way. (Phase M Bug #3)
+- `agenttrust_facilitator_walkthrough` reads its source MDX + the trustgate facilitators README from `dist/embedded-docs/` first; no more "no walkthrough bundled" responses. (Phase M Bug #3)
+- The `agenttrust://examples/*` resource scheme now reads from `dist/embedded-examples/` (READMEs + `src/*.ts` for both pay-sh-demo and attestor-demo). (Phase M Bug #3)
+- HTTP transport now spins up one `Server` + `StreamableHTTPServerTransport` pair per `Mcp-Session-Id` instead of a singleton. Concurrent clients no longer interfere; second `initialize` no longer errors `-32600 Server already initialized`. Idle sessions evict after 30 minutes. (Phase M Bug #4)
+
+### Changed
+
+- Build pipeline: `pnpm --filter ./mcp run build` now runs `tsc && node scripts/copy-embedded-assets.js`. The copy script prints a per-bucket count summary so regressions in the bundled set are visible at build time.
+
+### Note
+
+The bundled `dist/embedded-docs/` is a **publish-time snapshot**. The live docs at `docs.agenttrust.tech` evolve independently — clients that need fresh docs should set `MCP_DOCS_DIR` to a checkout's `docs-site/content/docs/` directory, or use the hosted MCP at `mcp.agenttrust.tech` (redeployed on every `main` push).
+
+## [0.2.1] — 2026-05-07
+
+Tag: `mcp-v0.2.1` · `simulate_payment` clearer error when no caller / KEYPAIR_B58 set.
+
+### Fixed
+
+- `agenttrust_simulate_payment` returns an actionable error ("requires a funded fee-payer on devnet — pass `caller` or set `KEYPAIR_B58`") instead of cryptic `AccountNotFound` when neither input is provided. Phase M E2E driver verified the fix via stdio + HTTP.
+- `serverInfo.version` now reads from `package.json` so MCP clients see the same version as `npm view`. Previously hardcoded to `0.1.0` — drifted across 0.1.0 → 0.2.0 → 0.2.1.
+
 ## [0.2.0] — 2026-05-07
 
 Tag: [`mcp-v0.2.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/mcp-v0.2.0)

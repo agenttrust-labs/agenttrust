@@ -50,8 +50,15 @@ let cache: DocPage[] | null = null;
 
 export function findDocsRoot(): string | null {
   const candidates = [
+    // Env override wins (tests + power-users)
     process.env.MCP_DOCS_DIR ?? "",
+    // npm-install path: full MDX corpus copied into dist/embedded-docs
+    // by scripts/copy-embedded-assets.js (Phase N2 fix). __dirname at
+    // runtime is dist/tools/discovery, so two levels up reaches dist/.
+    path.resolve(__dirname, "../../embedded-docs"),
+    // Local-clone path: read directly from the source-of-truth tree.
     path.resolve(__dirname, "../../../../docs-site/content/docs"),
+    // Process cwd fallback (tests, custom layouts).
     path.resolve(process.cwd(), "docs-site/content/docs"),
   ].filter(Boolean);
   for (const c of candidates) {

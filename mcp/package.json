@@ -1,6 +1,6 @@
 {
   "name": "@agenttrust-sdk/mcp",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "MCP server for AgentTrust \u2014 query and call deployed Solana programs from Claude Desktop / Cursor / any MCP client",
   "author": "AgentTrust Labs (https://agenttrust.tech)",
   "license": "MIT",
@@ -41,7 +41,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc && node -e \"const fs=require('fs');const path=require('path');const src=path.resolve('src/idl');const dst=path.resolve('dist/idl');fs.mkdirSync(dst,{recursive:true});for(const f of fs.readdirSync(src))if(f.endsWith('.json'))fs.copyFileSync(path.join(src,f),path.join(dst,f));\"",
+    "build": "tsc && node scripts/copy-embedded-assets.js",
     "lint": "tsc --noEmit",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",

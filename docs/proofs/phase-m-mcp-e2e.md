@@ -242,3 +242,111 @@ bash /tmp/phase-m/verify.sh
 The driver scripts live in `/tmp/phase-m/` (per-host scratch); the canonical inputs live in `examples/pay-sh-demo/devnet-counterparties.json`, `examples/pay-sh-demo/devnet-demo-policies.json`, `examples/pay-sh-demo/devnet-smoke.json`, and `examples/attestor-demo/devnet-attestor-trace.json` (all tracked).
 
 Phase M end. v1 is shippable for Frontier; the four flagged bugs are MCP-side ergonomics, not on-chain correctness.
+
+---
+
+## Phase N — re-run after fix
+
+`@agenttrust-sdk/mcp@0.2.2` (Phase N initial release) bundled the
+embedded assets into the tarball but the consumer `path.resolve` call
+had an off-by-one (`../../../embedded-docs` resolved one level above
+`dist/`). Files were in the tarball, loaders couldn't find them.
+Republished as `0.2.3` with the path fix; the rest of the Phase N work
+landed cleanly in 0.2.2 already.
+
+### Fresh-install test against `@agenttrust-sdk/mcp@0.2.3`
+
+```bash
+mkdir /tmp/probe && cd /tmp/probe
+npm init -y && npm install @agenttrust-sdk/mcp@0.2.3
+node ./driver.js
+```
+
+Result:
+
+```text
+serverInfo.version: 0.2.3                     ← was 0.1.0 (Phase M bug already-fixed)
+resources count:    36                        ← was 1 (Bug #3)
+demo_state.available: true                    ← was false (Bug #2)
+demo_state.counterparties.length: 3
+docs.hits.length:   5                         ← was 0 (Bug #3)
+docs.hits[0].uri:   agenttrust://docs/integration-guides/custom-attestor
+walkthrough.matched: true
+walkthrough.content.length:        3267       ← was 72 (fallback) (Bug #3)
+walkthrough.servicesReadme.length: 9704       ← was undefined (Bug #3)
+```
+
+### Concurrent HTTP-session test against `https://mcp.agenttrust.tech/`
+
+After redeploying via `flyctl deploy --config mcp/fly.toml --dockerfile mcp/Dockerfile --remote-only --app agenttrust-mcp .`:
+
+```text
+healthz: {"version":"0.2.3","activeSessions":0,"toolCount":18,…}
+```
+
+Three concurrent `Promise.all` sessions, each calling `initialize` →
+`notifications/initialized` → `tools/list`:
+
+```text
+[
+  { label: "alpha",   sessionId: "0eb291ec-…", serverVersion: "0.2.3", toolCount: 18 },
+  { label: "bravo",   sessionId: "033adf37-…", serverVersion: "0.2.3", toolCount: 18 },
+  { label: "charlie", sessionId: "209545d1-…", serverVersion: "0.2.3", toolCount: 18 }
+]
+
+distinct sessions: 3 / 3
+any errors: no
+all 18 tools: yes
+```
+
+Pre-fix: every concurrent call after the first errored `-32600 Server already initialized`.
+Post-fix: each session gets its own `Server` + `StreamableHTTPServerTransport`
+pair via the `Map<sessionId, Session>` in `mcp/src/index.ts`. Idle
+sessions evict after 30 minutes.
+
+### Bug status
+
+| # | bug | status |
+|---|---|---|
+| 1 | `serverInfo.version` hardcoded `0.1.0` | ✅ fixed in 0.2.1, verified in 0.2.3 |
+| 2 | demo state JSON not bundled | ✅ fixed in 0.2.2, verified in 0.2.3 |
+| 3 | docs corpus + examples not bundled | ✅ fixed in 0.2.3 (path fix follow-up to 0.2.2) |
+| 4 | HTTP transport singleton | ✅ fixed in 0.2.2, verified post-redeploy |
+
+### Tarball contents (`pnpm pack --dry-run` from `mcp/`)
+
+```text
+dist/embedded-data/devnet-attestor-trace.json
+dist/embedded-data/devnet-chained-validation.json
+dist/embedded-data/devnet-counterparties.json
+dist/embedded-data/devnet-demo-policies.json
+dist/embedded-data/devnet-namespaces.json
+dist/embedded-data/devnet-smoke.json
+dist/embedded-docs/getting-started/architecture-overview.mdx
+…27 mdx files total under embedded-docs/…
+dist/embedded-examples/pay-sh-demo/README.md
+dist/embedded-examples/pay-sh-demo/src/{deps,deps-real,index,middleware,policy,x402}.ts
+dist/embedded-examples/attestor-demo/README.md
+dist/idl/{policy_vault,trustgate,validation_registry}.json
+dist/trustgate/server/src/facilitators/README.md
+…dist/**/*.{js,d.ts,js.map}…
+LICENSE, package.json, README.md, scripts/install-claude-desktop.sh
+
+package size: 114.2 kB / unpacked 464.7 kB / 145 files
+```
+
+### Verification gate
+
+| gate | result |
+|---|---|
+| `pnpm --filter ./mcp run lint` | ✅ clean |
+| `pnpm --filter ./mcp run build` | ✅ 6 data + 27 mdx + facilitators README + 8 examples + 3 IDLs |
+| `pnpm --filter ./mcp test` | ✅ 76 passing, 3 pending (unchanged) |
+| Fresh `npx -y @agenttrust-sdk/mcp@0.2.3` probe | ✅ all surfaces green (table above) |
+| `npm view @agenttrust-sdk/mcp version` | ✅ `0.2.3` (latest dist-tag) |
+| `https://mcp.agenttrust.tech/healthz` post-redeploy | ✅ `version: "0.2.3"` |
+| Concurrent HTTP sessions × 3 | ✅ 3 distinct session ids, no errors, 18 tools each |
+
+Phase N closes the four ergonomics bugs from Phase M. The npm-install
+experience now matches the local-clone experience for every documented
+read tool, resource, and prompt.

@@ -56,12 +56,15 @@ interface Output {
 
 function findDemoFile(): string | null {
   const candidates = [
-    // From repo root (typical npm install layout)
-    path.resolve(__dirname, "../../../../examples/pay-sh-demo/devnet-counterparties.json"),
-    // Fallback: relative to cwd
-    path.resolve(process.cwd(), "examples/pay-sh-demo/devnet-counterparties.json"),
-    // Env override
+    // Env override wins (tests + power-users)
     process.env.PAY_SH_DEMO_STATE_FILE ?? "",
+    // npm-install path: snapshot bundled into dist/embedded-data/ at
+    // build time by scripts/copy-embedded-assets.js (Phase N1 fix).
+    path.resolve(__dirname, "../../embedded-data/devnet-counterparties.json"),
+    // Local-clone path: read directly from the source-of-truth file.
+    path.resolve(__dirname, "../../../../examples/pay-sh-demo/devnet-counterparties.json"),
+    // Process cwd fallback (tests, custom layouts).
+    path.resolve(process.cwd(), "examples/pay-sh-demo/devnet-counterparties.json"),
   ].filter(Boolean);
   for (const p of candidates) {
     try {

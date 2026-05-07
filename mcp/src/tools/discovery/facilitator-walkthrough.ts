@@ -42,15 +42,31 @@ const ADAPTER_DOCS: Record<string, string> = {
 const GENERIC_FALLBACK = "integration-guides/facilitator-adapters.mdx";
 const SERVICES_README  = "trustgate/server/src/facilitators/README.md";
 
-function findRepoRoot(): string {
-  const candidates = [
+/**
+ * Resolve the bundled docs root (Phase N2: dist/embedded-docs/) plus
+ * the repo-root fallback. The bundled path is preferred — it's the
+ * load-bearing fix for npm-install consumers.
+ */
+function findDocsLookupRoots(): { docsRoot: string; servicesReadme: string }[] {
+  // npm install: copy-embedded-assets.js puts the MDX tree under
+  // dist/embedded-docs and the facilitators README under
+  // dist/trustgate/server/src/facilitators/README.md. __dirname at
+  // runtime is dist/tools/discovery, so two levels up reaches dist/.
+  const distDocs = path.resolve(__dirname, "../../embedded-docs");
+  const distSvc  = path.resolve(__dirname, "../../" + SERVICES_README);
+  // Local clone: live tree.
+  const repoCandidates = [
     path.resolve(__dirname, "../../../.."),
     process.cwd(),
   ];
-  for (const c of candidates) {
-    try { if (fs.existsSync(path.join(c, "Anchor.toml"))) return c; } catch { /* ignore */ }
+  let liveRoot: string | null = null;
+  for (const c of repoCandidates) {
+    try { if (fs.existsSync(path.join(c, "Anchor.toml"))) { liveRoot = c; break; } } catch { /* ignore */ }
   }
-  return path.resolve(__dirname, "../../../..");
+  const out: { docsRoot: string; servicesReadme: string }[] = [];
+  if (fs.existsSync(distDocs)) out.push({ docsRoot: distDocs, servicesReadme: distSvc });
+  if (liveRoot)                out.push({ docsRoot: path.join(liveRoot, "docs-site/content/docs"), servicesReadme: path.join(liveRoot, SERVICES_README) });
+  return out;
 }
 
 export const facilitatorWalkthroughTool: Tool<Input, Output> = {
@@ -63,21 +79,23 @@ export const facilitatorWalkthroughTool: Tool<Input, Output> = {
   inputSchema: InputSchema,
 
   async handler(input: Input): Promise<Output> {
-    const root = findRepoRoot();
     const docKey = input.name.toLowerCase().replace(/[\s_]/g, "-");
     const matched = !!ADAPTER_DOCS[docKey];
     const docRel  = ADAPTER_DOCS[docKey] ?? GENERIC_FALLBACK;
-    const docAbs  = path.join(root, "docs-site", "content", "docs", docRel);
-    const readmeAbs = path.join(root, SERVICES_README);
 
     let content = "";
-    try { content = fs.readFileSync(docAbs, "utf-8"); }
-    catch (err) {
-      content = `(failed to read ${docRel}: ${(err as Error).message})`;
-    }
     let services = "";
-    try { services = fs.readFileSync(readmeAbs, "utf-8"); }
-    catch { /* optional */ }
+    for (const { docsRoot, servicesReadme } of findDocsLookupRoots()) {
+      const docAbs = path.join(docsRoot, docRel);
+      if (!content) {
+        try { content = fs.readFileSync(docAbs, "utf-8"); } catch { /* try next */ }
+      }
+      if (!services) {
+        try { services = fs.readFileSync(servicesReadme, "utf-8"); } catch { /* try next */ }
+      }
+      if (content && services) break;
+    }
+    if (!content) content = `(no walkthrough bundled for ${docRel})`;
 
     const out: Output = {
       name:           input.name,
