@@ -25,6 +25,7 @@ agenttrust-grant/
 # Whitelist public docs
 !docs/proofs/
 !docs/proofs/**
+!docs/COMPLETING-THE-TRUST-STACK.md
 !trustgate/sdk/PUBLISHING.md
 !trustgate/sdk/README.md
 !examples/**/README.md

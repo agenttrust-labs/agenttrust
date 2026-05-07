@@ -166,6 +166,6 @@ Failed: **0 / 635**.
 - Liveness — a denied request never reaches Allow, but the proofs do not
   bound the number of denials before an Allow eventually fires.
 
-The five invariants above are the **safety** properties: nothing
+The six invariants above are the **safety** properties: nothing
 catastrophic happens. Liveness + economic-game-theoretic properties
 are out of scope for v1.

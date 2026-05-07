@@ -1,12 +1,14 @@
 # AgentTrust
 
-> **AgentTrust completes the Solana Foundation's ERC-8004 trust stack.** Three Anchor programs that turn Quantu's IdentityRegistry + ReputationRegistry primitives into a full agent-payment trust system: programmable spending policies, x402 facilitator integration, and capability attestation. **Five formally-verified safety properties.** Drop-in TypeScript SDK. **Day-one Pay.sh integration** — Solana Foundation's first x402 facilitator, launched May 5 2026 with Google Cloud.
+> **AgentTrust completes the Solana Foundation's ERC-8004 trust stack.** Three Anchor programs that turn Quantu's IdentityRegistry + ReputationRegistry primitives into a full agent-payment trust system: programmable spending policies, x402 facilitator integration, and capability attestation. **Six formally-verified safety properties.** Drop-in TypeScript SDK. **Day-one Pay.sh integration** — Solana Foundation's first x402 facilitator, launched May 5 2026 with Google Cloud.
+>
+> **Read first:** [`docs/COMPLETING-THE-TRUST-STACK.md`](./docs/COMPLETING-THE-TRUST-STACK.md) — the full v1 narrative (~2k words, Foundation-aligned).
 
 [![Web app](https://img.shields.io/badge/web-live-c2410c?style=flat-square)](https://www.agenttrust.tech)
 [![Docs](https://img.shields.io/badge/docs-live-c2410c?style=flat-square)](https://docs.agenttrust.tech)
 [![SDK on npm](https://img.shields.io/npm/v/@agenttrust-sdk/trustgate?style=flat-square&color=c2410c&label=sdk)](https://www.npmjs.com/package/@agenttrust-sdk/trustgate)
 [![MCP on npm](https://img.shields.io/npm/v/@agenttrust-sdk/mcp?style=flat-square&color=c2410c&label=mcp)](https://www.npmjs.com/package/@agenttrust-sdk/mcp)
-[![Kani 5/5](https://img.shields.io/badge/kani-5%2F5_proven-c2410c?style=flat-square)](.github/workflows/kani-prove.yml)
+[![Kani 6/6](https://img.shields.io/badge/kani-6%2F6_proven-c2410c?style=flat-square)](.github/workflows/kani-prove.yml)
 [![CI workflows](https://img.shields.io/badge/CI-15_workflows-c2410c?style=flat-square)](.github/workflows/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-c2410c?style=flat-square)](./LICENSE)
 
@@ -66,7 +68,7 @@ The policy-as-code engine. Five orthogonal policy kinds composed under one `gate
 
 Manual byte-offset deserialization of Quantu PDAs (Pattern B per playbook §02-A) — **zero Cargo dep on Quantu's crate**. Schema-version canary at byte 560 catches breaking changes early.
 
-**Five Kani-proven invariants** (machine-checked via [model-checking/kani](https://github.com/model-checking/kani)):
+**Six Kani-proven invariants** (machine-checked via [model-checking/kani](https://github.com/model-checking/kani)):
 
 | # | Invariant | Sub-checks | Time |
 |---|-----------|-----------:|-----:|
@@ -75,8 +77,9 @@ Manual byte-offset deserialization of Quantu PDAs (Pattern B per playbook §02-A
 | 3 | `counterparty_tier_monotone` — strict pass ⇒ loose pass | 8 | 0.02s |
 | 4 | `validation_expiry_correct` — expired attestation ⇒ never Allow | 85 | 0.21s |
 | 5 | `multisig_threshold_enforced` — distinct signer count ≥ threshold | 149 | 62.55s |
+| 6 | `gate_payment_strict_correctness` — strict Ok ⇔ Allow + 3 disjoint variants | 258 | 0.9s |
 
-**Total: 377 sub-checks, 5/5 proven, ~63s.** CI ([`.github/workflows/kani-prove.yml`](.github/workflows/kani-prove.yml)) runs all five on every PR.
+**Total: 635 sub-checks, 6/6 proven, ~64s.** CI ([`.github/workflows/kani-prove.yml`](.github/workflows/kani-prove.yml)) runs all six on every PR.
 
 **Devnet:** [`8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR`](https://explorer.solana.com/address/8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR?cluster=devnet)
 
@@ -315,7 +318,7 @@ agenttrust/
 ├── tests/                      # Anchor TS integration tests + adversarial harness
 └── .github/workflows/          # 15 CI workflows
     ├── anchor-test.yml         # full Anchor end-to-end with Quantu mainnet clones
-    ├── kani-prove.yml          # 5 Kani invariants on every PR
+    ├── kani-prove.yml          # 6 Kani invariants on every PR
     ├── ts-test.yml             # SDK + server + web + demo + MCP build/test
     ├── adapter-contract-conformance.yml
     ├── bundle-size.yml         # SDK npm pack size budget
@@ -338,7 +341,7 @@ agenttrust/
 | Layer | Count | Where |
 |-------|-------|-------|
 | Rust unit tests | 113 | `cargo test --workspace --lib` |
-| Kani formal proofs | 5 invariants, 377 sub-checks | `cargo kani` per `proofs/*` |
+| Kani formal proofs | 6 invariants, 635 sub-checks | `cargo kani` per `proofs/*` |
 | Anchor TS end-to-end | 50 | `anchor test --provider.cluster devnet` |
 | Adversarial harness | 14 hostile-scenario assertions | `tests/adversarial.spec.ts` |
 | SDK unit tests | 56 (+16 INTEGRATION-gated) | `cd trustgate/sdk && pnpm test` |
@@ -346,7 +349,7 @@ agenttrust/
 | MCP unit tests | 76 (+3 INTEGRATION + 21 protocol conformance) | `cd mcp && pnpm test` |
 | pay-sh-demo flow | 7 (+1 INTEGRATION) | `cd examples/pay-sh-demo && pnpm test` |
 | attestor-demo lifecycle | 6 (INTEGRATION-gated) | `cd examples/attestor-demo && pnpm test` |
-| **Total** | **~360 tests + 5 formal proofs + 14 adversarial scenarios** | All green on `main` |
+| **Total** | **~360 tests + 6 formal proofs + 14 adversarial scenarios** | All green on `main` |
 
 ---
 
@@ -366,7 +369,7 @@ These are explicit, scoped, tracked. None are blocking the v1 demo or the Founda
 - **Solana Foundation + Google Cloud** — Pay.sh, the first x402 facilitator on Solana, [launched 2026-05-05](https://solana.com/news/solana-foundation-launches-pay-sh-in-collaboration-with-google-cloud). AgentTrust ships day-one Pay.sh integration as the canonical adapter.
 - **Quantu Labs** — `8004-solana` (IdentityRegistry + ReputationRegistry + atom-engine), MIT license. AgentTrust reads their PDAs via byte-precise parsers; pinned commit `bfb09ad`.
 - **Solana Foundation** — ERC-8004 endorsement, x402 spec, Anchor framework.
-- **Model Checking @ AWS / Kani team** — formal verification toolchain that made the 5 invariants tractable in 13 days.
+- **Model Checking @ AWS / Kani team** — formal verification toolchain that made the 6 invariants tractable in 13 days.
 
 ---
 
