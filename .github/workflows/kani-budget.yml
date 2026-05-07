@@ -71,6 +71,11 @@ jobs:
             ${{ runner.os }}-kani-cargo-${{ env.KANI_VERSION }}-
 
       - name: Install Kani
+        # Skip the install on cache hit — see kani-prove.yml for the same
+        # pattern: the action runs `cargo install --locked kani-verifier`
+        # without --force, which errors when the cache step above restored
+        # ~/.cargo/bin/{kani,cargo-kani} first.
+        if: steps.cache-kani.outputs.cache-hit != 'true'
         uses: model-checking/kani-github-action@v1.1
         with:
           kani-version: ${{ env.KANI_VERSION }}

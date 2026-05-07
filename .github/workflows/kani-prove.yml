@@ -72,6 +72,14 @@ jobs:
             ${{ runner.os }}-kani-cargo-${{ env.KANI_VERSION }}-
 
       - name: Install Kani
+        # The cache step above restores ~/.cargo/bin/{kani,cargo-kani} +
+        # ~/.kani when the version-keyed cache hits. The kani-github-action
+        # internally runs `cargo install --locked kani-verifier` without
+        # --force, which errors with "binary already exists in destination"
+        # when the cache restored those binaries first. Skipping the action
+        # on a cache hit avoids the conflict; the cached install is already
+        # complete (cargo kani setup runs against the cached ~/.kani).
+        if: steps.cache-kani.outputs.cache-hit != 'true'
         uses: model-checking/kani-github-action@v1.1
         with:
           kani-version: ${{ env.KANI_VERSION }}
