@@ -67,6 +67,10 @@ import { createRealDemoApp } from "../src";
 
 const RPC_URL    = process.env.RPC_URL   ?? "https://api.devnet.solana.com";
 const KEYPAIR    = process.env.KEYPAIR   ?? path.join(os.homedir(), ".config/solana/id.json");
+/** Base58-encoded 64-byte secret. Preferred over KEYPAIR when set —
+ *  the daily-devnet-smoke CI workflow ships the secret via this var
+ *  so the runner doesn't need a `~/.config/solana/id.json` file. */
+const FACILITATOR_KEYPAIR_B58 = process.env.FACILITATOR_KEYPAIR_B58;
 const SMOKE_FILE = path.resolve(__dirname, "..", "devnet-smoke.json");
 const COUNTERPARTIES_FILE = path.resolve(__dirname, "..", "devnet-counterparties.json");
 const PAYER_KEYPAIR_FILE  = path.resolve(__dirname, "..", "devnet-payer-keypair.json");
@@ -87,6 +91,16 @@ const SPL_MINT_TO             = 7;
 function loadKeypair(p: string): Keypair {
   const data = JSON.parse(fs.readFileSync(p, "utf-8"));
   return Keypair.fromSecretKey(Uint8Array.from(data));
+}
+
+/** Resolve the facilitator keypair — `FACILITATOR_KEYPAIR_B58` env wins
+ *  over the file path. Lets CI runs (no `~/.config/solana/id.json`)
+ *  succeed without writing a temp file. */
+function loadFacilitatorKeypair(): Keypair {
+  if (FACILITATOR_KEYPAIR_B58 && FACILITATOR_KEYPAIR_B58.trim().length > 0) {
+    return Keypair.fromSecretKey(bs58.decode(FACILITATOR_KEYPAIR_B58.trim()));
+  }
+  return loadKeypair(KEYPAIR);
 }
 
 function loadOrCreateKeypair(p: string): Keypair {
@@ -414,7 +428,7 @@ async function runDemoFlow(args: {
 
 async function main(): Promise<void> {
   const connection = new Connection(RPC_URL, "confirmed");
-  const facilitator = loadKeypair(KEYPAIR);
+  const facilitator = loadFacilitatorKeypair();
   const counterparties = loadCounterparties();
   const tier3 = counterparties.counterparties.find((c) => c.demoTier === 3);
   if (!tier3) throw new Error("no tier-3 counterparty in devnet-counterparties.json");
