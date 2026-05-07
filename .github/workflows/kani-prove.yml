@@ -32,6 +32,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  KANI_VERSION: '0.67.0'
+
 jobs:
   prove:
     name: Prove 5 PolicyVault invariants
@@ -40,10 +43,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Cache kani-verifier + the bundled CBMC sysroot. The
+      # model-checking/kani-github-action installs via a pre-built
+      # tarball but still downloads + extracts on every cold run
+      # (~30s). Caching the cargo bin + Kani's internal install dir
+      # lets the action's "already-installed" check skip the network
+      # round-trip.
+      - name: Cache Kani ${{ env.KANI_VERSION }}
+        id: cache-kani
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/kani
+            ~/.cargo/bin/cargo-kani
+            ~/.kani
+          key: ${{ runner.os }}-kani-${{ env.KANI_VERSION }}
+
+      # Cache cargo registry + the policy-vault target/ from prior
+      # proof runs. Keyed on Cargo.lock; restore-keys allow a
+      # partial hit when the lockfile changes.
+      - name: Cache Cargo + proof target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            programs/policy-vault/target
+          key: ${{ runner.os }}-kani-cargo-${{ env.KANI_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-kani-cargo-${{ env.KANI_VERSION }}-
+
       - name: Install Kani
         uses: model-checking/kani-github-action@v1.1
         with:
-          kani-version: '0.67.0'
+          kani-version: ${{ env.KANI_VERSION }}
 
       - name: Prove invariants
         working-directory: programs/policy-vault
@@ -56,4 +89,4 @@ jobs:
 
       - name: Summary
         if: success()
-        run: echo "All 5 PolicyVault invariants proven green. ✓"
+        run: echo "All 5 PolicyVault invariants proven green."

@@ -39,8 +39,56 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Job-level path filter. Each downstream job consults the matching
+  # output to decide whether to run. Push events (main) skip the
+  # filter and run every job — that's the last line of defense
+  # before a deploy. PRs filter to just the workspaces that changed.
+  changes:
+    name: detect changed workspaces
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      sdk:    ${{ steps.filter.outputs.sdk }}
+      server: ${{ steps.filter.outputs.server }}
+      demo:   ${{ steps.filter.outputs.demo }}
+      mcp:    ${{ steps.filter.outputs.mcp }}
+      web:    ${{ steps.filter.outputs.web }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          # The filter compares head ref vs base ref on PRs. On
+          # push events it diffs against the previous commit.
+          filters: |
+            shared:
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'package.json'
+              - '**/tsconfig*.json'
+              - '.github/workflows/ts-test.yml'
+            sdk:
+              - 'trustgate/sdk/**'
+            server:
+              - 'trustgate/server/**'
+              - 'trustgate/sdk/**'   # server imports the SDK
+            demo:
+              - 'examples/pay-sh-demo/**'
+              - 'trustgate/server/**' # demo imports server
+              - 'trustgate/sdk/**'    # …and the SDK
+            mcp:
+              - 'mcp/**'
+              - 'trustgate/sdk/**'    # mcp imports the SDK
+            web:
+              - 'web/**'
+              - 'docs-site/**'
+              - 'tests/**'
+
   sdk:
     name: '@agenttrust-sdk/trustgate — build + unit tests'
+    needs: changes
+    if: needs.changes.outputs.sdk == 'true' || needs.changes.outputs.shared == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -60,6 +108,8 @@ jobs:
 
   server:
     name: trustgate/server — unit tests
+    needs: changes
+    if: needs.changes.outputs.server == 'true' || needs.changes.outputs.shared == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -85,6 +135,8 @@ jobs:
 
   demo:
     name: examples/pay-sh-demo — build + unit-flow tests
+    needs: changes
+    if: needs.changes.outputs.demo == 'true' || needs.changes.outputs.shared == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -112,6 +164,8 @@ jobs:
 
   mcp:
     name: '@agenttrust-sdk/mcp — build + unit tests'
+    needs: changes
+    if: needs.changes.outputs.mcp == 'true' || needs.changes.outputs.shared == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -133,6 +187,8 @@ jobs:
 
   web:
     name: web — Next.js production build
+    needs: changes
+    if: needs.changes.outputs.web == 'true' || needs.changes.outputs.shared == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -145,5 +201,16 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - name: Install workspace deps
         run: pnpm install --frozen-lockfile
+      # Next.js build cache. Lock to web's package.json + the
+      # workspace lockfile; restore-keys allow a partial hit when
+      # only source files (not deps) changed — saves ~30s.
+      - name: Cache Next.js build (web)
+        uses: actions/cache@v4
+        with:
+          path: web/.next/cache
+          key: ${{ runner.os }}-nextjs-web-${{ hashFiles('pnpm-lock.yaml', 'web/package.json') }}-${{ hashFiles('web/**.ts', 'web/**.tsx', 'web/**.css') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-web-${{ hashFiles('pnpm-lock.yaml', 'web/package.json') }}-
+            ${{ runner.os }}-nextjs-web-
       - name: Next.js production build
         run: pnpm --filter ./web exec next build

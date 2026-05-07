@@ -37,6 +37,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Pin every binary version we cache against. Bumps go in env so a
+  # one-line edit propagates through every cache key below.
+  SOLANA_VERSION: '3.1.14'
+  ANCHOR_VERSION: '1.0.1'
+  RUST_VERSION:   '1.86.0'
+
 jobs:
   anchor:
     name: anchor build + test
@@ -56,6 +63,9 @@ jobs:
       - name: Install workspace deps
         run: pnpm install --frozen-lockfile
 
+      # Cache Cargo registry + git index. Restore-keys allow a
+      # partial hit when Cargo.lock changes (most source updates
+      # don't touch the lockfile, so this saves ~1 min).
       - name: Cache Cargo registry
         uses: actions/cache@v4
         with:
@@ -63,24 +73,42 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
+      # Cache Anchor target/. Anchor.toml change invalidates because
+      # it pins program IDs which feed into the .so binary contents.
       - name: Cache Anchor target
         uses: actions/cache@v4
         with:
           path: target
           key: ${{ runner.os }}-anchor-target-${{ hashFiles('**/Cargo.lock', 'Anchor.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-anchor-target-
+
+      # Cache the Solana CLI install dir keyed on version. The
+      # release.anza.xyz tarball is pinned, so a hit means we skip
+      # the ~30s download + extract.
+      - name: Cache Solana CLI ${{ env.SOLANA_VERSION }}
+        id: cache-solana
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/solana
+          key: ${{ runner.os }}-solana-${{ env.SOLANA_VERSION }}
 
       - name: Install Solana CLI
-        # 3.1.14 is the floor we have local-validator coverage against.
-        # 2.1.16 (the prior pin) was hitting a `cargo-build-sbf` panic
-        # at `sdk/cargo-build-sbf/src/main.rs:146` with
-        # `Os { code: 2, kind: NotFound }` when `anchor build` ran on
-        # the fresh CI runner — the platform-tools toolchain layout
-        # changed shape between 2.x and 3.x, and Anchor 1.0.1 is
+        # 3.1.14 is the floor we have local-validator coverage
+        # against. 2.1.16 (prior pin) hit a cargo-build-sbf panic
+        # at sdk/cargo-build-sbf/src/main.rs:146 — platform-tools
+        # layout changed between 2.x and 3.x; Anchor 1.0.1 is
         # tested against the 3.x layout.
+        if: steps.cache-solana.outputs.cache-hit != 'true'
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v3.1.14/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+          sh -c "$(curl -sSfL https://release.anza.xyz/v${SOLANA_VERSION}/install)"
+
+      # Always export PATH (cache-hit and miss alike).
+      - name: Export Solana CLI on PATH
+        run: echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
 
       - name: Verify Solana installation
         run: |
@@ -101,20 +129,48 @@ jobs:
             --outfile "$HOME/.config/solana/id.json"
           solana config set --keypair "$HOME/.config/solana/id.json"
 
+      # Cache rustup's toolchain dir. ~1 min saved vs a fresh
+      # `rustup default 1.86.0` that re-downloads the toolchain.
+      - name: Cache rustup toolchain ${{ env.RUST_VERSION }}
+        id: cache-rustup
+        uses: actions/cache@v4
+        with:
+          path: ~/.rustup
+          key: ${{ runner.os }}-rustup-${{ env.RUST_VERSION }}-rustfmt-clippy
+
       - name: Install Rust toolchain
-        # 1.86.0 is the floor for current Anchor source — the icu_*
-        # crates pulled by the Anchor 1.0.x build chain require it
+        # 1.86.0 is the floor for current Anchor source — icu_*
+        # crates pulled by the Anchor 1.0.x build chain need it
         # (`error: package icu_normalizer requires rustc 1.86`).
-        # Bumped from 1.85.0 (which we'd just bumped to from 1.83).
         run: |
-          rustup default 1.86.0
+          rustup default ${RUST_VERSION}
           rustup component add rustfmt clippy
 
-      - name: Install AVM + Anchor 1.0.1
+      # Cache AVM + Anchor binary. cargo install avm rebuilds avm
+      # from source (~5 min cold) — by far the slowest single step
+      # before this cache. Hit = ~3 s instead.
+      - name: Cache AVM + Anchor ${{ env.ANCHOR_VERSION }}
+        id: cache-anchor
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/avm
+            ~/.cargo/bin/anchor
+            ~/.avm
+          key: ${{ runner.os }}-anchor-${{ env.ANCHOR_VERSION }}-rust-${{ env.RUST_VERSION }}
+
+      - name: Install AVM + Anchor ${{ env.ANCHOR_VERSION }}
+        if: steps.cache-anchor.outputs.cache-hit != 'true'
         run: |
           cargo install --git https://github.com/coral-xyz/anchor avm --force --locked
-          avm install 1.0.1
-          avm use 1.0.1
+          avm install ${ANCHOR_VERSION}
+          avm use ${ANCHOR_VERSION}
+
+      - name: Verify Anchor toolchain (cache-hit path)
+        if: steps.cache-anchor.outputs.cache-hit == 'true'
+        run: |
+          avm use ${ANCHOR_VERSION}
+          anchor --version
 
       - name: Restore program keypairs from keys/
         # `anchor build` emits target/deploy/<program>-keypair.json

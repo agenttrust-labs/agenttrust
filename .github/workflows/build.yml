@@ -33,6 +33,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  SOLANA_VERSION: '3.1.14'
+  ANCHOR_VERSION: '1.0.1'
+
 jobs:
   cargo-build:
     name: cargo build + cargo test
@@ -49,6 +53,8 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -66,27 +72,60 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache cargo
+      - name: Cache cargo registry + target
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ~/.local/share/solana/install
             target
-          key: ${{ runner.os }}-anchor-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-anchor-build-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-anchor-build-
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Solana CLI 3.1.14
-        run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v3.1.14/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      # Solana CLI install dir cached by version pin — saves the ~30s
+      # download every run.
+      - name: Cache Solana CLI ${{ env.SOLANA_VERSION }}
+        id: cache-solana
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/solana
+          key: ${{ runner.os }}-solana-${{ env.SOLANA_VERSION }}
 
-      - name: Install Anchor 1.0.1
-        run: cargo install --git https://github.com/solana-foundation/anchor avm --force --locked
-          && avm install 1.0.1 && avm use 1.0.1
+      - name: Install Solana CLI ${{ env.SOLANA_VERSION }}
+        if: steps.cache-solana.outputs.cache-hit != 'true'
+        run: sh -c "$(curl -sSfL https://release.anza.xyz/v${SOLANA_VERSION}/install)"
+
+      - name: Export Solana CLI on PATH
+        run: echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+
+      # AVM + Anchor binary cached — saves the ~5min cargo install
+      # rebuild on every run.
+      - name: Cache AVM + Anchor ${{ env.ANCHOR_VERSION }}
+        id: cache-anchor
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/avm
+            ~/.cargo/bin/anchor
+            ~/.avm
+          key: ${{ runner.os }}-anchor-${{ env.ANCHOR_VERSION }}-stable
+
+      - name: Install Anchor ${{ env.ANCHOR_VERSION }}
+        if: steps.cache-anchor.outputs.cache-hit != 'true'
+        run: |
+          cargo install --git https://github.com/solana-foundation/anchor avm --force --locked
+          avm install ${ANCHOR_VERSION}
+          avm use ${ANCHOR_VERSION}
+
+      - name: Verify Anchor (cache-hit path)
+        if: steps.cache-anchor.outputs.cache-hit == 'true'
+        run: |
+          avm use ${ANCHOR_VERSION}
+          anchor --version
 
       # target/deploy/*-keypair.json is gitignored (deploy secret), so a fresh
       # runner generates a random keypair whose PID won't match declare_id!.
