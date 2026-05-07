@@ -19,7 +19,7 @@ ships.
 | Anchor programs (devnet) | n/a (on-chain) | `policy_vault` `8Y6f...QTR`, `trustgate` `HF8z...rih2N`, `validation_registry` `Cx4R...Khtv` — all IDLs published on devnet |
 | SDK on npm | https://www.npmjs.com/package/@agenttrust-sdk/trustgate | published `0.1.0` (homepage field stale pre-rebrand; republish as 0.1.1 will fix) |
 | Live devnet smoke traces | `docs/proofs/smoke-2026-05-06.md`, `docs/proofs/phase-f-verification-report.md` | real on-chain `emit_feedback` tx + `FeedbackEmissionLog` PDA + ValidationRegistry attestor lifecycle |
-| 5 Kani proofs | `docs/proofs/README.md` | 377 sub-checks, 0 failures |
+| 6 Kani proofs | `docs/proofs/README.md` | 635 sub-checks, 0 failures (Phase J5 added strict-correctness) |
 | Capability namespaces (devnet) | `examples/attestor-demo/devnet-namespaces.json` (10 PDAs + tx sigs) | seeded canonical v1 namespace set; rerun `pnpm --filter ./examples/attestor-demo run seed:namespaces` is idempotent |
 | Chained RequireValidation trace (devnet) | `examples/attestor-demo/devnet-chained-validation.json` (4 chained sigs) | end-to-end on-chain proof: gate→RequireValidation, request, respond, gate→Allow against `kyc.tier-1.v1`. Rerun `pnpm --filter ./examples/attestor-demo run chained` |
 

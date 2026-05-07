@@ -35,7 +35,7 @@ env:
 
 jobs:
   prove:
-    name: Prove 5 PolicyVault invariants
+    name: Prove 6 PolicyVault invariants
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -84,7 +84,9 @@ jobs:
           cargo kani --harness counterparty_tier_monotone
           cargo kani --harness validation_expiry_correct
           cargo kani --harness multisig_threshold_enforced
+          cargo kani --harness strict_returns_ok_iff_allow
+          cargo kani --harness gate_decision_is_one_of_three_disjoint_variants
 
       - name: Summary
         if: success()
-        run: echo "All 5 PolicyVault invariants proven green."
+        run: echo "All 6 PolicyVault invariants proven green."

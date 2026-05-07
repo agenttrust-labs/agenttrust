@@ -1,14 +1,14 @@
 # PolicyVault formal verification — Kani proofs
 
-PolicyVault ships with **5 machine-checked invariants** proved by
+PolicyVault ships with **6 machine-checked invariants** proved by
 [model-checking/kani](https://github.com/model-checking/kani) (v0.67.0).
 Each invariant is a `#[kani::proof]` harness over a pure-Rust composer or
 helper; CI ([`.github/workflows/kani-prove.yml`](../../.github/workflows/kani-prove.yml))
-re-runs all five on every PR.
+re-runs all six on every PR.
 
-**Total: 377 sub-checks, 5/5 proven, ~78s on a single CI runner.**
+**Total: 635 sub-checks, 6/6 proven, ~80s on a single CI runner.**
 
-## The five invariants
+## The six invariants
 
 ### 1 · `paused_implies_no_allow`
 **File:** [`programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs`](../../programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs)
@@ -74,6 +74,24 @@ off-by-one tricks, corrupted `members` arrays).
 Bounded to 3 members + 3 signers for symbolic-search tractability; the
 property generalises by induction.
 
+### 6 · `gate_payment_strict_correctness` (Phase J5)
+**File:** [`programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs`](../../programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs)
+**Harnesses:** `strict_returns_ok_iff_allow` + `gate_decision_is_one_of_three_disjoint_variants`
+**Sub-checks:** 131 + 127 = 258
+**Time:** ~0.5s + ~0.4s = ~0.9s
+
+Pins the contract the SDK's `composeAtomicSettleTx` relies on for atomicity:
+
+  - `compose_decision == Allow`             ⇒ strict handler returns `Ok(())`
+  - `compose_decision == Deny(_)`           ⇒ strict handler returns `Err(_)`
+  - `compose_decision == RequireValidation` ⇒ strict handler returns `Err(_)`
+
+Equivalently, `strict_returns_ok ⇔ matches!(decision, Allow)`. The
+companion harness pins the disjointness of the three `GateDecision`
+arms so a future fourth variant cannot silently slip past the strict
+dispatch. If a future change re-routes the `Deny` arm to an `Ok` return
+or introduces a new variant, both proofs fail loud.
+
 ## How to reproduce
 
 From a fresh checkout:
@@ -83,13 +101,15 @@ From a fresh checkout:
 cargo install --locked kani-verifier
 cargo kani setup
 
-# Run all 5 proofs
+# Run all 6 proofs
 cd programs/policy-vault
 cargo kani --harness paused_killswitch_implies_no_allow
 cargo kani --harness velocity_allow_implies_cumulative_le_max
 cargo kani --harness counterparty_tier_monotone
 cargo kani --harness validation_expiry_correct
 cargo kani --harness multisig_threshold_enforced
+cargo kani --harness strict_returns_ok_iff_allow
+cargo kani --harness gate_decision_is_one_of_three_disjoint_variants
 ```
 
 Or all-at-once via the CI workflow:
@@ -129,8 +149,10 @@ hardening item.
 | 3 | counterparty_tier_monotone | 0 | 8 | — |
 | 4 | validation_expiry_correct | 0 | 85 | 3 |
 | 5 | multisig_threshold_enforced | 0 | 149 | 1 |
+| 6 | gate_payment_strict_correctness (`strict_returns_ok_iff_allow`) | 0 | 131 | 3 |
+| 6 | gate_payment_strict_correctness (`disjoint_variants`)            | 0 | 127 | 3 |
 
-Failed: **0 / 377**.
+Failed: **0 / 635**.
 
 ## What this does NOT prove
 
