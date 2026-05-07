@@ -14,6 +14,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the tx's inner instructions. Useful when an integrator has the settle
   signature but not the digest. Targeted for v0.3.0.
 
+## [0.2.6] — 2026-05-08
+
+Tag: `mcp-v0.2.6` · Phase Q1 — fixes the only data-correctness bug Phase P uncovered. The MCP catalog now produces correct on-chain values for every tool that returns data.
+
+### Fixed
+
+- `agenttrust_get_quantu_reputation` was reading Quantu `AtomStats` at fabricated byte offsets (`40 / 41 / 49 / 50 / 51`) and returning bogus values — Phase P E2E showed `tier: 164` for an actually-tier-0 agent, plus a u64-max-ish `feedbackCount` that was junk re-interpretation of the asset-pubkey region. The PDA address, owner, and account size were correct; only the field decoding was wrong.
+
+  0.2.6 mirrors the canonical offsets from `programs/policy-vault/src/ext/atom_engine.rs` verbatim:
+
+  | offset | width | field            |
+  |-------:|------:|------------------|
+  |    549 |   u8  | `risk_score`     |
+  |    551 |   u8  | `tier_immediate` |
+  |    555 |   u8  | `tier_confirmed` |
+  |    557 |   u16 LE | `confidence`  |
+  |    560 |   u8  | `schema_version` (canary, must equal 1) |
+
+  Adds the schema-version canary at byte 560 and the `tier ≤ ATOM_TIER_MAX = 4` range check the on-chain parser uses, so a future Quantu layout change fails loud rather than silently emitting garbage.
+
+### Changed (breaking, response shape)
+
+- `agenttrust_get_quantu_reputation` response `reputation` block now contains:
+  - `tierImmediate` (number, 0..=4) — v1 fast-path tier; what `CounterpartyTier` reads in v1 demo mode
+  - `tierConfirmed` (number, 0..=4) — post-vesting tier; production policies prefer this
+  - `riskScore` (number, 0..=255 — lower is better)
+  - `confidence` (number, 0..=10_000 basis points)
+  - `schemaVersion` (number, always 1 in v1)
+- Removed `feedbackCount` and `averageScore` — those fields were not in the canonical `AtomStats` struct; values were nonsense reinterpretations of unrelated bytes.
+- Added an `error` field on the top-level response when the schema-version canary or size check fails — populated in place of `reputation`.
+
+### Tests
+
+- `mcp/test/tools/read/get-quantu-reputation.test.ts` now asserts the canonical offsets match the on-chain Rust source exactly, plus 8 byte-level decode cases (zero-state, populated state, undersized buffer, schema-version mismatch, tier overflow on both fields, boundary case at `ATOM_TIER_MAX`, u16-LE confidence reads in the correct byte order).
+
 ## [0.2.5] — 2026-05-08
 
 Tag: `mcp-v0.2.5` · Phase O — description copy polish surfaced by the Phase N+ real-user UX pass.

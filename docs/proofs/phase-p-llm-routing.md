@@ -193,3 +193,75 @@ Per-scenario harness + grader: see `/tmp/phase-p/run.sh` and `/tmp/phase-p/grade
 | Hallucination rate | 1 of 10 (#9 — synthesised payment_id_hash) |
 
 **The MCP catalog routes correctly under a real LLM.** The one bug Phase P uncovered is in tool *output*, not tool *routing* — and Phase M / Phase N E2E missed it because earlier tests verified PDA addresses, not field values. Phase Q ships the offset fix in MCP 0.2.6.
+
+---
+
+## Phase Q — `[0.2.6]` Q1 fix verification
+
+**Source-of-truth offsets** (re-read from `programs/policy-vault/src/ext/atom_engine.rs:21-27`):
+
+```
+ATOM_STATS_SIZE                       = 561
+ATOM_STATS_RISK_SCORE_OFFSET          = 549   (u8)
+ATOM_STATS_TRUST_TIER_OFFSET          = 551   (u8) — tier_immediate
+ATOM_STATS_TIER_CONFIRMED_OFFSET      = 555   (u8)
+ATOM_STATS_CONFIDENCE_OFFSET          = 557   (u16 LE, bytes 557..559)
+ATOM_STATS_SCHEMA_VERSION_OFFSET      = 560   (u8) — must equal 1
+ATOM_TIER_MAX                         = 4
+```
+
+### Manual on-chain byte-decode of `4z9RiK6B…f5mv` (the tier-3 demo agent's atom_stats)
+
+```
+$ getAccountInfo --commitment confirmed → 561-byte buffer
+data length              = 561 (matches ATOM_STATS_SIZE)
+byte 549 (risk_score)    = 0
+byte 551 (tier_immediate) = 0
+byte 555 (tier_confirmed) = 0
+byte 557..559 (u16 LE)    = 0  (confidence)
+byte 560 (schema_version) = 1  (canary OK)
+owner                    = AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF (Quantu atom_engine ✅)
+```
+
+Reading: the `tier-3` label in `examples/pay-sh-demo/devnet-counterparties.json` is metadata that flags Phase C's intended demo state. The actual on-chain `tier_immediate` is **0** because Quantu's `give_feedback` hasn't fired enough times to bump the tier above 0. Phase P's "tier: 164" was raw garbage from reading offset 40 (mid-asset-pubkey region), not a tier-3 reading at all.
+
+### Phase P scenario #10 re-run on `@agenttrust-sdk/mcp@0.2.6`
+
+| field | 0.2.5 (broken) | 0.2.6 (fixed) | matches manual decode? |
+|---|---|---|---|
+| `pda` | `4z9RiK6B…f5mv` | `4z9RiK6B…f5mv` | ✅ unchanged |
+| `ownerProgram` | `AToMufS4…wMAF` | `AToMufS4…wMAF` | ✅ unchanged |
+| `ownerMatches` | `true` | `true` | ✅ unchanged |
+| `rawByteLen` | `561` | `561` | ✅ unchanged |
+| `reputation.tier` (old) / `tierImmediate` (new) | **`164`** | **`0`** | ✅ matches byte 551 |
+| `reputation.tierConfirmed` (new) | — | **`0`** | ✅ matches byte 555 |
+| `reputation.riskScore` | `63` | **`0`** | ✅ matches byte 549 |
+| `reputation.confidence` | `24375` | **`0`** | ✅ matches bytes 557..559 |
+| `reputation.schemaVersion` (new) | — | **`1`** | ✅ matches byte 560, canary OK |
+| `reputation.feedbackCount` | `"11301071806946807777"` | **(removed — fabricated)** | n/a |
+| `reputation.averageScore` | `37` | **(removed — fabricated)** | n/a |
+
+Every value the 0.2.6 tool returns matches the on-chain truth byte-for-byte.
+
+### Verification gate
+
+| gate | result |
+|---|---|
+| `pnpm --filter ./mcp run lint` | ✅ clean |
+| `pnpm --filter ./mcp test` | ✅ 86 passing (was 76 — 10 new byte-decode tests) |
+| `pnpm --filter ./mcp run build` | ✅ |
+| `npm view @agenttrust-sdk/mcp version` | ✅ `0.2.6` |
+| Fresh `npx -y @agenttrust-sdk/mcp@0.2.6` scenario #10 | ✅ tier 0, schema_version 1, no fabricated fields |
+| Manual on-chain decode cross-check | ✅ every byte position matches |
+| Hosted `mcp.agenttrust.tech /healthz` | redeploying (one-shot fly deploy in flight) |
+
+### Closure
+
+| Phase | bugs found | bugs closed in v1 |
+|---|---|---|
+| Phase M | #1 SERVER_VERSION drift, #2 demo state not bundled, #3 docs corpus not bundled, #4 HTTP transport singleton | all 4 closed by 0.2.3 |
+| Phase N | F1 (`get_validation_attestation` hex-only) | closed by 0.2.4 |
+| Phase O | D1, D2, D3 (description path leaks) | closed by 0.2.5 |
+| Phase P | Q1 (`get_quantu_reputation` byte offsets), F2 (no tx-sig → payment_id_hash) | Q1 closed by 0.2.6; F2 stays in `[Unreleased] / Planned` for v0.3.0 |
+
+**Every tool that returns data now returns CORRECT data, verifiable byte-for-byte against the canonical Rust source.** F2 is the only remaining roadmap item — explicit, scoped, captured in writing.
