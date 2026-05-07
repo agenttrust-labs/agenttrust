@@ -1,0 +1,52 @@
+{
+  "network": "solana-devnet",
+  "capturedAt": "2026-05-07T15:27:03.326Z",
+  "capability": {
+    "name": "kyc.tier-1.v1",
+    "hash": "366c075140aa69746625d4b733b55e267fc5c28387fd6d1c24901976ee3ddc42",
+    "pda": "4ryEbb5iSiXHN2bJ59s9Pjdi2xxRkty1WohaRTqUt8wW"
+  },
+  "actors": {
+    "facilitator": "4tSEHc2vCLqnYd8nK9jRa44vnn8JnPxUgxheEmhWQhRG",
+    "attestor": "5xys6GcL3SeJmA9evUH6d3pADkD22DWxRNAdpytwxcYy",
+    "policyAgent": "6QdWe1EAy2WyZeeTxLsm59eGEnkbbAE8SPuvxvcfoQXR",
+    "payee": "2LH5VR3AzKndcHkPQAwZ2mAKuW9FmXDAtmcvsmkZvjVE"
+  },
+  "policy": {
+    "pda": "3TAUqhtowPfb1HEVm72HLwVR9sHB6WdChrvTzsP2zHxk",
+    "pdaExplorer": "https://explorer.solana.com/address/3TAUqhtowPfb1HEVm72HLwVR9sHB6WdChrvTzsP2zHxk?cluster=devnet",
+    "enabledKinds": "KIND_KILLSWITCH | KIND_VALIDATION",
+    "bitmask": "0x11",
+    "requiredCapabilityHash": "366c075140aa69746625d4b733b55e267fc5c28387fd6d1c24901976ee3ddc42",
+    "acceptedAttestors": [
+      "5xys6GcL3SeJmA9evUH6d3pADkD22DWxRNAdpytwxcYy",
+      "11111111111111111111111111111111"
+    ]
+  },
+  "chain": {
+    "gateBeforeAttestation": {
+      "signature": "3oKW7QugBLJ7kH2QbLLWEuEn3MyNmLWCj3XovCSdDQNmq5HriwNKvPMUR9TQByZPBAPbvprDfdeYDZvh7ofntRRh",
+      "explorer": "https://explorer.solana.com/tx/3oKW7QugBLJ7kH2QbLLWEuEn3MyNmLWCj3XovCSdDQNmq5HriwNKvPMUR9TQByZPBAPbvprDfdeYDZvh7ofntRRh?cluster=devnet",
+      "decisionKind": "RequireValidation",
+      "note": "validation_attestation account not provided → policy KIND_VALIDATION returns RequireValidation in return data"
+    },
+    "requestValidation": {
+      "signature": "2KbXYCF67D2f2fKHk5yTzrkFBr1mV47Q3Yb1veH5e3PX4PuLa66suodAUc7uTBnr6Y44NGV1TfHHMtAZiFSnbbRF",
+      "explorer": "https://explorer.solana.com/tx/2KbXYCF67D2f2fKHk5yTzrkFBr1mV47Q3Yb1veH5e3PX4PuLa66suodAUc7uTBnr6Y44NGV1TfHHMtAZiFSnbbRF?cluster=devnet",
+      "pda": "oAA3TRPWRyCnVG1htRnv2E1UHPXEweDPp9zcYjw6GFZ",
+      "requester": "Ajc1wxYLM1RnyJeiGUbSqV4vDHrZphcCXDDaSHxgHQxz"
+    },
+    "respondToValidation": {
+      "signature": "67CzMS9GEtUBesNznKpT2UWqvjEBzhgZd7AVkhXKQ5SoqRoBotcaYf1sTF8sHxj55TNT9k847nj7FQdrwAqKussp",
+      "explorer": "https://explorer.solana.com/tx/67CzMS9GEtUBesNznKpT2UWqvjEBzhgZd7AVkhXKQ5SoqRoBotcaYf1sTF8sHxj55TNT9k847nj7FQdrwAqKussp?cluster=devnet",
+      "pda": "8YKqUeNktUGwGewrc9ghmjJj5oB3Y5dcFuaBLrVnxt2q"
+    },
+    "gateAfterAttestation": {
+      "signature": "dEXkCEeSn8uiVAa14u7EusdFufSuUQttmcTdLHMSq5J3VSARM4KMRCfwpRSkVmYBc1yRQuyvPMCebifCf1dmrmC",
+      "explorer": "https://explorer.solana.com/tx/dEXkCEeSn8uiVAa14u7EusdFufSuUQttmcTdLHMSq5J3VSARM4KMRCfwpRSkVmYBc1yRQuyvPMCebifCf1dmrmC?cluster=devnet",
+      "decisionKind": "Allow",
+      "validationAttestation": "8YKqUeNktUGwGewrc9ghmjJj5oB3Y5dcFuaBLrVnxt2q",
+      "note": "validation_attestation provided → policy KIND_VALIDATION verifies and returns Allow"
+    }
+  }
+}

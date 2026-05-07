@@ -21,6 +21,7 @@ ships.
 | Live devnet smoke traces | `docs/proofs/smoke-2026-05-06.md`, `docs/proofs/phase-f-verification-report.md` | real on-chain `emit_feedback` tx + `FeedbackEmissionLog` PDA + ValidationRegistry attestor lifecycle |
 | 5 Kani proofs | `docs/proofs/README.md` | 377 sub-checks, 0 failures |
 | Capability namespaces (devnet) | `examples/attestor-demo/devnet-namespaces.json` (10 PDAs + tx sigs) | seeded canonical v1 namespace set; rerun `pnpm --filter ./examples/attestor-demo run seed:namespaces` is idempotent |
+| Chained RequireValidation trace (devnet) | `examples/attestor-demo/devnet-chained-validation.json` (4 chained sigs) | end-to-end on-chain proof: gate→RequireValidation, request, respond, gate→Allow against `kyc.tier-1.v1`. Rerun `pnpm --filter ./examples/attestor-demo run chained` |
 
 ### Live capability namespaces (validation_registry, devnet)
 
@@ -40,6 +41,19 @@ ships.
 | `usdc-payment-policy.v1` | [`34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR`](https://explorer.solana.com/address/34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR?cluster=devnet) |
 
 Names are bounded by `MAX_NAME_LEN=32` in `programs/validation-registry/src/instructions/register_namespace.rs`; the playbook-level descriptive labels in `docs/plan/research/06-validation-registry-class.md` §C.2 (e.g., `kyc.tier-1.v1.identity-verified`) decompose to these on-chain category names plus the JSON description field. PDA seeds: `[b"namespace", capability_hash]` where `capability_hash = SHA256(name)`.
+
+### Live RequireValidation chain (4 devnet signatures)
+
+Proof of the full ERC-8004 third leg, captured on devnet via `examples/attestor-demo/scripts/devnet-chained-validation.ts`. The chain reads against capability `kyc.tier-1.v1` and a payee subject; the attestor identity is reused from `examples/attestor-demo/attestor-keypair.json` (Phase D).
+
+| step | role | signature |
+|---|---|---|
+| 1. `gate_payment` (no attestation account) → `RequireValidation` | PolicyVault | [`3oKW7QugBLJ7kH2QbLLWEuEn3MyNmLWCj3XovCSdDQNmq5HriwNKvPMUR9TQByZPBAPbvprDfdeYDZvh7ofntRRh`](https://explorer.solana.com/tx/3oKW7QugBLJ7kH2QbLLWEuEn3MyNmLWCj3XovCSdDQNmq5HriwNKvPMUR9TQByZPBAPbvprDfdeYDZvh7ofntRRh?cluster=devnet) |
+| 2. `request_validation` | ValidationRegistry | [`2KbXYCF67D2f2fKHk5yTzrkFBr1mV47Q3Yb1veH5e3PX4PuLa66suodAUc7uTBnr6Y44NGV1TfHHMtAZiFSnbbRF`](https://explorer.solana.com/tx/2KbXYCF67D2f2fKHk5yTzrkFBr1mV47Q3Yb1veH5e3PX4PuLa66suodAUc7uTBnr6Y44NGV1TfHHMtAZiFSnbbRF?cluster=devnet) |
+| 3. `respond_to_validation` (creates ValidationAttestation PDA `8YKq...xt2q`) | ValidationRegistry | [`67CzMS9GEtUBesNznKpT2UWqvjEBzhgZd7AVkhXKQ5SoqRoBotcaYf1sTF8sHxj55TNT9k847nj7FQdrwAqKussp`](https://explorer.solana.com/tx/67CzMS9GEtUBesNznKpT2UWqvjEBzhgZd7AVkhXKQ5SoqRoBotcaYf1sTF8sHxj55TNT9k847nj7FQdrwAqKussp?cluster=devnet) |
+| 4. `gate_payment` (with attestation) → `Allow` | PolicyVault | [`dEXkCEeSn8uiVAa14u7EusdFufSuUQttmcTdLHMSq5J3VSARM4KMRCfwpRSkVmYBc1yRQuyvPMCebifCf1dmrmC`](https://explorer.solana.com/tx/dEXkCEeSn8uiVAa14u7EusdFufSuUQttmcTdLHMSq5J3VSARM4KMRCfwpRSkVmYBc1yRQuyvPMCebifCf1dmrmC?cluster=devnet) |
+
+Same 4-sig output is captured in `examples/attestor-demo/devnet-chained-validation.json`.
 
 ## Roadmap (not yet deployed — Phase H)
 

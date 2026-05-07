@@ -9,6 +9,7 @@
     "lint": "tsc --noEmit",
     "smoke": "ts-node scripts/devnet-attestor-flow.ts",
     "seed:namespaces": "ts-node scripts/seed-namespaces.ts",
+    "chained": "ts-node scripts/devnet-chained-validation.ts",
     "test": "ts-mocha -p ./tsconfig.json -t 30000 \"test/**/*.test.ts\"",
     "test:integration": "INTEGRATION=1 ts-mocha -p ./tsconfig.json -t 120000 \"test/**/*.test.ts\""
   },
