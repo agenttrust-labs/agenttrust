@@ -42,8 +42,13 @@ import {
 } from "./resources/docs";
 import { ALL_TOOLS } from "./tools";
 
+// Read SERVER_VERSION from package.json so MCP clients see the same
+// version that npm reports. Hardcoding drifted in 0.2.x (Phase M E2E
+// found serverInfo.version=0.1.0 while package.json was 0.2.1).
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+const PKG_VERSION = (require("../package.json") as { version: string }).version;
 const SERVER_NAME    = "agenttrust";
-const SERVER_VERSION = "0.1.0";
+const SERVER_VERSION = PKG_VERSION;
 
 const SERVER_INSTRUCTIONS =
   "AgentTrust MCP server. Read tools work without auth (devnet by default). " +
