@@ -13,6 +13,7 @@ ships.
 |---|---|---|
 | Landing | https://www.agenttrust.tech | Vercel: `agenttrust-web` |
 | Docs | https://docs.agenttrust.tech | Vercel: `agenttrust-docs-site` |
+| MCP HTTP endpoint | https://agenttrust-mcp.fly.dev (DNS alias `mcp.agenttrust.tech` pending) | Fly.io: `agenttrust-mcp` (sin region, shared-cpu-1x@256mb, min 1 machine) |
 | Anchor programs (devnet) | n/a (on-chain) | `policy_vault` `8Y6f...QTR`, `trustgate` `HF8z...rih2N`, `validation_registry` `Cx4R...Khtv` — all IDLs published on devnet |
 | SDK on npm | https://www.npmjs.com/package/@agenttrust-sdk/trustgate | published `0.1.0` (homepage field stale pre-rebrand; republish as 0.1.1 will fix) |
 | Live devnet smoke traces | `docs/proofs/smoke-2026-05-06.md`, `docs/proofs/phase-f-verification-report.md` | real on-chain `emit_feedback` tx + `FeedbackEmissionLog` PDA + ValidationRegistry attestor lifecycle |
@@ -22,10 +23,10 @@ ships.
 
 | surface | planned URL | what it is |
 |---|---|---|
-| MCP HTTP endpoint | https://mcp.agenttrust.tech | hosted MCP server over streamable HTTP, plus npm `@agenttrust/mcp` package for stdio installs |
+| MCP npm package | https://www.npmjs.com/package/@agenttrust/mcp | scoped public npm package — `npx @agenttrust/mcp` for stdio installs (Claude Desktop / Cursor). Tarball verified via dry-run; awaits operator publish. |
 | Facilitator service | https://api.agenttrust.tech | hosted x402 facilitator (`/verify` + `/settle` endpoints) using `trustgate/server/` — anyone integrating x402 points their flow at this URL instead of running their own |
 | Demo endpoint | https://demo.agenttrust.tech | hosted `examples/pay-sh-demo` — judges hit `/protected`, get a real 402 challenge, walk through to settlement without cloning |
-| Status page | https://status.agenttrust.tech | hourly health checks across all four hosted surfaces, public uptime badge |
+| Status page | https://status.agenttrust.tech | hourly health checks across all five hosted surfaces, public uptime badge |
 
 When a Roadmap surface goes live, move it to the Live table + open a UI integration pass that surfaces it (hero CTA / Try-it button / integrations grid / status badge / quickstart command updates).
 

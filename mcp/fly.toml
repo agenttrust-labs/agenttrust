@@ -1,0 +1,48 @@
+# AgentTrust MCP HTTP server — Fly.io app config.
+#
+# Run from this directory:
+#   fly launch --no-deploy --copy-config --name agenttrust-mcp
+#   fly secrets set RPC_URL=https://api.devnet.solana.com NETWORK=solana-devnet
+#   fly deploy
+
+app            = "agenttrust-mcp"
+primary_region = "sin"   # Singapore — closest Fly region to India
+
+# Build via the Dockerfile in this directory. fly deploy is run with
+# --build-context above the workspace root because the build context
+# needs pnpm-workspace.yaml + trustgate/sdk + mcp; deploy command:
+#   cd .. && fly deploy --config mcp/fly.toml --dockerfile mcp/Dockerfile
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  MCP_TRANSPORT = "http"
+  MCP_HTTP_PORT = "8080"
+  NODE_ENV      = "production"
+
+[http_service]
+  internal_port       = 8080
+  force_https         = true
+  # Stop machines when idle to save the free-tier quota; auto-start
+  # on request brings them back. Cold start lands ~2-3 s on a
+  # shared-cpu-1x.
+  auto_stop_machines  = "stop"
+  auto_start_machines = true
+  # Keep one machine warm so judges hitting the URL during a demo
+  # don't see a cold start.
+  min_machines_running = 1
+  processes            = ["app"]
+
+  # Healthcheck against /healthz — the MCP HTTP server's
+  # lightweight probe endpoint (returns service + version + network
+  # + uptime). Fly restarts the machine if 3 consecutive checks fail.
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval     = "30s"
+    method       = "get"
+    timeout      = "5s"
+    path         = "/healthz"
+
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "256mb"

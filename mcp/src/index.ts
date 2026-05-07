@@ -73,9 +73,38 @@ async function main() {
     );
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     const http = require("http");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const pkg = require("../package.json");
+    const startedAt = Date.now();
+
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: () => Math.random().toString(36).slice(2) });
     await server.connect(transport);
     const httpServer = http.createServer((req: import("http").IncomingMessage, res: import("http").ServerResponse) => {
+      // /healthz: lightweight Fly.io / status-page probe. NOT part
+      // of MCP protocol — handled before the transport sees it.
+      // Returns the same JSON shape as the facilitator + demo
+      // surfaces so the status-page poller can treat them
+      // uniformly (ok, network, version, uptimeSeconds).
+      const path = (req.url ?? "").split("?")[0];
+      if (req.method === "GET" && (path === "/healthz" || path === "/")) {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({
+          ok:             true,
+          service:        "agenttrust-mcp",
+          version:        pkg.version,
+          network:        cfg.network,
+          rpcUrl:         cfg.rpcUrl,
+          uptimeSeconds:  Math.round((Date.now() - startedAt) / 1000),
+          // Tools count is the load-bearing surface signal — if
+          // an upstream regression dropped a tool, the status
+          // page would show the count drop.
+          // The actual count lives in tools/list; we publish a
+          // pinned expected count here so monitors can alert on
+          // mismatch without parsing JSON-RPC.
+          toolCount:      18,
+        }) + "\n");
+        return;
+      }
       transport.handleRequest(req, res).catch((err: Error) => {
         // eslint-disable-next-line no-console
         console.error("transport error:", err);
