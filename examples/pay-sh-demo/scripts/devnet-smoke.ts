@@ -436,8 +436,29 @@ async function main(): Promise<void> {
   console.log(`[smoke] facilitator=${facilitator.publicKey.toBase58()}`);
   console.log(`[smoke] tier3 agent=${tier3.agentAccount} asset=${tier3.asset}`);
 
-  const idlPath = path.resolve(__dirname, "..", "..", "..", "target", "idl", "trustgate.json");
-  const trustgateIdl = JSON.parse(fs.readFileSync(idlPath, "utf-8")) as Idl;
+  // Try a freshly-built target/idl first (local dev / `anchor build`),
+  // then fall back to the committed bundle the trustgate server ships.
+  // CI runners don't run `anchor build` so target/idl/ is missing; the
+  // bundled IDL path is the load-bearing one for the daily smoke.
+  const idlCandidates = [
+    path.resolve(__dirname, "..", "..", "..", "target", "idl", "trustgate.json"),
+    path.resolve(__dirname, "..", "..", "..", "trustgate", "server", "src", "idl", "trustgate.json"),
+    path.resolve(__dirname, "..", "..", "..", "mcp", "src", "idl", "trustgate.json"),
+  ];
+  let trustgateIdl: Idl | undefined;
+  for (const p of idlCandidates) {
+    if (fs.existsSync(p)) {
+      trustgateIdl = JSON.parse(fs.readFileSync(p, "utf-8")) as Idl;
+      console.log(`[smoke] loaded trustgate IDL from ${path.relative(process.cwd(), p)}`);
+      break;
+    }
+  }
+  if (!trustgateIdl) {
+    throw new Error(
+      `trustgate IDL not found in any of: ${idlCandidates.join(", ")}. ` +
+      `Run \`anchor build\` to populate target/idl/, or ship via the bundled server/mcp paths.`,
+    );
+  }
   const provider = new AnchorProvider(connection, new Wallet(facilitator), { commitment: "confirmed" });
   const trustgate = new Program(trustgateIdl, provider);
 
