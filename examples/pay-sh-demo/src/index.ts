@@ -38,9 +38,13 @@ import { paymentMiddleware } from "./middleware";
 import {
   CounterpartyTable,
   DEMO_POLICY_MIN_TIER,
+  LiveTierCache,
+  makeLiveTierDecide,
   makeTierDecide,
 } from "./policy";
 import { buildPaymentRequirements } from "./x402";
+
+import { Connection } from "@solana/web3.js";
 
 // ---------------------------------------------------------------------------
 // Demo constants
@@ -81,6 +85,21 @@ export interface CreateDemoAppOptions {
 /** Real-chain variant — wires Anchor + RPC + Quantu account resolver. */
 export interface CreateRealDemoAppOptions extends CreateDemoAppOptions {
   readonly realChain: Omit<MakeRealPayShDepsArgs, "facilitator">;
+  /**
+   * Phase J4 — when present, the policy gate switches from a static
+   * counterparty-table lookup to live `tier_immediate` reads off Quantu's
+   * `AtomStats` PDA, with a per-payer 60s in-process cache.
+   *
+   * The static `counterparties` table (if any) is retained as the fallback
+   * for unknown payers and as a stale-tier safety net under RPC failures —
+   * see `makeLiveTierDecide` for the full degradation rules.
+   */
+  readonly liveTier?: {
+    readonly resolveAtomStats: (payerAgent: PublicKey) => PublicKey | null;
+    readonly atomEngineId:     PublicKey;
+    readonly ttlMs?:           number;
+    readonly cache?:           LiveTierCache;
+  };
 }
 
 export interface DemoApp {
@@ -135,18 +154,35 @@ export async function createRealDemoApp(
   const counterparties = opts.counterparties ?? defaultCounterpartyTable();
   const minTier        = opts.minTier ?? DEMO_POLICY_MIN_TIER;
 
-  const { deps } = await makeRealPayShDeps({
+  const { deps, connection } = await makeRealPayShDeps({
     ...opts.realChain,
     facilitator,
     signingNetwork: opts.realChain.signingNetwork ?? network,
   });
   // Real path doesn't use the chainStub — pass a no-op stub instance.
   const chainStub = new DemoOnChainStub();
+
+  // Live-tier override: the static counterparty table becomes the
+  // RPC-failure fallback, and `decide` reads tier_immediate off the
+  // Quantu AtomStats PDA on each gate (with the J4 60s cache).
+  const decide = opts.liveTier
+    ? makeLiveTierDecide({
+        connection,
+        resolveAtomStats: opts.liveTier.resolveAtomStats,
+        atomEngineId:     opts.liveTier.atomEngineId,
+        minTier,
+        ttlMs:            opts.liveTier.ttlMs,
+        cache:            opts.liveTier.cache,
+        fallbackTable:    counterparties,
+      })
+    : makeTierDecide(counterparties, minTier);
+
   return assembleDemoApp({
     network, mint, facilitator, payeeKeypair, payeeWallet, payeeAgent,
     payeeRecipient, counterparties, minTier,
     deps, chainStub,
     replayCacheOverride: opts.replayCache,
+    decideOverride: decide,
   });
 }
 
@@ -163,6 +199,8 @@ interface AssembleArgs {
   readonly deps:              PayShDeps;
   readonly chainStub:         DemoOnChainStub;
   readonly replayCacheOverride?: ReplayCache;
+  /** Phase J4 — when set, replaces the default static-table decide. */
+  readonly decideOverride?:   (ctx: import("@agenttrust/trustgate-server").VerifyContext) => Promise<import("@agenttrust/trustgate-server").GateDecision>;
 }
 
 function assembleDemoApp(args: AssembleArgs): DemoApp {
@@ -177,7 +215,7 @@ function assembleDemoApp(args: AssembleArgs): DemoApp {
     replayCache: replayCacheOverride ?? deps.replayCache,
   });
 
-  const decide = makeTierDecide(counterparties, minTier);
+  const decide = args.decideOverride ?? makeTierDecide(counterparties, minTier);
 
   const memoToHashHex = (memo: string): string => bytesToHex(deriveMemoHash(memo));
 
@@ -341,6 +379,16 @@ if (require.main === module) {
       };
     };
 
+    // Live-tier resolver: walks the same counterparty map already loaded
+    // for emit_feedback. Maps payerAgent → atom_stats. Returns null for
+    // unknown payers so makeLiveTierDecide can fall back to the static
+    // counterparty table (preserving the v1 demo's tier 0 / 1 / 3 fixture
+    // for synthetic payer headers).
+    const resolveAtomStats = (payerAgent: PublicKey): PublicKey | null => {
+      const e = byAgent.get(payerAgent.toBase58());
+      return e ? new PublicKey(e.atomStats) : null;
+    };
+
     createRealDemoApp({
       network, mint, facilitator,
       realChain: {
@@ -349,6 +397,10 @@ if (require.main === module) {
         resolveQuantu,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         trustgateIdl:  trustgateIdl as any,
+      },
+      liveTier: {
+        resolveAtomStats,
+        atomEngineId: sdk.DEFAULT_DEVNET_QUANTU_IDS.atomEngine,
       },
     }).then((demo) => {
       demo.app.listen(port, () => {
