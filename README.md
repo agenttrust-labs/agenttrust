@@ -2,12 +2,44 @@
 
 > **AgentTrust completes the Solana Foundation's ERC-8004 trust stack.** Three Anchor programs that turn Quantu's IdentityRegistry + ReputationRegistry primitives into a full agent-payment trust system: programmable spending policies, x402 facilitator integration, and capability attestation. **Five formally-verified safety properties.** Drop-in TypeScript SDK.
 
-[![Web app](https://img.shields.io/badge/web-live-c2410c?style=flat-square)](https://agenttrust-puj6nnyh0-mohit-kumars-projects.vercel.app)
-[![npm](https://img.shields.io/npm/v/@agenttrust-sdk/trustgate?style=flat-square&color=c2410c)](https://www.npmjs.com/package/@agenttrust-sdk/trustgate)
+[![Web app](https://img.shields.io/badge/web-live-c2410c?style=flat-square)](https://www.agenttrust.tech)
+[![SDK on npm](https://img.shields.io/npm/v/@agenttrust-sdk/trustgate?style=flat-square&color=c2410c&label=sdk)](https://www.npmjs.com/package/@agenttrust-sdk/trustgate)
+[![MCP on npm](https://img.shields.io/badge/mcp-npx-c2410c?style=flat-square)](https://www.npmjs.com/package/@agenttrust/mcp)
 [![Kani 5/5](https://img.shields.io/badge/kani-5%2F5_proven-c2410c?style=flat-square)](.github/workflows/kani-prove.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-c2410c?style=flat-square)](./LICENSE)
 
 Submitted to the **Solana Frontier 2026** hackathon by [@mohit-1710](https://github.com/mohit-1710).
+
+---
+
+## Get started in 60 seconds
+
+Three live surfaces. No `git clone` required.
+
+```bash
+# 1. Install the SDK
+npm i @agenttrust-sdk/trustgate
+
+# 2. Add the MCP server to Claude Desktop / Cursor
+npx -y @agenttrust/mcp
+
+# 3. Hit the live demo (real devnet — no setup)
+curl -i https://agenttrust-demo.fly.dev/protected
+```
+
+| Surface | URL |
+| --- | --- |
+| Demo (live `/protected` → `/settle` round-trip) | https://agenttrust-demo.fly.dev |
+| Facilitator API (x402 `/verify` + `/settle`) | https://agenttrust-api.fly.dev |
+| MCP HTTP endpoint (hosted) | https://agenttrust-mcp.fly.dev |
+| MCP stdio package | `npx -y @agenttrust/mcp` (after operator publish) |
+| SDK | `npm i @agenttrust-sdk/trustgate` |
+| Docs | https://docs.agenttrust.tech |
+
+> All endpoints run on devnet. DNS aliases (`mcp.agenttrust.tech`,
+> `api.agenttrust.tech`, `demo.agenttrust.tech`) flip on once the
+> CNAME records propagate; the bare `*.fly.dev` URLs always resolve
+> as fallbacks.
 
 ---
 
