@@ -78,9 +78,9 @@ export const demoStateTool: Tool<Input, Output> = {
   name:        "agenttrust_demo_state",
   description:
     "Return the three pre-warmed devnet demo counterparties (tier-0 untrusted, " +
-    "tier-1 low-trust, tier-3 trusted) used by examples/pay-sh-demo. Each " +
-    "entry includes the asset pubkey, Quantu agent_account / atom_stats PDAs, " +
-    "and Explorer URLs. Useful as input for agenttrust_simulate_payment.",
+    "tier-1 low-trust, tier-3 trusted). Each entry includes the asset pubkey, " +
+    "Quantu agent_account / atom_stats PDAs, and Explorer URLs. Useful as input " +
+    "for agenttrust_simulate_payment.",
   inputSchema: InputSchema,
 
   async handler(_input: Input, ctx: ToolContext): Promise<Output> {
@@ -89,10 +89,10 @@ export const demoStateTool: Tool<Input, Output> = {
       return {
         available: false,
         error:
-          "demo state file not found. Looked at " +
-          "examples/pay-sh-demo/devnet-counterparties.json relative to the MCP " +
-          "package and to the current working directory. Set " +
-          "PAY_SH_DEMO_STATE_FILE to override.",
+          "Demo counterparty snapshot not found. The published MCP package " +
+          "bundles it; if you've cleared PAY_SH_DEMO_STATE_FILE or are " +
+          "running from a custom build without the bundled snapshot, set " +
+          "PAY_SH_DEMO_STATE_FILE to a counterparties JSON path to override.",
       };
     }
     try {

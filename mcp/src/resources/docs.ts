@@ -83,8 +83,8 @@ export function listExampleResources(): ResourceDescriptor[] {
         seen.add(readmeUri);
         out.push({
           uri:         readmeUri,
-          name:        `examples/${demo}/README.md`,
-          description: `${demo} README — install + smoke walkthrough`,
+          name:        `${demo} README`,
+          description: `${demo} install + smoke walkthrough`,
           mimeType:    "text/markdown",
         });
       }
@@ -100,8 +100,8 @@ export function listExampleResources(): ResourceDescriptor[] {
           seen.add(uri);
           out.push({
             uri,
-            name:        `examples/${demo}/src/${ent.name}`,
-            description: `${demo} source: ${ent.name}`,
+            name:        `${demo} source: ${ent.name}`,
+            description: `${demo} source file ${ent.name}`,
             mimeType:    "text/x-typescript",
           });
         }

@@ -32,7 +32,13 @@ import type { Tool, ToolContext } from "../types";
 const InputSchema = z.object({
   payment_id_hash_hex: HexHashSchema.describe("32-byte SHA-256 of the payment_id"),
   payee_asset:         PubkeySchema.describe("Quantu agent asset receiving feedback"),
-  base_collection:     PubkeySchema.describe("Quantu base_collection pubkey (from demo state)"),
+  base_collection:     PubkeySchema.describe(
+    "Metaplex Core collection that owns the agent assets. For demo runs use " +
+    "agenttrust_demo_state.programs.base_collection. For production " +
+    "integrations, use your Quantu agent registry's collection address — " +
+    "typically the value passed to agent_registry::register_agent when the " +
+    "agent was minted.",
+  ),
   score:               z.number().int().min(0).max(100),
   tag1:                z.string().max(32).default(""),
   tag2:                z.string().max(32).default(""),

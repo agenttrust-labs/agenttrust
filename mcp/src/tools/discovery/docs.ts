@@ -157,10 +157,9 @@ function score(query: string, page: DocPage): { score: number; excerpt: string }
 export const docsTool: Tool<Input, Output> = {
   name:        "agenttrust_docs",
   description:
-    "Full-text search the AgentTrust docs corpus (docs-site/content/docs). " +
-    "Returns up to N ranked hits with title, agenttrust:// URI, score, and " +
-    "an excerpt around the first match. Use the URI in resources/read for " +
-    "the full doc.",
+    "Full-text search the AgentTrust documentation. Returns up to N ranked " +
+    "hits with title, agenttrust:// URI, score, and an excerpt around the " +
+    "first match. Use the URI in resources/read to fetch the full doc.",
   inputSchema: InputSchema,
 
   async handler(input: Input): Promise<Output> {

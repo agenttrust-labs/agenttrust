@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Planned
+
+- `agenttrust_lookup_feedback_by_tx({ tx_signature })` — resolve a Solana
+  transaction signature to its `emit_feedback` payment_id_hash by parsing
+  the tx's inner instructions. Useful when an integrator has the settle
+  signature but not the digest. Targeted for v0.3.0.
+
+## [0.2.5] — 2026-05-08
+
+Tag: `mcp-v0.2.5` · Phase O — description copy polish surfaced by the Phase N+ real-user UX pass.
+
+### Changed
+
+- Tool descriptions no longer reference internal repo paths. `agenttrust_demo_state`, `agenttrust_docs`, and `agenttrust_emit_feedback`'s `base_collection` arg now read as standalone product copy without `examples/pay-sh-demo/...` / `docs-site/content/docs/...` leaks. Resource `name` fields under `agenttrust://examples/*` use human-readable labels ("pay-sh-demo README" instead of `examples/pay-sh-demo/README.md`).
+- `agenttrust_emit_feedback.base_collection` description now points production integrators at their Quantu agent-registry collection address (the value passed to `agent_registry::register_agent`), not just at demo state.
+- `agenttrust_demo_state` error message — when the bundled snapshot is unreachable — drops the internal path and explains that the published package bundles it; only mentions `PAY_SH_DEMO_STATE_FILE` as the override hook.
+
+No behaviour changes; tools/list output cleaner for Claude Desktop / Cursor / any LLM doing tool-routing from natural-language questions.
+
 ## [0.2.4] — 2026-05-07
 
 Tag: `mcp-v0.2.4` · UX-pass fix: real-user audit found `agenttrust_get_validation_attestation` requires a 64-char hex `capability_hash` while its sibling `agenttrust_request_validation` accepts the friendly `capability_name`. Real users / LLMs typically have the human-readable capability name; requiring the digest was a Claude-Desktop-level friction point.

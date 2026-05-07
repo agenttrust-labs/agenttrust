@@ -457,3 +457,84 @@ These four are low-severity polish — none block a fresh-install user from gett
 | Hosted endpoint | redeployed to 0.2.4; `mcp.agenttrust.tech/healthz` reports `version: "0.2.4"` |
 
 A judge installing `npx -y @agenttrust-sdk/mcp` and asking natural-language questions through Claude Desktop / Cursor now gets useful answers on every documented surface, including the capability-by-name lookup that previously required a manual SHA-256.
+
+---
+
+## Phase O — `[0.2.5]` description-leak sweep
+
+UX pass surfaced three cosmetic copy gaps that don't break tool use but
+make the catalog read like internal repo plumbing instead of standalone
+product copy. Closed in 0.2.5.
+
+### Changes
+
+| field | 0.2.4 | 0.2.5 |
+|---|---|---|
+| `agenttrust_demo_state.description` | "tier-3 trusted) used by **examples/pay-sh-demo**. Each entry…" | "tier-3 trusted). Each entry…" |
+| `agenttrust_demo_state` not-found error | "Looked at **examples/pay-sh-demo/devnet-counterparties.json** relative to the MCP package…" | "The published MCP package bundles it; if you've cleared `PAY_SH_DEMO_STATE_FILE`…" |
+| `agenttrust_docs.description` | "Full-text search the AgentTrust docs corpus **(docs-site/content/docs)**." | "Full-text search the AgentTrust documentation." |
+| `agenttrust_emit_feedback.base_collection.description` | "Quantu base_collection pubkey **(from demo state)**" | "Metaplex Core collection that owns the agent assets. For demo runs use `agenttrust_demo_state.programs.base_collection`. **For production integrations**, use your Quantu agent registry's collection address — typically the value passed to `agent_registry::register_agent` when the agent was minted." |
+| `agenttrust://examples/*` resource `name` field | `examples/pay-sh-demo/README.md`, `examples/pay-sh-demo/src/index.ts` | `pay-sh-demo README`, `pay-sh-demo source: index.ts` |
+
+Roadmap promise added in `mcp/CHANGELOG.md` `[Unreleased] / Planned`:
+
+> `agenttrust_lookup_feedback_by_tx({ tx_signature })` — resolve a Solana
+> transaction signature to its `emit_feedback` payment_id_hash by parsing
+> the tx's inner instructions. Useful when an integrator has the settle
+> signature but not the digest. Targeted for v0.3.0.
+
+### Verification on `0.2.5`
+
+Fresh `npm install @agenttrust-sdk/mcp@0.2.5` + stdio probe (driver `/tmp/phase-n/o-probe.js`):
+
+```text
+serverInfo.version: 0.2.5
+agenttrust_demo_state desc has 'examples/pay-sh-demo'?  false  ✅
+agenttrust_docs desc has 'docs-site'?                    false  ✅
+agenttrust_emit_feedback.base_collection
+   mentions Quantu + register_agent?                     true   ✅
+
+EXAMPLES RESOURCE NAMES:
+  pay-sh-demo README                  ← agenttrust://examples/pay-sh-demo/README.md
+  pay-sh-demo source: deps-real.ts    ← agenttrust://examples/pay-sh-demo/src/deps-real.ts
+  pay-sh-demo source: deps.ts         ← agenttrust://examples/pay-sh-demo/src/deps.ts
+  pay-sh-demo source: index.ts        ← agenttrust://examples/pay-sh-demo/src/index.ts
+```
+
+Hosted endpoint redeployed; `mcp.agenttrust.tech/healthz` reports
+`version: "0.2.5", toolCount: 18, activeSessions: 0, uptime ~421s`.
+
+### Path-leak grep — before / after
+
+```bash
+# Phase N+ (0.2.4)
+$ grep -rE '"[^"]*(examples/pay-sh-demo|docs-site/content)[^"]*"' \
+    mcp/src/tools mcp/src/resources | wc -l
+   5
+
+# Phase O (0.2.5)
+$ grep -rE '"[^"]*(examples/pay-sh-demo|docs-site/content)[^"]*"' \
+    mcp/src/tools mcp/src/resources | wc -l
+   0
+```
+
+Remaining grep hits in the broader `examples/|docs-site/|trustgate/server/`
+sweep are all internal `path.resolve(__dirname, "…")` / `fs.readFileSync(…)`
+disk-resolution constants — they never surface to a user via tools/list,
+resources/list, or tool error responses.
+
+### Bug-list closure (Phase M → O)
+
+| ref | bug | closed in |
+|---|---|---|
+| #1 | `serverInfo.version` hardcoded `0.1.0` | `0.2.1` |
+| #2 | demo state JSON not bundled | `0.2.2` (path fix `0.2.3`) |
+| #3 | docs corpus + examples not bundled | `0.2.2` (path fix `0.2.3`) |
+| #4 | HTTP transport singleton | `0.2.2` (verified `0.2.3`) |
+| F1 | `get_validation_attestation` required hex digest | `0.2.4` |
+| D1 | `agenttrust_demo_state` description leaked repo path | `0.2.5` |
+| D2 | `agenttrust_docs` description leaked repo path | `0.2.5` |
+| D3 | `emit_feedback.base_collection` only referenced demo state | `0.2.5` |
+| F2 | no tx-sig → payment_id_hash mapping | roadmap'd to v0.3.0 |
+
+Phase M → O closes for v1: every Phase M API surface bug is fixed; the cosmetic D1-D3 polish lands; F2 is the single deferred item, captured in `Planned`.
