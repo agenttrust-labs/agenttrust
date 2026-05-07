@@ -165,3 +165,27 @@ jobs:
               console.log(`::notice::FeedbackEmissionLog ${pda} owner verified`);
             })().catch((e) => { console.error("verify failed:", e); process.exit(1); });
           '
+
+      - name: Poll the 3 hosted Fly surfaces
+        # Cross-check: the canary's value is amplified when it also
+        # confirms the production-facing URLs respond. A devnet
+        # regression often shows up first as a hosted-surface
+        # healthcheck failure (the on-chain RPC dependency is shared).
+        # Each surface returns 200 + a JSON envelope per its
+        # /healthz contract; the parser asserts ok:true, ignores the
+        # rest. Doesn't gate on the secret — these URLs are public.
+        run: |
+          set -e
+          for url in \
+            https://agenttrust-mcp.fly.dev/healthz \
+            https://agenttrust-api.fly.dev/healthz \
+            https://agenttrust-demo.fly.dev/health
+          do
+            body=$(curl -sf --max-time 10 "$url" || echo "")
+            ok=$(echo "$body" | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{try{const j=JSON.parse(s);process.stdout.write(String(j.ok===true||j.status==="ok"))}catch(_){process.stdout.write("false")}})')
+            if [ "$ok" != "true" ]; then
+              echo "::error::$url did not return ok:true (body: $body)"
+              exit 1
+            fi
+            echo "::notice::$url green"
+          done

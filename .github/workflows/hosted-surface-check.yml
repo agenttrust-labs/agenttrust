@@ -1,0 +1,79 @@
+name: Hosted surface check
+
+# Catches a Dockerfile / fly.toml regression before it reaches a
+# `fly deploy` and trashes a live machine. Three surfaces exist:
+# mcp, trustgate/server, examples/pay-sh-demo — each carries a
+# Dockerfile + fly.toml. The check is lint-only — no actual deploy
+# is attempted, so it's fast (~1 min) and free.
+#
+# The two checks per surface:
+#   * `flyctl config validate` against the fly.toml (catches schema
+#     drift, e.g. a renamed [http_service] field, an invalid region,
+#     a typo'd build.dockerfile path)
+#   * `docker build --check` against the Dockerfile (catches syntax
+#     errors, deprecated FROM tags, RUN-instruction issues — runs
+#     buildkit's analysis pass without producing an image)
+#
+# Trigger: PR touching any of the three Dockerfiles or fly.toml
+# files, or this workflow's own YAML.
+
+on:
+  pull_request:
+    paths:
+      - 'mcp/Dockerfile'
+      - 'mcp/fly.toml'
+      - 'trustgate/server/Dockerfile'
+      - 'trustgate/server/fly.toml'
+      - 'examples/pay-sh-demo/Dockerfile'
+      - 'examples/pay-sh-demo/fly.toml'
+      - '.github/workflows/hosted-surface-check.yml'
+  workflow_dispatch:
+
+jobs:
+  fly-config:
+    name: flyctl config validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install flyctl
+        run: |
+          curl -L https://fly.io/install.sh | sh
+          echo "$HOME/.fly/bin" >> "$GITHUB_PATH"
+
+      # `flyctl config validate` doesn't need auth — it's a local
+      # parser pass. Run it for each fly.toml. The flag set
+      # (--config <path>) is important because flyctl defaults to
+      # ./fly.toml from cwd otherwise.
+      - name: Validate mcp fly.toml
+        run: flyctl config validate --config mcp/fly.toml
+      - name: Validate trustgate-server fly.toml
+        run: flyctl config validate --config trustgate/server/fly.toml
+      - name: Validate pay-sh-demo fly.toml
+        run: flyctl config validate --config examples/pay-sh-demo/fly.toml
+
+  docker-build-check:
+    name: docker build --check
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      matrix:
+        surface:
+          - { name: mcp,             dir: mcp }
+          - { name: trustgate-server, dir: trustgate/server }
+          - { name: pay-sh-demo,      dir: examples/pay-sh-demo }
+    steps:
+      - uses: actions/checkout@v4
+
+      # Buildkit is enabled by default on ubuntu-latest, so
+      # `docker build --check` (introduced in Docker 24+) just works.
+      # The check pass exits non-zero on syntax errors, deprecated
+      # base images, ENV without value, etc. Cheap pre-flight before
+      # an actual `fly deploy`.
+      #
+      # Each Dockerfile expects the build context to be the repo
+      # root (so it can copy pnpm-workspace.yaml + the workspace
+      # subdirs). Pass `.` and override the file path.
+      - name: docker build --check ${{ matrix.surface.name }}
+        run: docker build --check -f ${{ matrix.surface.dir }}/Dockerfile .
