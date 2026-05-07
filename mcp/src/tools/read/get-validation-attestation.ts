@@ -10,17 +10,29 @@
  */
 
 import bs58 from "bs58";
+import { computeCapabilityHash } from "@agenttrust-sdk/trustgate";
 import { z } from "zod";
 
 import { explorerUrl } from "../../config";
 import { PubkeySchema, parsePubkey, HexHashSchema, hexToBytes, bytesToHex, pubkeyOrNull, toDecString } from "../common";
 import type { Tool, ToolContext } from "../types";
 
+// Phase N UX pass: accept either a friendly capability_name (the SDK
+// computes SHA256(name) for you, mirroring agenttrust_request_validation)
+// or capability_hash directly. Real users + LLMs typically have the
+// human-readable name (e.g., "kyc.tier-1.v1"); requiring the 64-char
+// hex was a friction point a Claude Desktop user wouldn't get past.
 const InputSchema = z.object({
   subject_asset:    PubkeySchema.describe("Quantu agent asset whose capability is being attested"),
-  capability_hash:  HexHashSchema.describe("32-byte capability hash (hex)"),
+  capability_name:  z.string().min(3).max(32).optional()
+                       .describe("Canonical capability name (3..=32 chars, no ':'); preferred over hex"),
+  capability_hash:  HexHashSchema.optional()
+                       .describe("32-byte capability hash (hex); use only if you already have the digest"),
   attestor:         PubkeySchema.optional()
                        .describe("Optional: filter to this attestor's attestation (returns 0 or 1)"),
+}).refine((v) => v.capability_name || v.capability_hash, {
+  message: "Provide either capability_name (preferred) or capability_hash.",
+  path:    ["capability_name"],
 });
 type Input = z.infer<typeof InputSchema>;
 
@@ -52,15 +64,19 @@ export const getValidationAttestationTool: Tool<Input, Output> = {
   name:        "agenttrust_get_validation_attestation",
   description:
     "Query the ValidationRegistry for ValidationAttestation PDAs matching " +
-    "(subject_asset, capability_hash). Each attestor produces a separate " +
-    "attestation; the optional `attestor` filter narrows to one. Returns " +
-    "expiresAt slot, revoked flag, claim payload hash — exactly the fields " +
-    "PolicyVault's RequireValidation policy reads at gate time.",
+    "(subject, capability). Pass either capability_name (preferred — the " +
+    "SDK computes SHA256(name) for you) or capability_hash directly. Each " +
+    "attestor produces a separate attestation; the optional `attestor` " +
+    "filter narrows to one. Returns expiresAt slot, revoked flag, claim " +
+    "payload hash — exactly the fields PolicyVault's RequireValidation " +
+    "policy reads at gate time.",
   inputSchema: InputSchema,
 
   async handler(input: Input, ctx: ToolContext): Promise<Output> {
     const subject = parsePubkey(input.subject_asset, "subject_asset");
-    const capHash = hexToBytes(input.capability_hash);
+    const capHash = input.capability_name
+      ? computeCapabilityHash(input.capability_name)
+      : hexToBytes(input.capability_hash!);
     if (capHash.length !== 32) throw new Error("capability_hash must decode to 32 bytes");
     const program = await ctx.chain.validationRegistry();
 

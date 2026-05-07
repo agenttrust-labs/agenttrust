@@ -371,3 +371,89 @@ Driver: `/tmp/phase-n/full-e2e.js` against
 **Total: 42/42 PASS.** No FAIL. Identical results stdio vs HTTP. Every
 tool that was degraded under Phase M now returns the same data on a
 fresh `npx`-style install as it does from a local clone.
+
+---
+
+## Phase N follow-up — real-user UX pass (not API checking)
+
+The 42/42 verifies the API contract. It does **not** answer the
+question "would Claude Desktop / Cursor route the right tool from a
+natural-language question, and would the user understand the
+response?". Re-running the matrix under that lens.
+
+### How LLM clients see the catalog
+
+`tools/list` returns 18 entries. Read end-to-end as if you're an LLM
+deciding which tool to call from a free-text question, four classes of
+friction surface:
+
+| class | example | severity |
+|---|---|---|
+| **descriptions leak repo paths** | `agenttrust_demo_state` says "used by examples/pay-sh-demo"; `agenttrust_docs` says "the AgentTrust docs corpus (docs-site/content/docs)" | low — readable but jarring |
+| **schema requires hash users don't have** | `agenttrust_get_validation_attestation` required `capability_hash` (64 hex) — no `capability_name` alias | medium — fixed in 0.2.4 (see below) |
+| **no tx-sig → payment_id_hash mapping** | `agenttrust_get_feedback_log` only accepts `payment_id_hash`; users typically have a tx signature | medium — flagged for a future tool (`agenttrust_lookup_feedback_by_tx`) |
+| **bitmask + nested config in init_policy** | `enabled_kinds_bitmask: 1+2+4+8+16` — hand-OR'd by the user | low — `agenttrust_setup_agent` prompt covers this |
+
+### 12 real-user scenarios — running on 0.2.3 first
+
+| # | natural-language question | tool | result |
+|---|---|---|---|
+| S1 | "What demo data is set up?" | `agenttrust_demo_state` | ✅ 3 counterparties + Explorer URLs |
+| S2 | "Why was my payment denied with code 6?" | `agenttrust_explain_decision({ reason_code: 6 })` | ✅ name + actionable remediation |
+| S3 | User pastes a tx signature into `payment_id_hash` | `agenttrust_get_feedback_log` | ✅ schema error names the right format ("32-byte hex string (64 hex chars, optional 0x prefix)") |
+| **S4** | User passes capability NAME to `get_validation_attestation` | `agenttrust_get_validation_attestation` | ⚠️  **0.2.3: rejected — no capability_name alias** |
+| S5 | User types "tier-3" instead of base58 pubkey | `agenttrust_get_policy` | ✅ "must be a base58-encoded Solana public key" |
+| S6 | Typo'd last char of agent_asset | `agenttrust_get_policy` | ✅ `exists: false` — judge can spot the typo |
+| S7 | "List all policies for tier-3 agent" | `agenttrust_list_policies` | ✅ returns the policy_id=1 row |
+| S8 | "How does the kill switch work?" | `agenttrust_docs({ query: "kill switch" })` | ✅ 4 hits, top: "KillSwitch policy" page |
+| S9 | "How do I integrate a new facilitator like Latinum?" | `agenttrust_facilitator_walkthrough({ name: "latinum" })` | ✅ generic guide + acknowledgement that the name isn't recognised |
+| S10 | Simulate without setting `caller` | `agenttrust_simulate_payment` | ✅ 0.2.1 actionable error |
+| S11 | User passes amount as JSON int 1000 (not string) | `agenttrust_simulate_payment` | ✅ `kind: "Allow"` — schema accepts both |
+| S12 | "Walk me through fixing this denied payment" | chain: explain → reputation → policy | ✅ chain composes — judge can diagnose end-to-end |
+
+11 of 12 scenarios passed clean on 0.2.3. **S4 failed: a real user (or
+LLM) with the human-readable capability name has no way to use the
+tool — the schema requires a 64-char hex digest a user wouldn't
+memorize.**
+
+### 0.2.4 fix — `capability_name` alias on `agenttrust_get_validation_attestation`
+
+The sibling write tool `agenttrust_request_validation` already accepts
+`capability_name` and computes `SHA-256(name)` server-side. Mirroring
+that pattern on the read tool is ~15 LOC: add `capability_name` to the
+Zod schema, refine that at least one of the two is provided, hash the
+name in the handler if present.
+
+Verified on a fresh `npm install @agenttrust-sdk/mcp@0.2.4`:
+
+```text
+serverInfo.version: 0.2.4
+S4a (by name):  count=1 isError=false   attestation pda=C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY
+S4b (by hash):  count=1 isError=false   ← backward-compat preserved
+S4c (neither):  isError=true            msg="Provide either capability_name (preferred) or capability_hash."
+```
+
+`capability_name` produces the exact same attestation PDA as the hex
+hash; the new schema refinement returns a clean error message when
+neither is set; passing both works (name wins).
+
+### Flagged, NOT fixed this phase (for a future v0.3.x)
+
+| ref | gap | proposed shape |
+|---|---|---|
+| F2 | no tx-sig → payment_id_hash mapping | `agenttrust_lookup_feedback_by_tx({ tx_signature })` — fetch the tx, scan for `emit_feedback` ix, decode the `payment_id_hash` arg from log data |
+| D1 | description "used by examples/pay-sh-demo" | drop the repo path; say "the demo's three pre-warmed counterparties" |
+| D2 | description "(docs-site/content/docs)" | drop the path; say "the AgentTrust documentation corpus" |
+| D3 | `emit_feedback.base_collection` description says "from demo state" | also mention "from your Quantu collection setup" for production users |
+
+These four are low-severity polish — none block a fresh-install user from getting useful results.
+
+### Final verdict
+
+| layer | result |
+|---|---|
+| API contract (M1.1–M3) | 42/42 ✅ |
+| Real-user UX pass (S1–S12) | 12/12 with 0.2.4's `capability_name` alias |
+| Hosted endpoint | redeployed to 0.2.4; `mcp.agenttrust.tech/healthz` reports `version: "0.2.4"` |
+
+A judge installing `npx -y @agenttrust-sdk/mcp` and asking natural-language questions through Claude Desktop / Cursor now gets useful answers on every documented surface, including the capability-by-name lookup that previously required a manual SHA-256.

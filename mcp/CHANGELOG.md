@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.4] — 2026-05-07
+
+Tag: `mcp-v0.2.4` · UX-pass fix: real-user audit found `agenttrust_get_validation_attestation` requires a 64-char hex `capability_hash` while its sibling `agenttrust_request_validation` accepts the friendly `capability_name`. Real users / LLMs typically have the human-readable capability name; requiring the digest was a Claude-Desktop-level friction point.
+
+### Added
+
+- `agenttrust_get_validation_attestation` now accepts either `capability_name` (preferred — the SDK computes SHA256(name)) or `capability_hash`. At least one is required; `capability_name` wins when both are passed. Mirrors the existing `agenttrust_request_validation` ergonomics.
+
 ## [0.2.3] — 2026-05-07
 
 Tag: `mcp-v0.2.3` · Path-resolution fix follow-up to 0.2.2.
