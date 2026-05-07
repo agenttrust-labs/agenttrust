@@ -1,13 +1,16 @@
 {
   "name": "@agenttrust-sdk/trustgate",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Drop-in TrustGate middleware for x402 facilitators on Solana — adds gate_payment + emit_feedback to any Express app with atomic-tx invariant enforcement",
   "license": "MIT",
-  "homepage": "https://github.com/agenttrust-labs/agenttrust#readme",
+  "homepage": "https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/sdk#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/agenttrust-labs/agenttrust.git",
     "directory": "trustgate/sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/agenttrust-labs/agenttrust/issues"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,7 +30,6 @@
   },
   "files": [
     "dist",
-    "src",
     "README.md",
     "LICENSE"
   ],
@@ -41,6 +43,9 @@
     "trust",
     "policy-engine"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -49,9 +54,8 @@
     "lint": "tsc --noEmit",
     "test": "ts-mocha -p ./tsconfig.json -t 30000 test/**/*.test.ts",
     "test:integration": "INTEGRATION=1 ts-mocha -p ./tsconfig.json -t 60000 test/devnet.test.ts",
-    "prepublishOnly": "pnpm run build && pnpm test",
-    "publish:dry": "npm publish --dry-run",
-    "publish:pkg": "npm publish"
+    "prepublishOnly": "pnpm run lint && pnpm run build && pnpm run test",
+    "publish:dry": "npm publish --dry-run"
   },
   "peerDependencies": {
     "express": "^4.21.0"
