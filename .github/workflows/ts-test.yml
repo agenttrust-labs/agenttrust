@@ -4,28 +4,39 @@ on:
   pull_request:
     paths:
       - 'trustgate/**'
+      - 'mcp/**'
+      - 'examples/**'
       - 'web/**'
       - 'docs-site/**'
       - 'tests/**'
-      - 'examples/**'
-      - 'mcp/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
+      - '**/tsconfig*.json'
       - '.github/workflows/ts-test.yml'
+    paths-ignore:
+      - '**.md'
+      - '**.mdx'
+      - 'docs/**'
+      - 'references/**'
   push:
     branches: [main]
     paths:
       - 'trustgate/**'
+      - 'mcp/**'
+      - 'examples/**'
       - 'web/**'
       - 'docs-site/**'
       - 'tests/**'
-      - 'examples/**'
-      - 'mcp/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
+      - '**/tsconfig*.json'
       - '.github/workflows/ts-test.yml'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   sdk:

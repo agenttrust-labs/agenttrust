@@ -31,7 +31,13 @@ on:
       - 'programs/**'
       - 'Anchor.toml'
       - '.github/workflows/idl-diff.yml'
+    paths-ignore:
+      - '**.md'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   diff:

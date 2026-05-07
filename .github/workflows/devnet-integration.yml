@@ -17,6 +17,12 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:
 
+# Cancel an old manual dispatch when a newer one fires; let the cron
+# run side-by-side with a manual run if both happen to overlap.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   devnet-smoke:
     name: examples/pay-sh-demo — real devnet integration

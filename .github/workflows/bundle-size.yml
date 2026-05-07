@@ -18,7 +18,13 @@ on:
     paths:
       - 'trustgate/sdk/**'
       - '.github/workflows/bundle-size.yml'
+    paths-ignore:
+      - '**.md'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   size:

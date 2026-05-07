@@ -16,7 +16,26 @@ name: Lint + format
 
 on:
   pull_request:
+    paths:
+      - '**/*.ts'
+      - '**/*.tsx'
+      - '**/*.rs'
+      - '**/*.toml'
+      - '**/eslint.config.*'
+      - '**/.prettierrc*'
+      - 'Cargo.lock'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/lint-and-format.yml'
+    paths-ignore:
+      - '**.md'
+      - '**.mdx'
+      - 'docs/**'
+      - 'references/**'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   ts-typecheck:

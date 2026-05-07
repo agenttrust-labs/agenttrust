@@ -24,9 +24,16 @@ on:
   pull_request:
     paths:
       - 'trustgate/server/src/facilitators/**'
+      - 'trustgate/server/src/types.ts'
       - 'trustgate/server/test/cross-adapter.test.ts'
       - '.github/workflows/adapter-contract-conformance.yml'
+    paths-ignore:
+      - '**.md'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   static-shape:

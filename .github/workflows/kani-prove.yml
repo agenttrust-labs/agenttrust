@@ -1,16 +1,36 @@
 name: Kani Formal Verification
 
+# Tightened from `programs/policy-vault/src/**` to the three subdirs
+# the proofs actually exercise. A README/comment bump under the
+# program no longer triggers a 90s+ proof run.
+
 on:
   pull_request:
     paths:
-      - 'programs/policy-vault/src/**'
+      - 'programs/policy-vault/src/policies/**'
+      - 'programs/policy-vault/src/proofs/**'
+      - 'programs/policy-vault/src/state/**'
       - 'programs/policy-vault/Cargo.toml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/kani-prove.yml'
+    paths-ignore:
+      - '**.md'
   push:
     branches: [main]
     paths:
-      - 'programs/policy-vault/src/**'
+      - 'programs/policy-vault/src/policies/**'
+      - 'programs/policy-vault/src/proofs/**'
+      - 'programs/policy-vault/src/state/**'
       - 'programs/policy-vault/Cargo.toml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/kani-prove.yml'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   prove:

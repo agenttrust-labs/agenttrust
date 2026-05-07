@@ -1,5 +1,11 @@
 name: Build + Rust unit tests
 
+# Sanity check ahead of anchor-test.yml: native cargo build + cargo
+# test --lib gives faster feedback than the full anchor-test
+# pipeline (no Solana CLI install, no AVM compile, no validator boot)
+# while iterating on programs/. Overlaps in scope with anchor-test
+# but answers the "does it compile?" question 5x faster.
+
 on:
   pull_request:
     paths:
@@ -7,6 +13,12 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'Anchor.toml'
+      - '.github/workflows/build.yml'
+    paths-ignore:
+      - '**.md'
+      - '**.mdx'
+      - 'docs/**'
+      - 'references/**'
   push:
     branches: [main]
     paths:
@@ -14,7 +26,12 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'Anchor.toml'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   cargo-build:

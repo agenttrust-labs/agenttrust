@@ -22,10 +22,20 @@ name: Kani proof budget
 on:
   pull_request:
     paths:
-      - 'programs/**'
+      - 'programs/policy-vault/src/policies/**'
       - 'programs/policy-vault/src/proofs/**'
+      - 'programs/policy-vault/src/state/**'
+      - 'programs/policy-vault/Cargo.toml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
       - '.github/workflows/kani-budget.yml'
+    paths-ignore:
+      - '**.md'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   budget:

@@ -29,6 +29,10 @@ on:
       - '.github/workflows/hosted-surface-check.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   fly-config:
     name: flyctl config validate

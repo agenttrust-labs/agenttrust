@@ -8,8 +8,16 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'tests/**'
-      - 'trustgate/sdk/**'
+      - 'trustgate/sdk/src/**'
+      - 'keys/**'
       - '.github/workflows/anchor-test.yml'
+    # Anchor build + test is the heaviest workflow (~15 min cold);
+    # never run it for a docs-only diff.
+    paths-ignore:
+      - '**.md'
+      - '**.mdx'
+      - 'docs/**'
+      - 'references/**'
   push:
     branches: [main]
     paths:
@@ -18,9 +26,16 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'tests/**'
-      - 'trustgate/sdk/**'
+      - 'trustgate/sdk/src/**'
+      - 'keys/**'
       - '.github/workflows/anchor-test.yml'
   workflow_dispatch:
+
+# Cancel in-flight runs on the same branch / PR. A new push supersedes
+# the previous one; CI minutes only flow into the most recent commit.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   anchor:

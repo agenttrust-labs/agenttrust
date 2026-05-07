@@ -20,8 +20,15 @@ on:
   pull_request:
     paths:
       - 'mcp/**'
+      - 'trustgate/sdk/src/**'
       - '.github/workflows/mcp-protocol-conformance.yml'
+    paths-ignore:
+      - '**.md'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   stdio-conformance:
