@@ -1,0 +1,37 @@
+# AgentTrust facilitator (x402 /verify + /settle + /receipt + /healthz)
+#
+# Deploy from repo root:
+#   flyctl deploy --config trustgate/server/fly.toml \
+#                 --dockerfile trustgate/server/Dockerfile \
+#                 --remote-only --app agenttrust-api .
+
+app            = "agenttrust-api"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT     = "8080"
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port        = 8080
+  force_https          = true
+  auto_stop_machines   = "stop"
+  auto_start_machines  = true
+  # Always-on. The facilitator is a critical path for every demo
+  # interaction; cold starts add ~3 s and judges time out.
+  min_machines_running = 1
+  processes            = ["app"]
+
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval     = "30s"
+    method       = "get"
+    timeout      = "5s"
+    path         = "/healthz"
+
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "256mb"

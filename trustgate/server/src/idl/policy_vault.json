@@ -1,0 +1,1723 @@
+{
+  "address": "8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR",
+  "metadata": {
+    "name": "policy_vault",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "AgentTrust PolicyVault — policy-as-code engine for agent payments"
+  },
+  "instructions": [
+    {
+      "name": "gate_payment",
+      "docs": [
+        "Compose the 5 policy kinds + return a `GateDecision`. Applies state",
+        "mutations (Spending counters, VelocityLedger) only on `Allow`."
+      ],
+      "discriminator": [
+        99,
+        69,
+        147,
+        127,
+        68,
+        117,
+        154,
+        250
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "SECURITY: in v1, ANY signer can call gate_payment. The composer's",
+            "state writes (Spending counters + VelocityLedger cumulative) are",
+            "therefore exposed to a denial-of-service attack: a hostile caller",
+            "could exhaust the daily / weekly / window budget via spurious calls.",
+            "v1.1 adds a facilitator allowlist on `PolicyAccount`. For the v1",
+            "hackathon submission, gate_payment is invoked by TrustGate (Phase 6),",
+            "which itself is invoked by trusted x402 facilitators."
+          ],
+          "signer": true
+        },
+        {
+          "name": "policy_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  105,
+                  99,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              },
+              {
+                "kind": "arg",
+                "path": "policy_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "velocity_ledger",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  108,
+                  111,
+                  99,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              },
+              {
+                "kind": "arg",
+                "path": "policy_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "kill_switch_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  108,
+                  108,
+                  115,
+                  119,
+                  105,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  2
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer_atom_stats",
+          "docs": [
+            "(owner check, size check, schema_version check, tier-range check)."
+          ],
+          "optional": true
+        },
+        {
+          "name": "payee_atom_stats",
+          "optional": true
+        },
+        {
+          "name": "validation_attestation",
+          "docs": [
+            "`validation_registry::read_validation_attestation_view`."
+          ],
+          "optional": true
+        }
+      ],
+      "args": [
+        {
+          "name": "payer_agent_asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "payee_agent_asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "mint",
+          "type": "pubkey"
+        },
+        {
+          "name": "policy_id",
+          "type": "u32"
+        }
+      ],
+      "returns": {
+        "defined": {
+          "name": "GateDecision"
+        }
+      }
+    },
+    {
+      "name": "gate_payment_strict",
+      "docs": [
+        "Strict variant: returns `Err` on Deny / RequireValidation so the",
+        "caller's tx reverts atomically. Allow path applies the same state",
+        "mutations as `gate_payment`. Used by `composeAtomicSettleTx` to",
+        "guarantee gate + transfer + emit_feedback commit-or-revert as a",
+        "unit."
+      ],
+      "discriminator": [
+        12,
+        131,
+        61,
+        178,
+        227,
+        220,
+        24,
+        30
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "SECURITY: in v1, ANY signer can call gate_payment. The composer's",
+            "state writes (Spending counters + VelocityLedger cumulative) are",
+            "therefore exposed to a denial-of-service attack: a hostile caller",
+            "could exhaust the daily / weekly / window budget via spurious calls.",
+            "v1.1 adds a facilitator allowlist on `PolicyAccount`. For the v1",
+            "hackathon submission, gate_payment is invoked by TrustGate (Phase 6),",
+            "which itself is invoked by trusted x402 facilitators."
+          ],
+          "signer": true
+        },
+        {
+          "name": "policy_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  105,
+                  99,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              },
+              {
+                "kind": "arg",
+                "path": "policy_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "velocity_ledger",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  108,
+                  111,
+                  99,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              },
+              {
+                "kind": "arg",
+                "path": "policy_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "kill_switch_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  108,
+                  108,
+                  115,
+                  119,
+                  105,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  2
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer_atom_stats",
+          "docs": [
+            "(owner check, size check, schema_version check, tier-range check)."
+          ],
+          "optional": true
+        },
+        {
+          "name": "payee_atom_stats",
+          "optional": true
+        },
+        {
+          "name": "validation_attestation",
+          "docs": [
+            "`validation_registry::read_validation_attestation_view`."
+          ],
+          "optional": true
+        }
+      ],
+      "args": [
+        {
+          "name": "payer_agent_asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "payee_agent_asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "mint",
+          "type": "pubkey"
+        },
+        {
+          "name": "policy_id",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "init_authority",
+      "docs": [
+        "Create the `PolicyAuthority` PDA for an agent. Must be called BEFORE",
+        "`init_policy`. Caller must include themselves in `members`."
+      ],
+      "discriminator": [
+        136,
+        150,
+        94,
+        172,
+        74,
+        199,
+        236,
+        85
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "policy_authority",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  105,
+                  99,
+                  121,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "payer_agent_asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "members",
+          "type": {
+            "vec": "pubkey"
+          }
+        },
+        {
+          "name": "threshold",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "init_killswitch",
+      "docs": [
+        "Create a per-agent `KillSwitchState` PDA (initial state: paused = false)."
+      ],
+      "discriminator": [
+        206,
+        231,
+        253,
+        1,
+        79,
+        155,
+        175,
+        138
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "kill_switch_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  108,
+                  108,
+                  115,
+                  119,
+                  105,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  2
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "payer_agent_asset",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "init_policy",
+      "docs": [
+        "Initialise a `PolicyAccount` + `VelocityLedger` for a single",
+        "(`payer_agent_asset`, `policy_id`) pair. Requires the agent's",
+        "`PolicyAuthority` to exist with the payer as a member."
+      ],
+      "discriminator": [
+        45,
+        234,
+        110,
+        100,
+        209,
+        146,
+        191,
+        86
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "policy_authority",
+          "docs": [
+            "PolicyAuthority for the agent — must already exist (call `init_authority`",
+            "first). The handler validates that `payer` is in `members[]`."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  105,
+                  99,
+                  121,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "policy_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  105,
+                  99,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              },
+              {
+                "kind": "arg",
+                "path": "args.policy_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "velocity_ledger",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  101,
+                  108,
+                  111,
+                  99,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              },
+              {
+                "kind": "arg",
+                "path": "args.policy_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "payer_agent_asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "InitPolicyArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "set_killswitch",
+      "docs": [
+        "Multisig-gated pause / unpause of an agent's KillSwitchState.",
+        "Lead signer + additional signers in `remaining_accounts` must reach",
+        "`policy_authority.threshold` distinct members."
+      ],
+      "discriminator": [
+        34,
+        125,
+        234,
+        122,
+        153,
+        20,
+        25,
+        47
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "docs": [
+            "The lead signer — pays tx fee AND counts as one of the multisig signers.",
+            "Must be in `policy_authority.members`."
+          ],
+          "signer": true
+        },
+        {
+          "name": "policy_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  108,
+                  105,
+                  99,
+                  121,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              }
+            ]
+          }
+        },
+        {
+          "name": "kill_switch_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  107,
+                  105,
+                  108,
+                  108,
+                  115,
+                  119,
+                  105,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  2
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "payer_agent_asset"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "payer_agent_asset",
+          "type": "pubkey"
+        },
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "KillSwitchState",
+      "discriminator": [
+        254,
+        243,
+        235,
+        232,
+        86,
+        55,
+        45,
+        62
+      ]
+    },
+    {
+      "name": "PolicyAccount",
+      "discriminator": [
+        218,
+        201,
+        183,
+        164,
+        156,
+        127,
+        81,
+        175
+      ]
+    },
+    {
+      "name": "PolicyAuthority",
+      "discriminator": [
+        62,
+        36,
+        186,
+        99,
+        38,
+        164,
+        236,
+        205
+      ]
+    },
+    {
+      "name": "VelocityLedger",
+      "discriminator": [
+        115,
+        201,
+        156,
+        54,
+        58,
+        211,
+        95,
+        214
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "KillSwitchTriggered",
+      "discriminator": [
+        247,
+        240,
+        128,
+        240,
+        252,
+        177,
+        42,
+        203
+      ]
+    },
+    {
+      "name": "PolicyAllowed",
+      "discriminator": [
+        240,
+        34,
+        117,
+        111,
+        248,
+        141,
+        198,
+        213
+      ]
+    },
+    {
+      "name": "PolicyDenied",
+      "discriminator": [
+        18,
+        131,
+        136,
+        241,
+        88,
+        193,
+        230,
+        24
+      ]
+    },
+    {
+      "name": "PolicyInitialized",
+      "discriminator": [
+        102,
+        184,
+        59,
+        178,
+        235,
+        69,
+        251,
+        181
+      ]
+    },
+    {
+      "name": "RequireValidationEmitted",
+      "discriminator": [
+        205,
+        228,
+        253,
+        235,
+        171,
+        131,
+        56,
+        35
+      ]
+    },
+    {
+      "name": "VelocityIncremented",
+      "discriminator": [
+        239,
+        103,
+        170,
+        200,
+        238,
+        140,
+        95,
+        7
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 12000,
+      "name": "PolicyMismatch",
+      "msg": "Policy ID mismatch between PDA seeds and account state"
+    },
+    {
+      "code": 12001,
+      "name": "SpendingPerTxExceeded",
+      "msg": "Spending per-tx limit exceeded"
+    },
+    {
+      "code": 12002,
+      "name": "SpendingDailyExceeded",
+      "msg": "Spending daily limit exceeded"
+    },
+    {
+      "code": 12003,
+      "name": "SpendingWeeklyExceeded",
+      "msg": "Spending weekly limit exceeded"
+    },
+    {
+      "code": 12004,
+      "name": "SpendingOverflow",
+      "msg": "Spending counter overflow"
+    },
+    {
+      "code": 12010,
+      "name": "VelocityWindowExceeded",
+      "msg": "Velocity window cap exceeded"
+    },
+    {
+      "code": 12011,
+      "name": "VelocityOverflow",
+      "msg": "Velocity counter overflow"
+    },
+    {
+      "code": 12020,
+      "name": "CounterpartyTierBelowMin",
+      "msg": "Counterparty tier below minimum"
+    },
+    {
+      "code": 12021,
+      "name": "CounterpartyRiskAboveMax",
+      "msg": "Counterparty risk score above maximum"
+    },
+    {
+      "code": 12022,
+      "name": "CounterpartyConfidenceBelow",
+      "msg": "Counterparty confidence below minimum"
+    },
+    {
+      "code": 12023,
+      "name": "AtomStatsWrongOwner",
+      "msg": "AtomStats account has wrong owner"
+    },
+    {
+      "code": 12024,
+      "name": "AtomStatsSchemaMismatch",
+      "msg": "AtomStats schema version mismatch"
+    },
+    {
+      "code": 12025,
+      "name": "AtomStatsSizeMismatch",
+      "msg": "AtomStats account size mismatch"
+    },
+    {
+      "code": 12030,
+      "name": "AttestationMissing",
+      "msg": "Validation attestation missing"
+    },
+    {
+      "code": 12031,
+      "name": "AttestationExpired",
+      "msg": "Validation attestation expired"
+    },
+    {
+      "code": 12032,
+      "name": "AttestationRevoked",
+      "msg": "Validation attestation revoked"
+    },
+    {
+      "code": 12033,
+      "name": "AttestationAttestorRejected",
+      "msg": "Validation attestor not in accepted list"
+    },
+    {
+      "code": 12034,
+      "name": "AttestationSubjectMismatch",
+      "msg": "Validation subject mismatch"
+    },
+    {
+      "code": 12035,
+      "name": "AttestationCapabilityMismatch",
+      "msg": "Validation capability mismatch"
+    },
+    {
+      "code": 12036,
+      "name": "AttestationWrongOwner",
+      "msg": "ValidationAttestation account has wrong owner"
+    },
+    {
+      "code": 12037,
+      "name": "AttestationSizeMismatch",
+      "msg": "ValidationAttestation account size mismatch (expected 290 bytes)"
+    },
+    {
+      "code": 12040,
+      "name": "KillSwitchEngaged",
+      "msg": "KillSwitch engaged for this scope"
+    },
+    {
+      "code": 12041,
+      "name": "MultisigThresholdNotMet",
+      "msg": "Multisig threshold not met"
+    },
+    {
+      "code": 12042,
+      "name": "MemberNotInAuthority",
+      "msg": "Member not in policy authority"
+    },
+    {
+      "code": 12043,
+      "name": "ThresholdExceedsMembers",
+      "msg": "Threshold exceeds member count"
+    },
+    {
+      "code": 12044,
+      "name": "MemberCountOutOfRange",
+      "msg": "Member count out of range (1..=7)"
+    },
+    {
+      "code": 12045,
+      "name": "DuplicateAuthorityMember",
+      "msg": "Authority members must be unique (no duplicates)"
+    },
+    {
+      "code": 12050,
+      "name": "UnratedTreatmentDeny",
+      "msg": "Unrated counterparty under deny treatment"
+    },
+    {
+      "code": 12051,
+      "name": "InvalidGateMode",
+      "msg": "Invalid gate_mode (must be 0=Immediate or 1=Confirmed)"
+    },
+    {
+      "code": 12052,
+      "name": "InvalidScopeKind",
+      "msg": "Invalid scope_kind (must be 0=Global, 1=PerCollection, 2=PerAgent)"
+    },
+    {
+      "code": 12053,
+      "name": "ClockBeforeEpoch",
+      "msg": "Clock unix_timestamp negative — pre-1970 not supported"
+    },
+    {
+      "code": 12054,
+      "name": "InvalidEnabledKinds",
+      "msg": "enabled_kinds_bitmask has bits outside the defined KIND_* surface"
+    },
+    {
+      "code": 12055,
+      "name": "InvalidCounterpartyTier",
+      "msg": "Counterparty tier out of range (max 4)"
+    },
+    {
+      "code": 12056,
+      "name": "InvalidConfidence",
+      "msg": "Confidence out of range (max 10000)"
+    },
+    {
+      "code": 12057,
+      "name": "InvalidUnratedTreatment",
+      "msg": "Unrated treatment must be 0=Deny, 1=Allow, or 2=RequireValidation"
+    },
+    {
+      "code": 12060,
+      "name": "AgentAccountUninitialized",
+      "msg": "AgentAccount uninitialized (zero lamports)"
+    },
+    {
+      "code": 12061,
+      "name": "AgentAccountWrongOwner",
+      "msg": "AgentAccount has wrong owner program"
+    },
+    {
+      "code": 12062,
+      "name": "AgentAccountSizeMismatch",
+      "msg": "AgentAccount data size mismatch (expected 748 bytes)"
+    }
+  ],
+  "types": [
+    {
+      "name": "CounterpartyConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "min_tier",
+            "type": "u8"
+          },
+          {
+            "name": "max_risk_score",
+            "type": "u8"
+          },
+          {
+            "name": "min_confidence",
+            "type": "u16"
+          },
+          {
+            "name": "default_unrated_treatment",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DenyReason",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "KillSwitchEngaged"
+          },
+          {
+            "name": "SpendingPerTxExceeded"
+          },
+          {
+            "name": "SpendingDailyExceeded"
+          },
+          {
+            "name": "SpendingWeeklyExceeded"
+          },
+          {
+            "name": "VelocityWindowExceeded"
+          },
+          {
+            "name": "CounterpartyTierBelowMin"
+          },
+          {
+            "name": "CounterpartyRiskAboveMax"
+          },
+          {
+            "name": "CounterpartyConfidenceBelow"
+          },
+          {
+            "name": "AtomStatsWrongOwner"
+          },
+          {
+            "name": "AtomStatsSchemaMismatch"
+          },
+          {
+            "name": "AttestationMissing"
+          },
+          {
+            "name": "AttestationExpired"
+          },
+          {
+            "name": "AttestationRevoked"
+          },
+          {
+            "name": "AttestationAttestorRejected"
+          },
+          {
+            "name": "UnratedTreatmentDeny"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GateDecision",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Allow"
+          },
+          {
+            "name": "Deny",
+            "fields": [
+              {
+                "defined": {
+                  "name": "DenyReason"
+                }
+              }
+            ]
+          },
+          {
+            "name": "RequireValidation",
+            "fields": [
+              {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitPolicyArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "policy_id",
+            "type": "u32"
+          },
+          {
+            "name": "enabled_kinds_bitmask",
+            "type": "u8"
+          },
+          {
+            "name": "gate_mode",
+            "type": "u8"
+          },
+          {
+            "name": "scope_kind",
+            "type": "u8"
+          },
+          {
+            "name": "spending",
+            "type": {
+              "defined": {
+                "name": "SpendingConfig"
+              }
+            }
+          },
+          {
+            "name": "velocity",
+            "type": {
+              "defined": {
+                "name": "VelocityConfig"
+              }
+            }
+          },
+          {
+            "name": "counterparty",
+            "type": {
+              "defined": {
+                "name": "CounterpartyConfig"
+              }
+            }
+          },
+          {
+            "name": "validation",
+            "type": {
+              "defined": {
+                "name": "ValidationConfig"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "KillSwitchState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "scope_kind",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "_pad0",
+            "type": "u8"
+          },
+          {
+            "name": "_pad1",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
+            "name": "scope_key",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "paused_at_slot",
+            "type": "u64"
+          },
+          {
+            "name": "unpaused_at_slot",
+            "type": "u64"
+          },
+          {
+            "name": "paused_by",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "KillSwitchTriggered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "scope_kind",
+            "type": "u8"
+          },
+          {
+            "name": "scope_key",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "triggered_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PolicyAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payer_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "policy_id",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": {
+              "array": [
+                "u8",
+                3
+              ]
+            }
+          },
+          {
+            "name": "enabled_kinds_bitmask",
+            "type": "u8"
+          },
+          {
+            "name": "gate_mode",
+            "type": "u8"
+          },
+          {
+            "name": "spending_per_tx_max",
+            "type": "u64"
+          },
+          {
+            "name": "spending_daily_max",
+            "type": "u64"
+          },
+          {
+            "name": "spending_weekly_max",
+            "type": "u64"
+          },
+          {
+            "name": "spending_today_used",
+            "type": "u64"
+          },
+          {
+            "name": "spending_week_used",
+            "type": "u64"
+          },
+          {
+            "name": "spending_today_anchor",
+            "type": "u64"
+          },
+          {
+            "name": "spending_week_anchor",
+            "type": "u64"
+          },
+          {
+            "name": "velocity_window_secs",
+            "type": "u64"
+          },
+          {
+            "name": "velocity_max_in_window",
+            "type": "u64"
+          },
+          {
+            "name": "velocity_tier0_decay_factor",
+            "type": "u64"
+          },
+          {
+            "name": "min_counterparty_tier",
+            "type": "u8"
+          },
+          {
+            "name": "max_risk_score",
+            "type": "u8"
+          },
+          {
+            "name": "min_confidence",
+            "type": "u16"
+          },
+          {
+            "name": "default_unrated_treatment",
+            "type": "u8"
+          },
+          {
+            "name": "required_capability_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "accepted_attestors",
+            "type": {
+              "array": [
+                "pubkey",
+                2
+              ]
+            }
+          },
+          {
+            "name": "scope_kind",
+            "type": "u8"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                8
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PolicyAllowed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payer_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "payee_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "policy_id",
+            "type": "u32"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PolicyAuthority",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payer_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "threshold",
+            "type": "u8"
+          },
+          {
+            "name": "member_count",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": "u8"
+          },
+          {
+            "name": "members",
+            "type": {
+              "array": [
+                "pubkey",
+                7
+              ]
+            }
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PolicyDenied",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payer_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "payee_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "policy_id",
+            "type": "u32"
+          },
+          {
+            "name": "reason",
+            "type": "u8"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PolicyInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payer_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "policy_id",
+            "type": "u32"
+          },
+          {
+            "name": "enabled_kinds",
+            "type": "u8"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequireValidationEmitted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payer_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "payee_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "capability_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SpendingConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "per_tx_max",
+            "type": "u64"
+          },
+          {
+            "name": "daily_max",
+            "type": "u64"
+          },
+          {
+            "name": "weekly_max",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ValidationConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "required_capability_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "accepted_attestors",
+            "type": {
+              "array": [
+                "pubkey",
+                2
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "VelocityConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "window_secs",
+            "type": "u64"
+          },
+          {
+            "name": "max_in_window",
+            "type": "u64"
+          },
+          {
+            "name": "tier0_decay_factor",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VelocityIncremented",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payer_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "policy_id",
+            "type": "u32"
+          },
+          {
+            "name": "new_cumulative",
+            "type": "u64"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VelocityLedger",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payer_agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "policy_id",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "_pad0",
+            "type": {
+              "array": [
+                "u8",
+                3
+              ]
+            }
+          },
+          {
+            "name": "cumulative_amount",
+            "type": "u64"
+          },
+          {
+            "name": "last_commit_slot",
+            "type": "u64"
+          },
+          {
+            "name": "window_start_slot",
+            "type": "u64"
+          },
+          {
+            "name": "_reserved",
+            "type": {
+              "array": [
+                "u8",
+                8
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
