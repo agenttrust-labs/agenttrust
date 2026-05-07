@@ -1,9 +1,8 @@
 # `agenttrust-status` — public status page
 
 Single-page Next.js app that polls every AgentTrust hosted surface
-and renders a green/red status table. Lives at
-`status.agenttrust.tech` (DNS alias to a Vercel project) once the
-operator-side deploy lands.
+and renders a green/red status table. **Live at
+[`status.agenttrust.tech`](https://status.agenttrust.tech)**.
 
 ## Surfaces probed
 
@@ -11,10 +10,11 @@ operator-side deploy lands.
 | --- | --- | --- |
 | landing | https://www.agenttrust.tech | `GET /` |
 | docs | https://docs.agenttrust.tech | `GET /` |
-| mcp | https://agenttrust-mcp.fly.dev | `GET /healthz` |
-| api | https://agenttrust-api.fly.dev | `GET /healthz` |
-| demo | https://agenttrust-demo.fly.dev | `GET /health` |
+| mcp | https://mcp.agenttrust.tech | `GET /healthz` |
+| api | https://api.agenttrust.tech | `GET /healthz` |
+| demo | https://demo.agenttrust.tech | `GET /health` |
 | sdk-npm | https://registry.npmjs.org/@agenttrust-sdk/trustgate | `GET /` (registry metadata) |
+| mcp-npm | https://registry.npmjs.org/@agenttrust-sdk/mcp | `GET /` (registry metadata) |
 
 Add a new surface in `lib/surfaces.ts`.
 

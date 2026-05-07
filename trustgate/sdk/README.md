@@ -12,7 +12,16 @@
 
 **AgentTrust completes the Solana Foundation's ERC-8004 trust stack** —
 this package is the TypeScript surface that lets x402 facilitators
-(Dexter, atxp_ai, MCPay, Corbits, Latinum) integrate AgentTrust in a day.
+(**Pay.sh** ★ default · Dexter · atxp · MCPay) integrate AgentTrust in a day.
+
+★ Pay.sh is the Solana Foundation's first x402 facilitator,
+[launched 2026-05-05 with Google Cloud](https://solana.com/news/solana-foundation-launches-pay-sh-in-collaboration-with-google-cloud).
+AgentTrust ships day-one Pay.sh adapter as the canonical reference impl.
+
+> **Companion package:** [`@agenttrust-sdk/mcp`](https://www.npmjs.com/package/@agenttrust-sdk/mcp) —
+> 18-tool MCP server. Drop into Claude Desktop / Cursor with
+> `npx @agenttrust-sdk/mcp` and query the deployed AgentTrust programs
+> via natural language.
 
 ## Install
 

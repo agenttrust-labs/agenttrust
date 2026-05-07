@@ -1,11 +1,13 @@
 # AgentTrust
 
-> **AgentTrust completes the Solana Foundation's ERC-8004 trust stack.** Three Anchor programs that turn Quantu's IdentityRegistry + ReputationRegistry primitives into a full agent-payment trust system: programmable spending policies, x402 facilitator integration, and capability attestation. **Five formally-verified safety properties.** Drop-in TypeScript SDK.
+> **AgentTrust completes the Solana Foundation's ERC-8004 trust stack.** Three Anchor programs that turn Quantu's IdentityRegistry + ReputationRegistry primitives into a full agent-payment trust system: programmable spending policies, x402 facilitator integration, and capability attestation. **Five formally-verified safety properties.** Drop-in TypeScript SDK. **Day-one Pay.sh integration** — Solana Foundation's first x402 facilitator, launched May 5 2026 with Google Cloud.
 
 [![Web app](https://img.shields.io/badge/web-live-c2410c?style=flat-square)](https://www.agenttrust.tech)
+[![Docs](https://img.shields.io/badge/docs-live-c2410c?style=flat-square)](https://docs.agenttrust.tech)
 [![SDK on npm](https://img.shields.io/npm/v/@agenttrust-sdk/trustgate?style=flat-square&color=c2410c&label=sdk)](https://www.npmjs.com/package/@agenttrust-sdk/trustgate)
-[![MCP on npm](https://img.shields.io/badge/mcp-npx-c2410c?style=flat-square)](https://www.npmjs.com/package/@agenttrust-sdk/mcp)
+[![MCP on npm](https://img.shields.io/npm/v/@agenttrust-sdk/mcp?style=flat-square&color=c2410c&label=mcp)](https://www.npmjs.com/package/@agenttrust-sdk/mcp)
 [![Kani 5/5](https://img.shields.io/badge/kani-5%2F5_proven-c2410c?style=flat-square)](.github/workflows/kani-prove.yml)
+[![CI workflows](https://img.shields.io/badge/CI-15_workflows-c2410c?style=flat-square)](.github/workflows/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-c2410c?style=flat-square)](./LICENSE)
 
 Submitted to the **Solana Frontier 2026** hackathon by [@mohit-1710](https://github.com/mohit-1710).
@@ -44,7 +46,7 @@ curl -i https://demo.agenttrust.tech/protected
 
 ## The pitch in one paragraph
 
-Quantu Labs shipped two of the three ERC-8004 legs on Solana — `agent-registry-8004` (IdentityRegistry + ReputationRegistry). The third leg, **ValidationRegistry**, was archived in v0.5.0 pending a redesign. AgentTrust productizes that third leg AND introduces a policy-as-code primitive (PolicyVault) plus an x402-native facilitator surface (TrustGate) that consume Quantu's existing primitives via byte-precise PDA reads. Drop-in via npm. Built on top of Foundation-aligned primitives, not parallel to them.
+Quantu Labs shipped two of the three ERC-8004 legs on Solana — `agent-registry-8004` (IdentityRegistry + ReputationRegistry). The third leg, **ValidationRegistry**, was archived in v0.5.0 pending a redesign. AgentTrust productizes that third leg AND introduces a policy-as-code primitive (PolicyVault) plus an x402-native facilitator surface (TrustGate) that consume Quantu's existing primitives via byte-precise PDA reads. **Day-one integration with Pay.sh** — the Solana Foundation's first x402 facilitator, launched 2026-05-05 with Google Cloud — plus Dexter, atxp, and MCPay as drop-in adapters. Built on top of Foundation-aligned primitives, not parallel to them.
 
 ---
 
@@ -125,10 +127,12 @@ The third ERC-8004 leg Quantu archived in v0.5.0, productized. Permissionless na
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│  Facilitator (Dexter / atxp_ai / MCPay / Corbits / Latinum)           │
+│  x402 Facilitator (Pay.sh ★ default · Dexter · atxp · MCPay)          │
 │                                                                       │
 │   import { mountTrustGate } from "@agenttrust-sdk/trustgate/express"  │
 │   await mountTrustGate(app, { atomicityEnforced: true, … })           │
+│                                                                       │
+│  ★ Pay.sh = Solana Foundation's first x402 facilitator (May 5, 2026)  │
 └───────────────────────────────────────────────────────────────────────┘
                               │
                               ▼  POST /verify | /settle | /dispute
@@ -299,14 +303,32 @@ agenttrust/
 │   ├── trustgate/              # x402 facilitator + give_feedback CPI
 │   └── validation-registry/    # capability attestation
 ├── trustgate/
-│   ├── server/                 # Express x402 reference impl
+│   ├── server/                 # FacilitatorAdapter dispatch (4 real adapters)
 │   └── sdk/                    # @agenttrust-sdk/trustgate npm package
-├── tests/                      # Anchor TS integration tests
-├── web/                        # Next.js landing + dashboard (Vercel)
-└── .github/workflows/
-    ├── build.yml               # cargo + anchor build
+├── mcp/                        # @agenttrust-sdk/mcp — 18 tools for Claude Desktop
+├── examples/
+│   ├── pay-sh-demo/            # hosted at demo.agenttrust.tech
+│   └── attestor-demo/          # ValidationRegistry lifecycle smoke
+├── status-page/                # status.agenttrust.tech (Vercel)
+├── web/                        # www.agenttrust.tech landing (Vercel)
+├── docs-site/                  # docs.agenttrust.tech (Fumadocs, Vercel)
+├── tests/                      # Anchor TS integration tests + adversarial harness
+└── .github/workflows/          # 15 CI workflows
+    ├── anchor-test.yml         # full Anchor end-to-end with Quantu mainnet clones
     ├── kani-prove.yml          # 5 Kani invariants on every PR
-    └── ts-test.yml             # SDK + server + web build
+    ├── ts-test.yml             # SDK + server + web + demo + MCP build/test
+    ├── adapter-contract-conformance.yml
+    ├── bundle-size.yml         # SDK npm pack size budget
+    ├── daily-devnet-smoke.yml  # cron: full devnet round-trip every 24h
+    ├── devnet-integration.yml  # gated on DEVNET_FACILITATOR_KEYPAIR secret
+    ├── idl-diff.yml            # ABI-stability gate vs deployed IDL
+    ├── kani-budget.yml         # Kani total runtime ceiling
+    ├── link-check.yml          # README + MDX dead-link sweep
+    ├── lint-and-format.yml     # tsc + cargo fmt + clippy
+    ├── lockfile-freshness.yml  # pnpm + Cargo.lock drift
+    ├── mcp-protocol-conformance.yml
+    ├── secret-scan.yml         # gitleaks against the diff
+    └── build.yml               # cargo + anchor build
 ```
 
 ---
@@ -316,11 +338,15 @@ agenttrust/
 | Layer | Count | Where |
 |-------|-------|-------|
 | Rust unit tests | 113 | `cargo test --workspace --lib` |
-| Kani proofs | 5 invariants, 377 sub-checks | `cargo kani` per `proofs/*` |
-| Anchor TS integration | 32 | `anchor test --provider.cluster devnet` |
-| SDK unit tests | 13 | `cd trustgate/sdk && pnpm test` |
-| Server unit tests | 5 | `cd trustgate/server && pnpm test` |
-| **Total** | **168 tests + 5 formal proofs** | All passing on devnet |
+| Kani formal proofs | 5 invariants, 377 sub-checks | `cargo kani` per `proofs/*` |
+| Anchor TS end-to-end | 50 | `anchor test --provider.cluster devnet` |
+| Adversarial harness | 14 hostile-scenario assertions | `tests/adversarial.spec.ts` |
+| SDK unit tests | 56 (+16 INTEGRATION-gated) | `cd trustgate/sdk && pnpm test` |
+| Server adapter tests | 146 | `cd trustgate/server && pnpm test` |
+| MCP unit tests | 76 (+3 INTEGRATION + 21 protocol conformance) | `cd mcp && pnpm test` |
+| pay-sh-demo flow | 7 (+1 INTEGRATION) | `cd examples/pay-sh-demo && pnpm test` |
+| attestor-demo lifecycle | 6 (INTEGRATION-gated) | `cd examples/attestor-demo && pnpm test` |
+| **Total** | **~360 tests + 5 formal proofs + 14 adversarial scenarios** | All green on `main` |
 
 ---
 
@@ -337,6 +363,7 @@ These are explicit, scoped, tracked. None are blocking the v1 demo or the Founda
 
 ## Acknowledgments
 
+- **Solana Foundation + Google Cloud** — Pay.sh, the first x402 facilitator on Solana, [launched 2026-05-05](https://solana.com/news/solana-foundation-launches-pay-sh-in-collaboration-with-google-cloud). AgentTrust ships day-one Pay.sh integration as the canonical adapter.
 - **Quantu Labs** — `8004-solana` (IdentityRegistry + ReputationRegistry + atom-engine), MIT license. AgentTrust reads their PDAs via byte-precise parsers; pinned commit `bfb09ad`.
 - **Solana Foundation** — ERC-8004 endorsement, x402 spec, Anchor framework.
 - **Model Checking @ AWS / Kani team** — formal verification toolchain that made the 5 invariants tractable in 13 days.

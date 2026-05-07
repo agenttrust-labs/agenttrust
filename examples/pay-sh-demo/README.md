@@ -4,6 +4,21 @@ Pay.sh + AgentTrust TrustGate live-demo Express server. Single endpoint
 (`/protected`), gated by a counterparty-tier policy and exercised end-to-end
 through the AgentTrust facilitator pipeline.
 
+## Hit it now (no clone required)
+
+The demo runs **live** at `demo.agenttrust.tech`. Hit `/protected` with
+no payment proof and you'll get back a real x402 v2 challenge envelope:
+
+```bash
+curl -i https://demo.agenttrust.tech/protected
+```
+
+You'll see `HTTP/2 402` with a SERVICE-signed `payment-required` header
+(base64 envelope). To walk the full Allow → settle → emit_feedback path,
+clone the repo or use the `pay` CLI sandbox below.
+
+## Run locally
+
 ```
 pay --sandbox curl http://localhost:3402/protected
 ```
@@ -86,21 +101,30 @@ pnpm --filter ./examples/pay-sh-demo test
 | `NETWORK` | `solana-devnet` | network slug — must match Pay.sh's `--sandbox`/`--mainnet` flag |
 | `MINT` | USDC mainnet | SPL mint advertised in the `extra.asset` field |
 
-## What this demo does NOT do
+## Two modes: demo vs production
 
-- It does **not** verify the signed Solana transaction landed on chain — the
-  `validateOnChainTx` dep is a stub that synthesises a confirmed-tx fixture
-  matching the verify-time context. Production wires the same dep to a real
-  RPC + spl-token tx parser.
-- It does **not** CPI into `trustgate::emit_feedback` — `emitFeedbackCpi` is
-  a stub that returns synthetic signatures. Production wires it to an Anchor
-  methods builder per `programs/trustgate/src/instructions/emit_feedback.rs`.
-- It does **not** exercise the on-chain `gate_payment` simulation — `decide`
-  is a static tier table. Production replaces it with a closure over
-  `simulateGatePayment` from `@agenttrust/trustgate-server`.
+The demo ships **two boot paths**:
 
-These three injection points are exactly what the production deps factory
-fills. The demo proves the *pipeline* works; production wires the chain.
+### `createDemoApp` (default `pnpm dev`)
+
+Synthesises chain interactions in-process — no Solana RPC needed,
+deterministic fixtures. Useful for CI smoke and local iteration. Three
+counterparty tiers are seeded from a static table; payment proofs are
+synthetic; `emit_feedback` returns deterministic signatures.
+
+### `createRealDemoApp` (used by `demo.agenttrust.tech` in production)
+
+Real Anchor `Program<TrustGate>` wired to live devnet. Real
+`validateOnChainTx` parses signed VersionedTransactions via RPC. Real
+`emitFeedbackCpi` lands `FeedbackEmissionLog` PDAs on chain. Real
+`simulateGatePayment` calls the deployed `policy_vault` program for every
+verify request.
+
+The hosted demo at `https://demo.agenttrust.tech` runs `createRealDemoApp`.
+Every `/protected` call traversing all three counterparty tiers writes a
+real on-chain artifact. The Phase C smoke trace
+([`devnet-smoke.json`](./devnet-smoke.json)) was captured from this exact
+boot path against devnet.
 
 ## Adding to the demo
 

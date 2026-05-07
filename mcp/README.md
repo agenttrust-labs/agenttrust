@@ -64,7 +64,7 @@ in its response.
 
 ## Install
 
-### Claude Desktop
+### Claude Desktop (recommended — one command)
 
 Add to your config (`~/Library/Application Support/Claude/claude_desktop_config.json`
 on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
@@ -73,8 +73,8 @@ on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
 {
   "mcpServers": {
     "agenttrust": {
-      "command": "node",
-      "args": ["/absolute/path/to/agenttrust/mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@agenttrust-sdk/mcp"],
       "env": {
         "RPC_URL": "https://api.devnet.solana.com",
         "NETWORK": "solana-devnet"
@@ -84,7 +84,18 @@ on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
 }
 ```
 
-Or run the helper:
+Restart Claude Desktop. The agent now has 18 AgentTrust tools available
+in chat. No clone, no local build.
+
+Prefer a local clone (for development)? Swap `command: "npx"` and the
+`args` for:
+
+```json
+"command": "node",
+"args": ["/absolute/path/to/agenttrust/mcp/dist/index.js"]
+```
+
+Or run the helper that wires up the local path automatically:
 
 ```bash
 mcp/scripts/install-claude-desktop.sh
@@ -113,8 +124,8 @@ Cursor's MCP config lives at `~/.cursor/mcp.json` (or per-workspace
 {
   "mcpServers": {
     "agenttrust": {
-      "command": "node",
-      "args": ["/absolute/path/to/agenttrust/mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "@agenttrust-sdk/mcp"]
     }
   }
 }
@@ -132,21 +143,32 @@ node ./mcp/dist/index.js   # stdio transport, default
 The server speaks MCP over stdin/stdout; any compliant MCP client
 attaches by spawning this command.
 
-### Hosted HTTP transport
+### Hosted HTTP endpoint
 
-Set `MCP_TRANSPORT=http` and `MCP_HTTP_PORT=8765`:
+A public hosted MCP HTTP endpoint is **already live** at:
+
+```
+https://mcp.agenttrust.tech
+```
+
+Health check:
+
+```bash
+curl https://mcp.agenttrust.tech/healthz
+```
+
+Hosted on Fly.io (Singapore region, shared-cpu-1x@256MB, always-on with
+auto-resume on idle). Use this URL in any MCP client that speaks
+`StreamableHTTPServerTransport` — no local install required.
+
+To run your own HTTP transport locally:
 
 ```bash
 MCP_TRANSPORT=http MCP_HTTP_PORT=8765 node ./mcp/dist/index.js
 ```
 
-The server listens on `http://0.0.0.0:8765` using
-`StreamableHTTPServerTransport`. Behind a reverse proxy (Caddy, nginx,
-Vercel) this surfaces as a public hosted endpoint.
-
-> A hosted Vercel deployment URL is **not yet shipped**. The streamable-HTTP
-> transport surface is present and exercised in CI, but a public hosted
-> endpoint requires a Vercel project + DNS. Track this as a follow-up.
+The server listens on `http://0.0.0.0:8765`. Behind any reverse proxy
+(Caddy, nginx, Vercel, Fly.io) this surfaces as a public hosted endpoint.
 
 ## Environment
 
