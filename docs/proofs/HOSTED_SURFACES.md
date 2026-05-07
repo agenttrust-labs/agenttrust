@@ -13,9 +13,9 @@ ships.
 |---|---|---|
 | Landing | https://www.agenttrust.tech | Vercel: `agenttrust-web` |
 | Docs | https://docs.agenttrust.tech | Vercel: `agenttrust-docs-site` |
-| MCP HTTP endpoint | https://agenttrust-mcp.fly.dev (DNS alias `mcp.agenttrust.tech` pending) | Fly.io: `agenttrust-mcp` (sin region, shared-cpu-1x@256mb, min 1 machine) |
-| Facilitator service | https://agenttrust-api.fly.dev (DNS alias `api.agenttrust.tech` pending) | Fly.io: `agenttrust-api` (sin region, shared-cpu-1x@256mb, min 1 machine, dedicated facilitator pubkey `7Pf3...ntyZ` funded with 0.5 SOL devnet) |
-| Demo endpoint | https://agenttrust-demo.fly.dev (DNS alias `demo.agenttrust.tech` pending) | Fly.io: `agenttrust-demo` (sin region, shared-cpu-1x@256mb, min 1 machine, dedicated demo facilitator pubkey `CRXr...G2xj` funded with 0.5 SOL devnet, real-chain mode via createRealDemoApp) |
+| MCP HTTP endpoint | https://mcp.agenttrust.tech (CNAME → `agenttrust-mcp.fly.dev`, Let's Encrypt cert issued) | Fly.io: `agenttrust-mcp` (sin region, shared-cpu-1x@256mb, 2 machines for HA) |
+| Facilitator service | https://api.agenttrust.tech (CNAME → `agenttrust-api.fly.dev`, Let's Encrypt cert issued) | Fly.io: `agenttrust-api` (sin region, shared-cpu-1x@256mb, dedicated facilitator pubkey `7Pf3...ntyZ` funded with 0.5 SOL devnet) |
+| Demo endpoint | https://demo.agenttrust.tech (CNAME → `agenttrust-demo.fly.dev`, Let's Encrypt cert issued) | Fly.io: `agenttrust-demo` (sin region, shared-cpu-1x@256mb, dedicated demo facilitator pubkey `CRXr...G2xj` funded with 0.5 SOL devnet, real-chain mode via createRealDemoApp) |
 | Anchor programs (devnet) | n/a (on-chain) | `policy_vault` `8Y6f...QTR`, `trustgate` `HF8z...rih2N`, `validation_registry` `Cx4R...Khtv` — all IDLs published on devnet |
 | SDK on npm | https://www.npmjs.com/package/@agenttrust-sdk/trustgate | published `0.1.0` (homepage field stale pre-rebrand; republish as 0.1.1 will fix) |
 | Live devnet smoke traces | `docs/proofs/smoke-2026-05-06.md`, `docs/proofs/phase-f-verification-report.md` | real on-chain `emit_feedback` tx + `FeedbackEmissionLog` PDA + ValidationRegistry attestor lifecycle |

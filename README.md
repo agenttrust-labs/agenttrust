@@ -24,22 +24,21 @@ npm i @agenttrust-sdk/trustgate
 npx -y @agenttrust/mcp
 
 # 3. Hit the live demo (real devnet — no setup)
-curl -i https://agenttrust-demo.fly.dev/protected
+curl -i https://demo.agenttrust.tech/protected
 ```
 
 | Surface | URL |
 | --- | --- |
-| Demo (live `/protected` → `/settle` round-trip) | https://agenttrust-demo.fly.dev |
-| Facilitator API (x402 `/verify` + `/settle`) | https://agenttrust-api.fly.dev |
-| MCP HTTP endpoint (hosted) | https://agenttrust-mcp.fly.dev |
+| Demo (live `/protected` → `/settle` round-trip) | https://demo.agenttrust.tech |
+| Facilitator API (x402 `/verify` + `/settle`) | https://api.agenttrust.tech |
+| MCP HTTP endpoint (hosted) | https://mcp.agenttrust.tech |
 | MCP stdio package | `npx -y @agenttrust/mcp` (after operator publish) |
 | SDK | `npm i @agenttrust-sdk/trustgate` |
 | Docs | https://docs.agenttrust.tech |
 
-> All endpoints run on devnet. DNS aliases (`mcp.agenttrust.tech`,
-> `api.agenttrust.tech`, `demo.agenttrust.tech`) flip on once the
-> CNAME records propagate; the bare `*.fly.dev` URLs always resolve
-> as fallbacks.
+> All endpoints run on Solana devnet. The bare `agenttrust-*.fly.dev`
+> hostnames also resolve, but the `agenttrust.tech` URLs above are
+> canonical.
 
 ---
 
