@@ -1,0 +1,46 @@
+{
+  "capturedAt": "2026-05-07T17:38:06.078Z",
+  "policyId": 1,
+  "minTier": 2,
+  "agents": [
+    {
+      "label": "tier-3",
+      "agent": "5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y",
+      "policyAccount": "975DgYCYFB143Xodu6tRyQjVZBsbKSu5Xot2VSWKYqGW",
+      "velocityLedger": "GXRfJjjoToi73qLwjnbpkWYnhh166VxAUg7noBT3Dx82",
+      "policyAuthority": "951KQaY4bSwCbSoCBrixLfacW2AHwKru2aaCTbuAQPFw",
+      "killSwitchState": "9BheN4YzgM3jNANxRXYEbG2i9JjEtQACGdFJ3ZEucPYg",
+      "txs": {
+        "initAuthority": "4tJfmiw2qy3HFs5XjCjrFwThaetrNGsPek7N38aH5AdpG8X9wVfUdhMVk3yLdZwfM3QktPBceHCmpm8p2Muqkmco",
+        "initKillswitch": "5s28mwBaSCqqAGiMopYpvqH5fQDLyjMUaSdXC7maVChph3d9srHRGLxzgYgX4GYissr7Erkuh19L9A3bH7c8kMjg",
+        "initPolicy": "2UvSB66xqBNftbuz4p25W38yLweskKCPzJnveL56GPLvpWi625eKHDmfSj4V5omsKGDB3pPRAyD6skWWVRe2QPhJ"
+      }
+    },
+    {
+      "label": "tier-1",
+      "agent": "9894Sh7F79yDzTi4Pvfm5Jy5VmLpx2XkyhS14BFwpyrd",
+      "policyAccount": "C8NRWtSF3PnrDBV72jiKskp9JAQ5vEFqCs7JD45QYpfP",
+      "velocityLedger": "8V6XaLAY1GMF3qZBVhXQ9deRa6t1hgFoejBuhUr2w7DJ",
+      "policyAuthority": "9N4uJiRQU9fdEfmMYqy8qpyoEEsDknEa3KuEn7LhAXSv",
+      "killSwitchState": "EJW6frkZ6DgnEpgQPpjUsrzcXXsqunam4fVfV7goNLax",
+      "txs": {
+        "initAuthority": "4hForh7HB96jXThP946Ydtr7QV3N2nkRxAPGXNqnLMaphz8BtQYp1gMKkteAw95dZZfLRUMwkPeajAMxu4LZBJir",
+        "initKillswitch": "NsJx62L8ipddCFUvGz9wzqsZKa5QaaowPJAfqv3qB6o6BSzmp34E6QmwHerQzZ4mNWWSYJdKDDvt3DGRQ1b2TZX",
+        "initPolicy": "2wa8aETQLNFYkM2w2dNqCTRBpPuobdTSdyUwLefZZ4NtZpPSS4DgxD7jEkUNeSyLL2EAbHaNby8shC1WAMUTg9DU"
+      }
+    },
+    {
+      "label": "tier-0",
+      "agent": "C9pYqwnCVpwg7MwEbQa4XcmVVYsUcPwqHMYs999KB3dR",
+      "policyAccount": "D23WyGLLcYYRthazJQMidngTw5jRCtRP5AiBdJFMZDxu",
+      "velocityLedger": "7VNxDdrVREfottLjXPYcFdMDY3gnSUC6XXX5cjFyPXkT",
+      "policyAuthority": "HAAYMhBEgRAdm5cKPVyAABxPtaa5zR6Vf37S9cU3cRmn",
+      "killSwitchState": "33BqvXUZbyRmdPb63wdLDnHwUBDWGF6BssWMrCJednJK",
+      "txs": {
+        "initAuthority": "5CQEnQshumcnLqWBvAnxpfG3km4v44tRjRq8osGivH6NqaP2roPr4GutzJ24X9c4TUzB6RybrVDMZvgBcuYowEv3",
+        "initKillswitch": "3DyAL9SKQSxVa5KwD8BSzn8tBTgG9QW6unryx7jNENUXnG3WVWtpC3kxCXR5U88GUBTvjuCrNrepeC2p3dy9ueFF",
+        "initPolicy": "9YWho41GEX3B9956yq6oZtK1VdpgefJvhMkwqcjHADYtdtu7XB6RFKfCytkhQV93swDdfY4De24EE8SwCsSMX5u"
+      }
+    }
+  ]
+}

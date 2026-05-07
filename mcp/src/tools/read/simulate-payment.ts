@@ -40,9 +40,23 @@ export const simulatePaymentTool: Tool<Input, DecisionOutput> = {
 
   async handler(input: Input, ctx: ToolContext): Promise<DecisionOutput> {
     const policyVault = await ctx.chain.policyVault();
+    // Solana's simulate requires the fee-payer to be a real funded
+    // system-program-owned account. We need an explicit funded caller:
+    //   1. explicit input.caller arg (caller's responsibility to fund)
+    //   2. configured KEYPAIR_B58 signer (real funded account)
+    //   else: throw a clear error explaining the requirement.
+    if (!input.caller && !ctx.chain.signerPubkey()) {
+      throw new Error(
+        "agenttrust_simulate_payment requires a funded fee-payer on devnet. " +
+        "Either pass `caller` arg as a base58 pubkey of a funded account, or " +
+        "set KEYPAIR_B58 in the MCP environment to a base58-encoded keypair " +
+        "with at least one lamport. Read tools without `simulate_*` work " +
+        "without any signer."
+      );
+    }
     const callerPubkey = input.caller
       ? parsePubkey(input.caller, "caller")
-      : (ctx.chain.signerPubkey() ?? policyVault.provider.publicKey ?? parsePubkey(input.payer_agent, "payer_agent"));
+      : ctx.chain.signerPubkey()!;
 
     const decision = await simulateGatePayment({
       policyVault,

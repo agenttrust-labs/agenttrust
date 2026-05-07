@@ -1,7 +1,7 @@
 {
   "name": "@agenttrust-sdk/mcp",
-  "version": "0.2.0",
-  "description": "MCP server for AgentTrust — query and call deployed Solana programs from Claude Desktop / Cursor / any MCP client",
+  "version": "0.2.1",
+  "description": "MCP server for AgentTrust \u2014 query and call deployed Solana programs from Claude Desktop / Cursor / any MCP client",
   "author": "AgentTrust Labs (https://agenttrust.tech)",
   "license": "MIT",
   "homepage": "https://github.com/agenttrust-labs/agenttrust/tree/main/mcp#readme",
