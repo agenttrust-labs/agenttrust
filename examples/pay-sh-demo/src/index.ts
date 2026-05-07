@@ -263,18 +263,116 @@ function assembleDemoApp(args: AssembleArgs): DemoApp {
 
 if (require.main === module) {
   const port = Number(process.env.PORT ?? 3402);
-  const demo = createDemoApp({
-    network:  process.env.NETWORK ?? DEMO_NETWORK_DEVNET,
-    mint:     process.env.MINT ?? USDC_MINT,
-  });
-  demo.app.listen(port, () => {
-    // eslint-disable-next-line no-console
-    console.log(`agenttrust-pay-sh-demo listening on :${port}`);
-    // eslint-disable-next-line no-console
-    console.log(`  facilitator=${demo.facilitator.publicKey.toBase58()}`);
-    // eslint-disable-next-line no-console
-    console.log(`  Try: pay --sandbox curl http://localhost:${port}/protected`);
-  });
+  const network = process.env.NETWORK ?? DEMO_NETWORK_DEVNET;
+  const mint    = process.env.MINT ?? USDC_MINT;
+
+  // Real-chain mode when a facilitator keypair is supplied; falls back
+  // to the in-memory mock when missing (local dev / unit smoke).
+  const facilitatorB58 = process.env.FACILITATOR_KEYPAIR_B58;
+  if (facilitatorB58) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const bs58 = require("bs58").default;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const fs   = require("fs");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const path = require("path");
+    const facilitator = Keypair.fromSecretKey(bs58.decode(facilitatorB58));
+
+    // Load the bundled trustgate IDL (Phase F1: anchor 0.31 cannot
+    // deserialise the on-chain IDL deployed by anchor CLI 1.0). Walk
+    // up the tree the same way as the counterparty map.
+    const idlCandidates: string[] = [];
+    for (let depth = 0; depth <= 5; depth++) {
+      const dir = path.resolve(__dirname, ...new Array(depth).fill(".."));
+      idlCandidates.push(path.join(dir, "idl", "trustgate.json"));
+      idlCandidates.push(path.join(dir, "src", "idl", "trustgate.json"));
+    }
+    let trustgateIdl: unknown = undefined;
+    for (const p of idlCandidates) {
+      if (fs.existsSync(p)) {
+        trustgateIdl = JSON.parse(fs.readFileSync(p, "utf-8"));
+        break;
+      }
+    }
+
+    // Counterparty map → Quantu resolver. The demo bundles
+    // devnet-counterparties.json at the workspace root.
+    // Walk up the directory tree from __dirname looking for the
+    // file — works for both ts-node dev (src/) and node prod
+    // (dist/src/) without hard-coding hop counts.
+    const cpCandidates: string[] = [];
+    for (let depth = 0; depth <= 5; depth++) {
+      const dir = path.resolve(__dirname, ...new Array(depth).fill(".."));
+      cpCandidates.push(path.join(dir, "devnet-counterparties.json"));
+    }
+    cpCandidates.push(path.resolve(process.cwd(), "examples/pay-sh-demo/devnet-counterparties.json"));
+    let counterpartyMap: { baseCollection: string; counterparties: Array<{ asset: string; agentAccount: string; atomStats: string }> } | null = null;
+    for (const p of cpCandidates) {
+      if (fs.existsSync(p)) {
+        counterpartyMap = JSON.parse(fs.readFileSync(p, "utf-8"));
+        break;
+      }
+    }
+    if (!counterpartyMap) {
+      // eslint-disable-next-line no-console
+      console.error("FATAL: devnet-counterparties.json missing; demo can't resolve Quantu accounts");
+      process.exit(1);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const { PublicKey } = require("@solana/web3.js");
+    const collection = new PublicKey(counterpartyMap.baseCollection);
+    const byAgent    = new Map<string, { asset: string; atomStats: string }>();
+    for (const cp of counterpartyMap.counterparties) byAgent.set(cp.agentAccount, cp);
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const sdk = require("@agenttrust-sdk/trustgate");
+    const resolveQuantu = async (payeeAgent: PublicKey) => {
+      const e = byAgent.get(payeeAgent.toBase58());
+      if (!e) throw new Error(`unknown payee ${payeeAgent.toBase58()}`);
+      return {
+        agentAccount:      payeeAgent,
+        asset:             new PublicKey(e.asset),
+        collection,
+        atomConfig:        sdk.deriveAtomConfigPda(sdk.DEFAULT_DEVNET_QUANTU_IDS),
+        atomStats:         new PublicKey(e.atomStats),
+        atomEngineProgram: sdk.DEFAULT_DEVNET_QUANTU_IDS.atomEngine,
+        registryAuthority: sdk.deriveAtomRegistryAuthorityPda(sdk.DEFAULT_DEVNET_QUANTU_IDS),
+      };
+    };
+
+    createRealDemoApp({
+      network, mint, facilitator,
+      realChain: {
+        rpcUrl:        process.env.RPC_URL ?? "https://api.devnet.solana.com",
+        signingNetwork: network,
+        resolveQuantu,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        trustgateIdl:  trustgateIdl as any,
+      },
+    }).then((demo) => {
+      demo.app.listen(port, () => {
+        // eslint-disable-next-line no-console
+        console.log(`agenttrust-pay-sh-demo (real-chain) listening on :${port}`);
+        // eslint-disable-next-line no-console
+        console.log(`  facilitator=${facilitator.publicKey.toBase58()}, network=${network}`);
+      });
+    }).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error("real-chain boot failed:", err);
+      process.exit(1);
+    });
+  } else {
+    const demo = createDemoApp({ network, mint });
+    demo.app.listen(port, () => {
+      // eslint-disable-next-line no-console
+      console.log(`agenttrust-pay-sh-demo (mock-chain) listening on :${port}`);
+      // eslint-disable-next-line no-console
+      console.log(`  facilitator=${demo.facilitator.publicKey.toBase58()}`);
+      // eslint-disable-next-line no-console
+      console.log(`  Try: pay --sandbox curl http://localhost:${port}/protected`);
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------

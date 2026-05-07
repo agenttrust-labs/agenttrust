@@ -1,0 +1,39 @@
+# AgentTrust Pay.sh demo — Fly.io app config.
+#
+# Deploy from repo root:
+#   flyctl deploy --config examples/pay-sh-demo/fly.toml \
+#                 --dockerfile examples/pay-sh-demo/Dockerfile \
+#                 --remote-only --app agenttrust-demo .
+
+app            = "agenttrust-demo"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT     = "8080"
+  NODE_ENV = "production"
+  NETWORK  = "solana-devnet"
+
+[http_service]
+  internal_port        = 8080
+  force_https          = true
+  auto_stop_machines   = "stop"
+  auto_start_machines  = true
+  min_machines_running = 1
+  processes            = ["app"]
+
+  # The demo exposes /health (existing route, tested by
+  # examples/pay-sh-demo/test/pay-sh-flow.test.ts). Status-page
+  # poller picks it up via /health.
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval     = "30s"
+    method       = "get"
+    timeout      = "5s"
+    path         = "/health"
+
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "256mb"
