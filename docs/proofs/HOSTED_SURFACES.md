@@ -20,6 +20,26 @@ ships.
 | SDK on npm | https://www.npmjs.com/package/@agenttrust-sdk/trustgate | published `0.1.0` (homepage field stale pre-rebrand; republish as 0.1.1 will fix) |
 | Live devnet smoke traces | `docs/proofs/smoke-2026-05-06.md`, `docs/proofs/phase-f-verification-report.md` | real on-chain `emit_feedback` tx + `FeedbackEmissionLog` PDA + ValidationRegistry attestor lifecycle |
 | 5 Kani proofs | `docs/proofs/README.md` | 377 sub-checks, 0 failures |
+| Capability namespaces (devnet) | `examples/attestor-demo/devnet-namespaces.json` (10 PDAs + tx sigs) | seeded canonical v1 namespace set; rerun `pnpm --filter ./examples/attestor-demo run seed:namespaces` is idempotent |
+
+### Live capability namespaces (validation_registry, devnet)
+
+10 canonical v1 namespaces seeded via `examples/attestor-demo/scripts/seed-namespaces.ts` and captured in `examples/attestor-demo/devnet-namespaces.json` (network: solana-devnet, program `Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv`):
+
+| name | PDA |
+|---|---|
+| `kyc.tier-1.v1` | [`4ryEbb5iSiXHN2bJ59s9Pjdi2xxRkty1WohaRTqUt8wW`](https://explorer.solana.com/address/4ryEbb5iSiXHN2bJ59s9Pjdi2xxRkty1WohaRTqUt8wW?cluster=devnet) |
+| `kyc.tier-2.v1` | [`HdAABUX5ojFZXocxSbTwvdNLXHGLaHnqCrKSKpeKXGCv`](https://explorer.solana.com/address/HdAABUX5ojFZXocxSbTwvdNLXHGLaHnqCrKSKpeKXGCv?cluster=devnet) |
+| `kyc.tier-3.v1` | [`6gjTXCJE4qWybYGjTAg5ckYWBgBtt4ebvr39uU5YK5xL`](https://explorer.solana.com/address/6gjTXCJE4qWybYGjTAg5ckYWBgBtt4ebvr39uU5YK5xL?cluster=devnet) |
+| `audit.smart-contract.v1` | [`HygALr1ZSqrYZTLBQUQ97vMSzAiuZRpKYovRhfyGtKkF`](https://explorer.solana.com/address/HygALr1ZSqrYZTLBQUQ97vMSzAiuZRpKYovRhfyGtKkF?cluster=devnet) |
+| `audit.attestor-firm.v1` | [`A5rrMRYxezaNUnSgqyyNjJUqHf4TH7GKNsvUifWjUESi`](https://explorer.solana.com/address/A5rrMRYxezaNUnSgqyyNjJUqHf4TH7GKNsvUifWjUESi?cluster=devnet) |
+| `model-card.v1` | [`DZ7eneZtKsN39q771ruHvBXoTUDRzxKqDipTLbeRGa4o`](https://explorer.solana.com/address/DZ7eneZtKsN39q771ruHvBXoTUDRzxKqDipTLbeRGa4o?cluster=devnet) |
+| `jurisdiction.v1` | [`Cd4sp8isN3CF8KiRchDNoMhsVERSpswEnufvBR21Jrnu`](https://explorer.solana.com/address/Cd4sp8isN3CF8KiRchDNoMhsVERSpswEnufvBR21Jrnu?cluster=devnet) |
+| `compliance.payments.v1` | [`Cn54CpSdfrME7epZ2VTSwhuTbcwH3ZttpcwjZADc5yrZ`](https://explorer.solana.com/address/Cn54CpSdfrME7epZ2VTSwhuTbcwH3ZttpcwjZADc5yrZ?cluster=devnet) |
+| `agent-source.v1` | [`DqSwaqENQhjPUajxfmzsjTcfTcnNXtNN22f3kYyAHvSJ`](https://explorer.solana.com/address/DqSwaqENQhjPUajxfmzsjTcfTcnNXtNN22f3kYyAHvSJ?cluster=devnet) |
+| `usdc-payment-policy.v1` | [`34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR`](https://explorer.solana.com/address/34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR?cluster=devnet) |
+
+Names are bounded by `MAX_NAME_LEN=32` in `programs/validation-registry/src/instructions/register_namespace.rs`; the playbook-level descriptive labels in `docs/plan/research/06-validation-registry-class.md` §C.2 (e.g., `kyc.tier-1.v1.identity-verified`) decompose to these on-chain category names plus the JSON description field. PDA seeds: `[b"namespace", capability_hash]` where `capability_hash = SHA256(name)`.
 
 ## Roadmap (not yet deployed — Phase H)
 

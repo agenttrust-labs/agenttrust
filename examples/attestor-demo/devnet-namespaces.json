@@ -1,0 +1,107 @@
+{
+  "network": "solana-devnet",
+  "program": "Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv",
+  "facilitator": "4tSEHc2vCLqnYd8nK9jRa44vnn8JnPxUgxheEmhWQhRG",
+  "capturedAt": "2026-05-07T15:08:37.863Z",
+  "namespaceCount": 10,
+  "namespaces": [
+    {
+      "name": "kyc.tier-1.v1",
+      "description": "Identity-verified individual (basic KYC).",
+      "pda": "4ryEbb5iSiXHN2bJ59s9Pjdi2xxRkty1WohaRTqUt8wW",
+      "capabilityHash": "366c075140aa69746625d4b733b55e267fc5c28387fd6d1c24901976ee3ddc42",
+      "signature": "5jBmV36b89kMxzqPPtzFTWJD12vvB6TznMBGwZWtKNSApfuPzoPmJVAG2ed8bRWMkTfZ6QF3Ks21KESaTxU7Mb1W",
+      "signatureExplorer": "https://explorer.solana.com/tx/5jBmV36b89kMxzqPPtzFTWJD12vvB6TznMBGwZWtKNSApfuPzoPmJVAG2ed8bRWMkTfZ6QF3Ks21KESaTxU7Mb1W?cluster=devnet",
+      "pdaExplorer": "https://explorer.solana.com/address/4ryEbb5iSiXHN2bJ59s9Pjdi2xxRkty1WohaRTqUt8wW?cluster=devnet",
+      "status": "newly-registered"
+    },
+    {
+      "name": "kyc.tier-2.v1",
+      "description": "Identity + address verified.",
+      "pda": "HdAABUX5ojFZXocxSbTwvdNLXHGLaHnqCrKSKpeKXGCv",
+      "capabilityHash": "2ad4289070be21da32adda7025437390a78827c69caba13f2807c65a9689efc8",
+      "signature": "3tBAqxVnyqDj23P1Jyk1atdunUrsm4M54g4NDUKgAFJyeMLjfbpXe6ZR6QKcBMmRpA4HxfTVbVnD3pavcQtB3R81",
+      "signatureExplorer": "https://explorer.solana.com/tx/3tBAqxVnyqDj23P1Jyk1atdunUrsm4M54g4NDUKgAFJyeMLjfbpXe6ZR6QKcBMmRpA4HxfTVbVnD3pavcQtB3R81?cluster=devnet",
+      "pdaExplorer": "https://explorer.solana.com/address/HdAABUX5ojFZXocxSbTwvdNLXHGLaHnqCrKSKpeKXGCv?cluster=devnet",
+      "status": "newly-registered"
+    },
+    {
+      "name": "kyc.tier-3.v1",
+      "description": "Enhanced due diligence (regulated counterparties).",
+      "pda": "6gjTXCJE4qWybYGjTAg5ckYWBgBtt4ebvr39uU5YK5xL",
+      "capabilityHash": "8fdd7707b57ba8362d5545827f4d52793d6fbd3c04fa6b790bcf7652726d093e",
+      "signature": "3LH2WNYn6ifYaXmF7WPcD5bsJB9T3HT3NgpeX13Jf1jg6eyfjQG8PBRqQjBQxT2HexTgzEvRJjcmonsRPXVmwGMp",
+      "signatureExplorer": "https://explorer.solana.com/tx/3LH2WNYn6ifYaXmF7WPcD5bsJB9T3HT3NgpeX13Jf1jg6eyfjQG8PBRqQjBQxT2HexTgzEvRJjcmonsRPXVmwGMp?cluster=devnet",
+      "pdaExplorer": "https://explorer.solana.com/address/6gjTXCJE4qWybYGjTAg5ckYWBgBtt4ebvr39uU5YK5xL?cluster=devnet",
+      "status": "newly-registered"
+    },
+    {
+      "name": "audit.smart-contract.v1",
+      "description": "Audit attestation against a deployed program.",
+      "pda": "HygALr1ZSqrYZTLBQUQ97vMSzAiuZRpKYovRhfyGtKkF",
+      "capabilityHash": "e61adaa34c65dc69ababec20b8cb67865c0ce8ddce3e1e796729f3c07bf5e586",
+      "signature": "319AFhK4wpWmhauHqsVUoqUdx3gadHcGsMNyAvt7Hgoau7ceAohViHAGRtvLP3PStF1Sqz5UkSCJy11nAqNJrRQa",
+      "signatureExplorer": "https://explorer.solana.com/tx/319AFhK4wpWmhauHqsVUoqUdx3gadHcGsMNyAvt7Hgoau7ceAohViHAGRtvLP3PStF1Sqz5UkSCJy11nAqNJrRQa?cluster=devnet",
+      "pdaExplorer": "https://explorer.solana.com/address/HygALr1ZSqrYZTLBQUQ97vMSzAiuZRpKYovRhfyGtKkF?cluster=devnet",
+      "status": "newly-registered"
+    },
+    {
+      "name": "audit.attestor-firm.v1",
+      "description": "Per-firm audit identity (Halborn / OtterSec / etc.).",
+      "pda": "A5rrMRYxezaNUnSgqyyNjJUqHf4TH7GKNsvUifWjUESi",
+      "capabilityHash": "17926cb4f3241807a5115f454e2c1d5f6eb9a4b822a42e9e7135a5bd225abb39",
+      "signature": "5KQG73FhBjixhaK3jE3XvsVJh4Xcd8kWMWphwuj9dHkTLTMhxwYB4BMzGw1TF8ZGnY6ZXTLY4CbeBZhF6nTobrNo",
+      "signatureExplorer": "https://explorer.solana.com/tx/5KQG73FhBjixhaK3jE3XvsVJh4Xcd8kWMWphwuj9dHkTLTMhxwYB4BMzGw1TF8ZGnY6ZXTLY4CbeBZhF6nTobrNo?cluster=devnet",
+      "pdaExplorer": "https://explorer.solana.com/address/A5rrMRYxezaNUnSgqyyNjJUqHf4TH7GKNsvUifWjUESi?cluster=devnet",
+      "status": "newly-registered"
+    },
+    {
+      "name": "model-card.v1",
+      "description": "LLM model-version provenance attestation.",
+      "pda": "DZ7eneZtKsN39q771ruHvBXoTUDRzxKqDipTLbeRGa4o",
+      "capabilityHash": "d90347d0a0a7108b147c06a9dfe427e7a4700fb0cf752a32d3752dae91b83e06",
+      "signature": "gmHvwe6NBB6vjMNPrMppfm2SVjvhizubUX8pACBJTZZ8rnbRaBFaLYuGqoa4TtApK2JqDFrUggZj8WS87xXGds6",
+      "signatureExplorer": "https://explorer.solana.com/tx/gmHvwe6NBB6vjMNPrMppfm2SVjvhizubUX8pACBJTZZ8rnbRaBFaLYuGqoa4TtApK2JqDFrUggZj8WS87xXGds6?cluster=devnet",
+      "pdaExplorer": "https://explorer.solana.com/address/DZ7eneZtKsN39q771ruHvBXoTUDRzxKqDipTLbeRGa4o?cluster=devnet",
+      "status": "newly-registered"
+    },
+    {
+      "name": "jurisdiction.v1",
+      "description": "Regulatory-jurisdiction stamp (EU MiCA, US, etc.).",
+      "pda": "Cd4sp8isN3CF8KiRchDNoMhsVERSpswEnufvBR21Jrnu",
+      "capabilityHash": "ce281890788155a04e7ed91966697ba45aaaad7495d193359d38295311f80685",
+      "signature": "5fUkGfziyLWbMeqp6pfZXrWMBf2mc3VzMZEsHUYjsynvANQSzjQtAkakVxXJNvPPQaCBEg8YnErk82VLbSHxSUMV",
+      "signatureExplorer": "https://explorer.solana.com/tx/5fUkGfziyLWbMeqp6pfZXrWMBf2mc3VzMZEsHUYjsynvANQSzjQtAkakVxXJNvPPQaCBEg8YnErk82VLbSHxSUMV?cluster=devnet",
+      "pdaExplorer": "https://explorer.solana.com/address/Cd4sp8isN3CF8KiRchDNoMhsVERSpswEnufvBR21Jrnu?cluster=devnet",
+      "status": "newly-registered"
+    },
+    {
+      "name": "compliance.payments.v1",
+      "description": "Payment-network compliance attestation (Mastercard FACT-aligned, etc.).",
+      "pda": "Cn54CpSdfrME7epZ2VTSwhuTbcwH3ZttpcwjZADc5yrZ",
+      "capabilityHash": "0a8984a645e7389b9a323a14550f549509fbf4f75a5553f7cabaa45e48c59e0b",
+      "signature": "5B3ZfMMAjDSyrTnhGzXCCNcdg4yEeRepb8v1d8fK299WiyJpex5RbiW7ahha1VxPJfVSixyfXtb7R4wSFfd11Wm4",
+      "signatureExplorer": "https://explorer.solana.com/tx/5B3ZfMMAjDSyrTnhGzXCCNcdg4yEeRepb8v1d8fK299WiyJpex5RbiW7ahha1VxPJfVSixyfXtb7R4wSFfd11Wm4?cluster=devnet",
+      "pdaExplorer": "https://explorer.solana.com/address/Cn54CpSdfrME7epZ2VTSwhuTbcwH3ZttpcwjZADc5yrZ?cluster=devnet",
+      "status": "newly-registered"
+    },
+    {
+      "name": "agent-source.v1",
+      "description": "Provenance: which dev shop authored the agent.",
+      "pda": "DqSwaqENQhjPUajxfmzsjTcfTcnNXtNN22f3kYyAHvSJ",
+      "capabilityHash": "2328df178dc6bf6b0ad54c656865dc01cda1e38714b9260ac4ceae01fd7fede3",
+      "signature": "52mqFEk5gpytgYjhsq4j7yML4tEcxg7jQhwb5Z6xqmx3cecX8vXP4C5NN6PRyXPSGtnTeSVZ8nBVaaYimU4NP4nH",
+      "signatureExplorer": "https://explorer.solana.com/tx/52mqFEk5gpytgYjhsq4j7yML4tEcxg7jQhwb5Z6xqmx3cecX8vXP4C5NN6PRyXPSGtnTeSVZ8nBVaaYimU4NP4nH?cluster=devnet",
+      "pdaExplorer": "https://explorer.solana.com/address/DqSwaqENQhjPUajxfmzsjTcfTcnNXtNN22f3kYyAHvSJ?cluster=devnet",
+      "status": "newly-registered"
+    },
+    {
+      "name": "usdc-payment-policy.v1",
+      "description": "USDC payment policy capability — Phase D attestor demo.",
+      "pda": "34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR",
+      "capabilityHash": "a968ecd0b93d9bfe57aa62c56d1e439717cf51d1dfe0ec413267834f2ca08375",
+      "pdaExplorer": "https://explorer.solana.com/address/34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR?cluster=devnet",
+      "status": "already-registered"
+    }
+  ]
+}
