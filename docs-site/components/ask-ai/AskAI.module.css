@@ -2,7 +2,7 @@
   position: fixed;
   z-index: 35;
   left: calc(var(--fd-sidebar-width) + ((100vw - var(--fd-sidebar-width) - var(--fd-toc-width) - 900px) / 2) + 70px);
-  bottom: 33px;
+  bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -20,23 +20,25 @@
   backdrop-filter: blur(20px);
 }
 
-.prompt::before {
-  position: absolute;
-  right: -1px;
-  bottom: -26px;
-  left: -1px;
-  z-index: -1;
-  height: 86px;
-  background: linear-gradient(to bottom, transparent, var(--bg) 42%, var(--bg));
-  content: '';
-  pointer-events: none;
-}
+/*
+ * No scrim. Any child pseudo-element with negative z-index paints on top
+ * of the dock's border AND its focus-state box-shadow ring per the CSS
+ * painting spec — clipping both. The dock's `backdrop-filter: blur(20px)`
+ * + 90%-opaque `--bg` background does the masking on its own. The 16px
+ * gap below the dock falls naturally to the body colour (--bg-shell).
+ */
 
 .prompt:hover,
 .prompt:focus-within {
   border-color: var(--accent);
   color: var(--accent-deep);
   outline: none;
+  /* 1px solid border + 1px outer accent ring = 2px effective stroke
+   * without shifting layout. Soft outer glow gives focus extra presence
+   * on dark backgrounds where 1px lines tend to disappear. */
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 18px -4px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 .prompt textarea {
