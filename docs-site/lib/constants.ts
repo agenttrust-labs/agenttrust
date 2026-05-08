@@ -20,7 +20,10 @@ export const KANI_HARNESSES = [
   'counterparty_tier_monotone',
   'validation_expiry_correct',
   'multisig_threshold_enforced',
+  'gate_payment_strict_correctness',
 ] as const;
+
+export const KANI_TOTAL_SUB_CHECKS = 635;
 
 export const SDK_PACKAGE = '@agenttrust-sdk/trustgate';
 export const GITHUB_REPO = 'github.com/agenttrust-labs/agenttrust';

@@ -818,6 +818,23 @@ html[data-ask-ai-open='true'] body {
   font-variant-numeric: tabular-nums;
 }
 
+.program-id-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color 120ms ease;
+}
+
+.program-id-link:hover code,
+.program-id-link:focus-visible code {
+  color: var(--accent);
+}
+
+.program-id-link:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 .kani-proof-badge {
   display: grid;
   grid-template-columns: minmax(0, 0.45fr) minmax(0, 0.55fr);

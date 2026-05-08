@@ -1,12 +1,15 @@
 import type { JSX } from 'react';
-import { KANI_HARNESSES } from '@/lib/constants';
+import { KANI_HARNESSES, KANI_TOTAL_SUB_CHECKS } from '@/lib/constants';
 
 export function KaniProofBadge(): JSX.Element {
   return (
     <div className="kani-proof-badge">
       <div>
-        <strong>5 / 5 invariants formally verified</strong>
-        <p>PolicyVault safety properties are checked by Kani in CI.</p>
+        <strong>{KANI_HARNESSES.length} / {KANI_HARNESSES.length} invariants formally verified</strong>
+        <p>
+          PolicyVault safety properties are machine-checked by Kani in CI —{' '}
+          {KANI_TOTAL_SUB_CHECKS.toLocaleString()} sub-checks, zero failures.
+        </p>
       </div>
       <ul>
         {KANI_HARNESSES.map((harness) => (
