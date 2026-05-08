@@ -317,35 +317,14 @@ Of those, 67 files are in `docs-site/`; 4 are in `web/data/` (from the external 
 4. **Re-deploy `docs-site/` to Vercel.** A preview deploy on this PR will validate the Lighthouse mobile + desktop scores. The brief mentioned Lighthouse for `docs.agenttrust.tech` post-deploy — that's an action you take, not the docs agent.
 5. **Resolve the two infra-only CI failures** (see "CI checks failing on this PR — not caused by the docs work" above): bump the Kani runtime budget from 180s and add a Solana toolchain install step to `idl-diff.yml`. Either fix in this PR or merge despite them with a note — both are CI ops scope, separate from docs.
 
-## CI checks failing on this PR — not caused by the docs work
+## CI infrastructure failures (not docs scope)
 
-Two checks remain red on PR #1 after the four-fix push (`2363a86` → `c7aa5bf`). Both are infrastructure issues that pre-exist this PR and are reproducible neither by `pnpm --filter ./docs-site` commands nor by anything inside `docs-site/`. They sit on the CI ops fix path, not on docs.
+Two pre-existing CI infrastructure failures surface on this PR but are not caused by the docs work:
 
-### `cargo kani total runtime <= 180 s` — budget overrun
+- `cargo kani total runtime <= 180 s` — Kani verifies all 8 harnesses successfully (`VERIFICATION:- SUCCESSFUL` × 8); workflow exits 1 because total wall-clock 235s exceeds the 180s budget set when only 5 harnesses existed. Phase J5's `gate_payment_strict_correctness` (258 sub-checks) pushed past the budget. Ops fix path: bump `BUDGET` in `kani-budget.yml`.
+- `IDL diff vs devnet` — `cargo build-sbf` panics on the runner with `Err(NotFound)` because `idl-diff.yml` doesn't install the Solana toolchain before `anchor build`. Ops fix path: add a setup-solana step.
 
-Kani verified all eight harnesses successfully (`VERIFICATION:- SUCCESSFUL` per harness, every one). The workflow exits 1 because total wall-clock was 235s, exceeding the 180s budget the workflow declares:
-
-```
-Kani runtime 235s exceeds 180s budget. Inspect /tmp/kani-output.txt for slow
-harnesses; consider tightening kani::unwind bounds.
-```
-
-Source: [`.github/workflows/kani-budget.yml`](../../.github/workflows/kani-budget.yml). The strict-correctness invariant added in Phase J5 (`gate_payment_strict_correctness` — 258 sub-checks) bumped total runtime past the budget set when only five harnesses existed. The harnesses themselves are fine; the budget needs raising or the slow harnesses need tighter `kani::unwind` bounds. Kani-proof correctness is unchanged.
-
-Fix path: bump `BUDGET` in `kani-budget.yml` from 180 to ~300, OR tighten `inv_multisig_threshold_enforced.rs` unwind bound (currently 7 members × 7 signers; the proof accepts a smaller bound by induction).
-
-### `IDL diff vs devnet` — Solana toolchain not installed on runner
-
-`anchor build` step fails immediately on `cargo build-sbf` with:
-
-```
-thread 'main' panicked at sdk/cargo-build-sbf/src/main.rs:146:10:
-called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "No such file or directory" }
-```
-
-`cargo build-sbf` (the SBF-target build wrapper) can't find a required binary — likely the Solana CLI itself or a rustup toolchain — on the GitHub runner. The workflow at [`.github/workflows/idl-diff.yml`](../../.github/workflows/idl-diff.yml) doesn't install the Solana toolchain before invoking `anchor build`.
-
-Fix path: add a `setup-solana` step (e.g., `nifty-actions/setup-solana@v1` or scripted `sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"`) before `anchor build`. The Anchor + Kani workflows that do build successfully on this PR already include a Solana install step; idl-diff was missed.
+Both handed off to the engineering agent for resolution; not blocking docs merge. Full error logs and decision-tree analysis live on PR #1's description.
 
 ### Lychee — Option B (pragmatic accept-and-document) chosen
 
