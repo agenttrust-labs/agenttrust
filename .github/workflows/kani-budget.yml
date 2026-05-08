@@ -88,7 +88,13 @@ jobs:
           # `time` would also work but its output format varies across
           # shells; SECONDS is just an integer counter.
           start=$SECONDS
-          cargo kani --output-format terse > /tmp/kani-output.txt 2>&1
+          # cargo kani 0.67 sometimes exits non-zero even when every
+          # harness reports `VERIFICATION:- SUCCESSFUL` and the Manual
+          # Harness Summary shows "0 failures". Don't trust the exit
+          # code — capture the output, then validate via grep below.
+          # The output-content checks are the source of truth for
+          # success / regression.
+          cargo kani --output-format terse > /tmp/kani-output.txt 2>&1 || true
           elapsed=$(( SECONDS - start ))
 
           echo "::notice::Kani total wall-clock = ${elapsed}s (budget = 180s)"
