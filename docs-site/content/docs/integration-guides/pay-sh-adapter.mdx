@@ -1,33 +1,52 @@
 ---
 title: Pay.sh adapter
-description: The live Pay.sh + AgentTrust integration path.
+description: Walk the live Pay.sh + AgentTrust integration end to end — challenge, retry, settle, feedback, with hosted-demo paths and the SERVICE-signed envelope contract.
 ---
 
-Pay.sh is the first concrete AgentTrust facilitator adapter. It translates Pay.sh's x402 headers and `PaymentRequirements` body into the `VerifyContext` that the on-chain policy path understands.
-
-Pay.sh launch reference: [Solana Foundation launch note](https://solana.com/news/solana-foundation-launches-pay-sh-in-collaboration-with-google-cloud).
+Pay.sh is the Solana Foundation's first x402 facilitator, [launched 2026-05-05 with Google Cloud](https://solana.com/news/solana-foundation-launches-pay-sh-in-collaboration-with-google-cloud). AgentTrust ships day-one Pay.sh integration as the canonical `FacilitatorAdapter` implementation. Source: [`trustgate/server/src/facilitators/pay-sh/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators/pay-sh).
 
 ## What the adapter does
 
-| Stage | Pay.sh / x402 surface | AgentTrust action |
-| --- | --- | --- |
+| Stage | x402 / Pay.sh wire shape | AgentTrust action |
+|---|---|---|
 | Initial request | no payment proof | emit `402 Payment Required` with a base64 x402 v2 envelope |
-| Challenge | `paymentRequirements.extra.agentTrust` | include payer agent, payee agent, payee recipient, policy ID, `issuedAt`, and `serviceSignature` |
-| Retry | `PAYMENT-SIGNATURE` or `X-PAYMENT` | parse proof and rebuild `VerifyContext` |
-| Policy | `VerifyContext` | run the gate decision |
+| Challenge | `paymentRequirements.extra.agentTrust` | include payer agent, payee agent, payee recipient, policy ID, `issuedAt`, `serviceSignature` |
+| Retry | `PAYMENT-SIGNATURE` or `X-PAYMENT` header | parse proof, rebuild `VerifyContext` |
+| Policy | `VerifyContext` | run `gate_payment` decision |
 | Allow | signed payment proof | validate transfer fields, emit feedback, forward resource |
-| Deny | gate decision | return `402` with reason code and reason name |
+| Deny | gate decision | return `402` with reason code + reason name |
 
-## Files to read
+## Hit the live demo
 
-| File | Purpose |
-| --- | --- |
-| `trustgate/server/src/facilitators/pay-sh/index.ts` | the five-method `PaySh` class |
-| `trustgate/server/src/facilitators/pay-sh/schemas.ts` | strict Zod wire schemas |
-| `trustgate/server/src/facilitators/pay-sh/sig.ts` | SERVICE challenge signature helpers |
-| `trustgate/server/src/facilitators/pay-sh/proof-validator.ts` | replay, self-pay, amount, mint, recipient checks |
-| `trustgate/server/src/facilitators/pay-sh/feedback.ts` | idempotent feedback emission |
-| `examples/pay-sh-demo/src/middleware.ts` | Express route bridge from Pay.sh retry to AgentTrust |
+[`demo.agenttrust.tech`](https://demo.agenttrust.tech) runs the full Pay.sh + AgentTrust pipeline against deployed devnet programs. With no payment proof:
+
+```bash
+curl -i https://demo.agenttrust.tech/protected
+```
+
+Returns `HTTP/2 402` with a SERVICE-signed `payment-required` envelope. With Pay.sh installed, let the CLI pay and retry:
+
+```bash
+pay --sandbox curl https://demo.agenttrust.tech/protected
+```
+
+The demo seeds three deterministic counterparties. Drive each branch by passing the matching `X-Demo-Payer-Agent` header:
+
+```bash
+# Allow path (tier 3)
+PAYER=$(curl -s https://demo.agenttrust.tech/health | jq -r '.counterparties[2].agent')
+pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" https://demo.agenttrust.tech/protected
+
+# Deny path (tier 0)
+PAYER=$(curl -s https://demo.agenttrust.tech/health | jq -r '.counterparties[0].agent')
+pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" https://demo.agenttrust.tech/protected
+```
+
+| Counterparty tier | Decision |
+|---:|---|
+| 0 | `402 Deny — CounterpartyTierBelowMin` |
+| 1 | `402 Deny — CounterpartyTierBelowMin` |
+| 3 | `200 Allow + X-Payment-Receipt` |
 
 ## SERVICE-signed challenge
 
@@ -44,58 +63,49 @@ The SERVICE emits a signed challenge when it returns the Pay.sh `402` response. 
 - policy ID
 - payment ID hash
 
-`PaySh.parseRequest()` verifies that signature against the facilitator public key before it accepts the request. This closes the race window where a forged `paymentRequirements` envelope could be raced against the legitimate one.
+`PaySh.parseRequest()` verifies that signature against the facilitator public key before accepting the request. This closes the race window where a forged `paymentRequirements` envelope could race a legitimate one.
 
-## Run the demo
+## Files to read in repo
 
-```bash
-pnpm --filter ./examples/pay-sh-demo dev
-```
-
-```bash
-pay --sandbox curl https://demo.agenttrust.tech/protected
-```
-
-The demo uses three deterministic counterparties:
-
-| Counterparty tier | Expected result |
-| --- | --- |
-| 0 | `402 Deny` with `CounterpartyTierBelowMin` |
-| 1 | `402 Deny` with `CounterpartyTierBelowMin` |
-| 3 | `200 Allow` with `X-Payment-Receipt` |
-
-Get the exact payer agent keys:
-
-```bash
-curl -s https://demo.agenttrust.tech/health | jq '.counterparties'
-```
+| File | Purpose |
+|---|---|
+| [`facilitators/pay-sh/index.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/index.ts) | The five-method `PaySh` class |
+| [`facilitators/pay-sh/schemas.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/schemas.ts) | Strict Zod wire schemas |
+| [`facilitators/pay-sh/sig.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/sig.ts) | SERVICE challenge signature helpers |
+| [`facilitators/pay-sh/proof-validator.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/proof-validator.ts) | Replay, self-pay, amount, mint, recipient checks |
+| [`facilitators/pay-sh/feedback.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/feedback.ts) | Idempotent feedback emission |
+| [`examples/pay-sh-demo/src/middleware.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/pay-sh-demo/src/middleware.ts) | Express bridge from Pay.sh retry to AgentTrust |
 
 ## Production wiring
 
-The demo proves the pipeline without requiring devnet RPC in CI. The server package carries the real devnet Anchor route: `trustgate/server/src/chain.ts` loads deployed program IDLs, `/verify` simulates `gate_payment`, and `/settle` delegates proof validation plus feedback emission through the active adapter.
+The demo proves the pipeline without requiring devnet RPC in CI. The server package carries the real devnet path: [`trustgate/server/src/chain.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/chain.ts) loads deployed program IDLs, `/verify` simulates `gate_payment`, and `/settle` delegates proof validation plus feedback emission through the active adapter.
 
-Production swaps three dependency seams:
+Production swaps three dependency seams the demo stubs:
 
 ```ts
+import { PaySh } from "./facilitators/pay-sh";
+
 const adapter = new PaySh({
   signingNetwork: "solana-devnet",
-  feePayer: facilitator.publicKey,
-  validateOnChainTx,
-  emitFeedbackCpi,
-  priorEmissionLookup,
-  replayCache,
-  signDecision,
+  feePayer:       facilitator.publicKey,
+  validateOnChainTx,        // makeValidateOnChainTx({ connection, … })
+  emitFeedbackCpi,          // makeEmitFeedbackCpi({ connection, programIds, … })
+  priorEmissionLookup,      // makePriorEmissionLookup({ connection, programId })
+  replayCache,              // ReplayCache (in-memory by default)
+  signDecision,             // signs canonical decision bytes with facilitator key
 });
 ```
 
 | Dependency | Production implementation |
-| --- | --- |
+|---|---|
 | `validateOnChainTx` | parse the confirmed SPL transfer transaction from RPC |
 | `emitFeedbackCpi` | build and send `trustgate::emit_feedback` through Anchor |
 | `priorEmissionLookup` | read the `FeedbackEmissionLog` PDA by payment hash |
 | `signDecision` | sign canonical decision bytes with the facilitator key |
 
-## Failure cases to keep
+The factories (`makeValidateOnChainTx`, `makeEmitFeedbackCpi`, `makePriorEmissionLookup`) are SDK exports — see [SDK → Exports reference](/sdk/exports-reference).
+
+## Failure cases the adapter must keep
 
 Do not remove these checks when adapting Pay.sh into a production server:
 
@@ -105,6 +115,32 @@ Do not remove these checks when adapting Pay.sh into a production server:
 - reject `payTo` / `payeeRecipient` mismatch
 - reject expired challenges
 - reject replayed proof bindings
-- reject transfer authority equal to facilitator fee payer
+- reject transfer authority equal to facilitator fee payer (self-pay defense)
 
-These checks are part of the adapter, not the route layer.
+These are part of the adapter, not the route layer. The Pay.sh adapter's [`proof-validator.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/proof-validator.ts) is the reference implementation.
+
+## Live evidence
+
+Real atomic-settlement trace on devnet (2026-05-06):
+
+| Step | Tx |
+|---|---|
+| Signed SPL `transferChecked` | [`5iV8EYmJh9XS…`](https://explorer.solana.com/tx/5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD?cluster=devnet) |
+| `emit_feedback` PDA-signed CPI | [`jMobmWJUAXuL8…`](https://explorer.solana.com/tx/jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag?cluster=devnet) |
+| `FeedbackEmissionLog` PDA | [`HB4BBi9j…`](https://explorer.solana.com/address/HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3?cluster=devnet) |
+
+Full trace + reproduction commands: [Verification → Devnet smoke](/verification/devnet-smoke).
+
+## Read next
+
+<Cards>
+  <Card title="Facilitator adapters" href="/integration-guides/facilitator-adapters">
+    The five-method contract every adapter satisfies. Build your own.
+  </Card>
+  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
+    Why the gate, transfer, and feedback must execute as one Solana tx.
+  </Card>
+  <Card title="mountTrustGate" href="/sdk/mount-trustgate">
+    The SDK middleware that backs the adapter dispatch.
+  </Card>
+</Cards>
