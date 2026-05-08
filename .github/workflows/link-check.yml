@@ -53,8 +53,15 @@ jobs:
           # Walk every README + every docs-site MDX file. The glob
           # excludes node_modules + dist + target build artefacts so
           # we don't validate every transitive dep's docs.
+          #
+          # `--base` resolves root-relative MDX links (e.g. `/architecture`,
+          # `/programs/policy-vault`) into absolute URLs. The base host is
+          # excluded in .lychee.toml so lychee doesn't actually fetch the
+          # live site (the docs-site headless sweep validates internal
+          # routing); --base just lets lychee build a parseable URL.
           args: >-
             --config .lychee.toml
+            --base https://docs.agenttrust.tech
             --no-progress
             './**/*.md'
             './docs-site/content/**/*.mdx'

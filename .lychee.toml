@@ -25,12 +25,11 @@ accept = [200, 201, 204, 301, 302, 304, 308, 403]
 # User-agent — some sites (notably GitHub) 403 default crawler UAs.
 user_agent = "lychee/agenttrust-link-check"
 
-# Base for root-relative MDX links inside docs-site (e.g.
-# `/architecture`, `/programs/policy-vault`). Without this, lychee
-# fails to build URLs from those paths. The `base` is also matched by
-# the exclude rule below so lychee doesn't actually fetch the live
-# site (the docs-site headless sweep validates internal routing).
-base = "https://docs.agenttrust.tech"
+# NOTE: lychee 0.23.0 doesn't accept a `base` key in the TOML config;
+# the equivalent is the `--base` CLI flag, set in
+# `.github/workflows/link-check.yml`. Keeping this comment so a
+# future bump that re-introduces the TOML key doesn't get
+# duplicate-configured.
 
 # Allowlist: regex patterns for URLs we never validate. These are
 # legitimately not crawl-friendly.
