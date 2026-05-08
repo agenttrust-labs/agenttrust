@@ -355,9 +355,37 @@ samp {
     margin-top: 0;
   }
 
-  #nd-toc {
-    transform: translateX(-28px);
-  }
+  /* TOC was previously pulled left with `transform: translateX(-28px)`
+   * to tighten alignment to the prose column. That put it on top of
+   * `#nd-page`'s right-edge scrollbar — the scrollbar then painted
+   * over the TOC's first column of text on always-show-scrollbars
+   * platforms. Held in its grid column now; scrollbar lives in its
+   * own gutter. */
+}
+
+/* Thin styled scrollbar for #nd-page. When the platform shows a
+ * permanent scrollbar (Windows / Linux / macOS-with-always-show-
+ * scrollbars), this keeps it narrow + subtle next to the TOC
+ * instead of a wide chrome bar. macOS overlay scrollbars are
+ * unaffected (they always paint above content briefly).
+ */
+#nd-page::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+#nd-page::-webkit-scrollbar-track {
+  background: transparent;
+}
+#nd-page::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink-soft) 28%, transparent);
+  border-radius: 4px;
+}
+#nd-page::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ink-soft) 45%, transparent);
+}
+#nd-page {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink-soft) 28%, transparent) transparent;
 }
 
 @media (max-width: 1023px) {
