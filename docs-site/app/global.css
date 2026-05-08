@@ -1100,6 +1100,29 @@ html[data-ask-ai-open='true'] body {
 }
 
 /* ---------------------------------------------------------------------------
+ * Previous / next page nav (Fumadocs default ships with `.truncate` which
+ * sets `white-space: nowrap` and ellipsis-clips long descriptions
+ * mid-sentence. The description is the only useful context on the card —
+ * let it wrap to as many lines as it needs.)
+ * ------------------------------------------------------------------------- */
+#nd-page > a[class*='rounded-lg'][class*='border'] > p.truncate,
+#nd-page > div > a[class*='rounded-lg'][class*='border'] > p.truncate {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.45;
+}
+
+/* Keep the prev / next pair the same height so layout stays even when one
+ * description wraps to a different line count than the other. */
+#nd-page > div:has(> a[class*='rounded-lg'][class*='border']) {
+  align-items: stretch;
+}
+#nd-page > a[class*='rounded-lg'][class*='border']:has(+ a[class*='rounded-lg']) {
+  height: 100%;
+}
+
+/* ---------------------------------------------------------------------------
  * Tables — hairline + zebra
  * ------------------------------------------------------------------------- */
 #nd-page table {
