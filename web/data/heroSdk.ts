@@ -47,7 +47,7 @@ export const HERO_TERMINAL_LINES: readonly HeroTerminalLine[] = [
     tone: "muted",
   },
   {
-    text: "pay --sandbox curl http://localhost:3402/protected",
+    text: "curl https://demo.agenttrust.tech/protected",
     tone: "muted",
   },
   { text: "adapter         PaySh.parseRequest -> VerifyContext", tone: "success" },

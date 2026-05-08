@@ -355,9 +355,37 @@ samp {
     margin-top: 0;
   }
 
-  #nd-toc {
-    transform: translateX(-28px);
-  }
+  /* TOC was previously pulled left with `transform: translateX(-28px)`
+   * to tighten alignment to the prose column. That put it on top of
+   * `#nd-page`'s right-edge scrollbar — the scrollbar then painted
+   * over the TOC's first column of text on always-show-scrollbars
+   * platforms. Held in its grid column now; scrollbar lives in its
+   * own gutter. */
+}
+
+/* Thin styled scrollbar for #nd-page. When the platform shows a
+ * permanent scrollbar (Windows / Linux / macOS-with-always-show-
+ * scrollbars), this keeps it narrow + subtle next to the TOC
+ * instead of a wide chrome bar. macOS overlay scrollbars are
+ * unaffected (they always paint above content briefly).
+ */
+#nd-page::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+#nd-page::-webkit-scrollbar-track {
+  background: transparent;
+}
+#nd-page::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink-soft) 28%, transparent);
+  border-radius: 4px;
+}
+#nd-page::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ink-soft) 45%, transparent);
+}
+#nd-page {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink-soft) 28%, transparent) transparent;
 }
 
 @media (max-width: 1023px) {
@@ -766,6 +794,39 @@ html[data-ask-ai-open='true'] body {
   line-height: 20px;
 }
 
+.docs-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--ink-soft);
+  border-radius: 6px;
+  padding: 1px 1px;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.docs-footer-label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+
+.docs-footer-link:hover {
+  color: var(--accent-deep);
+}
+
+.docs-footer-link:hover code {
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
+
+.docs-footer-link:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 2px;
+}
+
 .docs-footer code,
 .license-badge {
   border: 1px solid var(--border);
@@ -776,6 +837,7 @@ html[data-ask-ai-open='true'] body {
   font-size: 11px;
   font-weight: 600;
   padding: 2px 6px;
+  transition: border-color 120ms ease, color 120ms ease;
 }
 
 .program-id-table,
@@ -816,6 +878,23 @@ html[data-ask-ai-open='true'] body {
   overflow-wrap: anywhere;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
+}
+
+.program-id-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color 120ms ease;
+}
+
+.program-id-link:hover code,
+.program-id-link:focus-visible code {
+  color: var(--accent);
+}
+
+.program-id-link:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 .kani-proof-badge {
@@ -866,4 +945,233 @@ html[data-ask-ai-open='true'] body {
   .program-id-row {
     gap: 4px;
   }
+}
+
+/* ---------------------------------------------------------------------------
+ * Anchor links on headings
+ * ------------------------------------------------------------------------- */
+#nd-page :is(h1, h2, h3, h4, h5, h6) a[aria-hidden='true'] {
+  display: inline-block;
+  margin-left: 0.4ch;
+  color: var(--ink-soft);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+#nd-page :is(h1, h2, h3, h4, h5, h6):hover a[aria-hidden='true'],
+#nd-page :is(h1, h2, h3, h4, h5, h6) a[aria-hidden='true']:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------------------------
+ * Inline code pill — Monad reference parity
+ * ------------------------------------------------------------------------- */
+#nd-page :not(pre) > code {
+  font-family: var(--font-geist-mono);
+  font-size: 0.86em;
+  font-weight: 600;
+  background: rgba(242, 241, 245, 0.6);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.dark #nd-page :not(pre) > code {
+  background: rgba(242, 241, 245, 0.06);
+  border-color: rgba(242, 241, 245, 0.10);
+}
+
+/* ---------------------------------------------------------------------------
+ * Cards / Card hover polish (Fumadocs default + accent on hover)
+ * ------------------------------------------------------------------------- */
+#nd-page [class*='Cards'] a:hover,
+#nd-page [class*='card'] a:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+#nd-page [class*='Cards'] a:focus-visible,
+#nd-page [class*='card'] a:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Custom 404 page — matches docs aesthetic
+ * ------------------------------------------------------------------------- */
+.not-found {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 120px 32px 96px;
+  font-family: var(--font-geist-sans);
+}
+
+.not-found-eyebrow {
+  margin: 0 0 8px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.not-found-title {
+  margin: 0 0 16px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.not-found-body {
+  margin: 0 0 40px;
+  color: var(--ink-dim);
+  font-size: 17px;
+  line-height: 1.55;
+  max-width: 60ch;
+}
+
+.not-found-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .not-found-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.not-found-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.not-found-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.not-found-card:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 2px;
+}
+
+.not-found-card-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.not-found-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.not-found-card-body {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ---------------------------------------------------------------------------
+ * Code-block — language label hover + selection
+ * ------------------------------------------------------------------------- */
+#nd-page pre {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-code) !important;
+}
+
+#nd-page pre code {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+#nd-page pre::selection,
+#nd-page pre code::selection {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
+/* ---------------------------------------------------------------------------
+ * Blockquote — subtle accent
+ * ------------------------------------------------------------------------- */
+#nd-page blockquote {
+  border-left: 3px solid var(--accent-soft);
+  padding-left: 16px;
+  color: var(--ink-dim);
+  font-style: normal;
+  margin: 16px 0;
+}
+
+#nd-page blockquote p {
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Previous / next page nav (Fumadocs default ships with `.truncate` which
+ * sets `white-space: nowrap` and ellipsis-clips long descriptions
+ * mid-sentence. The description is the only useful context on the card —
+ * let it wrap to as many lines as it needs.)
+ * ------------------------------------------------------------------------- */
+#nd-page > a[class*='rounded-lg'][class*='border'] > p.truncate,
+#nd-page > div > a[class*='rounded-lg'][class*='border'] > p.truncate {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.45;
+}
+
+/* Keep the prev / next pair the same height so layout stays even when one
+ * description wraps to a different line count than the other. */
+#nd-page > div:has(> a[class*='rounded-lg'][class*='border']) {
+  align-items: stretch;
+}
+#nd-page > a[class*='rounded-lg'][class*='border']:has(+ a[class*='rounded-lg']) {
+  height: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+ * Tables — hairline + zebra
+ * ------------------------------------------------------------------------- */
+#nd-page table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13.5px;
+}
+
+#nd-page table th,
+#nd-page table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+#nd-page table th {
+  font-weight: 600;
+  color: var(--ink);
+  text-align: left;
+  background: var(--bg-subtle);
+}
+
+#nd-page table tr:hover td {
+  background: color-mix(in srgb, var(--accent-soft) 30%, transparent);
 }

@@ -1,0 +1,108 @@
+---
+title: MCP server
+description: Drop @agenttrust-sdk/mcp into Claude Desktop or Cursor and query the deployed AgentTrust programs in natural language. Eighteen tools, four resources, three prompts.
+---
+
+`@agenttrust-sdk/mcp@0.2.6` is the Model Context Protocol server for AgentTrust. Stdio binary published on npm; hosted HTTP transport at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech). Eighteen tools split into ten read-only, five write (require a signing keypair), and three discovery / docs-search.
+
+The MCP server is a thin façade over [`@agenttrust-sdk/trustgate`](/sdk). PDA derivation, IDL loading, and `gate_payment` simulation live in the SDK; the MCP server exposes them with stable Zod schemas to LLM clients.
+
+Source: [`mcp/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp). License: MIT.
+
+## What you get
+
+| | Count | Where |
+|---|---:|---|
+| Tools | 18 | 10 read · 5 write · 3 discovery |
+| Resources | 4 | devnet program manifest, docs corpus, demo source files |
+| Prompts | 3 | `agenttrust_audit_payment`, `agenttrust_setup_agent`, `agenttrust_explain_failure` |
+| Transports | 2 | stdio (default) · streamable HTTP |
+| Networks | 2 | `solana-devnet` (default) · `solana-mainnet` (when deployed) |
+
+## Quick start — Claude Desktop
+
+```json
+{
+  "mcpServers": {
+    "agenttrust": {
+      "command": "npx",
+      "args": ["-y", "@agenttrust-sdk/mcp"],
+      "env": {
+        "RPC_URL": "https://api.devnet.solana.com",
+        "NETWORK": "solana-devnet"
+      }
+    }
+  }
+}
+```
+
+Drop into `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Restart Claude Desktop. Eighteen tools become available in chat. Full setup including write-tool keypair, Cursor config, and HTTP transport: [Install](/mcp/install).
+
+## What it looks like in use
+
+Once installed, ask Claude Desktop:
+
+- *"What demo agents are available on AgentTrust?"* → `agenttrust_demo_state` returns three pre-warmed counterparties with asset pubkeys + Explorer URLs.
+- *"Simulate a 5-USDC payment from the tier-3 demo agent to the tier-0 demo agent against policy 1. What does the gate decide?"* → `agenttrust_simulate_payment` returns `Deny / SpendingPerTxExceeded` with the decoded reason.
+- *"Pull the policy for agent &lt;asset&gt; ID 1 and tell me the spending caps."* → `agenttrust_get_policy` returns the decoded `PolicyAccount` PDA — every spending cap, velocity threshold, counterparty tier requirement, and required capability hash.
+- *"Why would a payment with reason code 6 fail, and how do I fix it?"* → `agenttrust_explain_decision` returns `CounterpartyTierBelowMin` with remediation hint.
+- *"Search the AgentTrust docs for the validation registry data flow."* → `agenttrust_docs` returns ranked hits with excerpts.
+- *"Walk me through adding a new x402 facilitator adapter."* → `agenttrust_facilitator_walkthrough` returns the canonical guide.
+
+Phase P validated all 10 scenarios with a real LLM client (Claude `sonnet` via the official `claude` CLI) — 7/10 strict pass, 3 false negatives that the LLM recovered from via context-gathering. Full report: [`docs/proofs/phase-p-llm-routing.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-p-llm-routing.md).
+
+## Hosted vs stdio
+
+| Mode | When | Setup |
+|---|---|---|
+| **Stdio** (default) | Claude Desktop, Cursor, any local MCP client | `npx -y @agenttrust-sdk/mcp` — no install, no clone |
+| **Hosted HTTP** | Cloud agents, OpenAI Agents SDK, any `StreamableHTTPServerTransport` client | `https://mcp.agenttrust.tech` — Fly.io, always-on, 0 cold starts |
+
+Health check the hosted endpoint:
+
+```bash
+curl https://mcp.agenttrust.tech/healthz
+# → {"ok":true,"service":"agenttrust-mcp","version":"0.2.6","network":"solana-devnet","toolCount":18,…}
+```
+
+Full hosted-endpoint reference: [Hosted endpoint](/mcp/hosted-endpoint).
+
+## Architecture
+
+```
+mcp/src/
+├── index.ts        — entry point + transport selector
+├── server.ts       — MCP Server with tools/resources/prompts wired up
+├── config.ts       — env parsing
+├── chain.ts        — thin façade over @agenttrust-sdk/trustgate
+├── tools/
+│   ├── read/        — 10 read tools
+│   ├── write/       — 5 write tools
+│   └── discovery/   — 3 discovery tools
+├── resources/
+│   ├── docs.ts      — MDX corpus indexer (path-traversal-safe)
+│   └── programs.ts  — devnet program manifest as JSON resource
+└── prompts/
+    ├── audit-payment.ts
+    ├── setup-agent.ts
+    └── explain-failure.ts
+```
+
+Chain logic — PDA derivation, IDL loading, `gate_payment` simulation — lives in `@agenttrust-sdk/trustgate`. The MCP server is a façade. If a helper is missing in the SDK, it lands in the SDK and re-exports through the MCP — never forks chain logic into `mcp/`.
+
+## Read next
+
+<Cards>
+  <Card title="Install" href="/mcp/install">
+    Claude Desktop, Cursor, hosted HTTP, env vars, write-tool keypair.
+  </Card>
+  <Card title="Tools" href="/mcp/tools">
+    All 18 tools — 10 read, 5 write, 3 discovery — with input/output shape.
+  </Card>
+  <Card title="Resources" href="/mcp/resources">
+    Four MCP resource URIs — devnet program manifest, docs corpus mirror.
+  </Card>
+  <Card title="Prompts" href="/mcp/prompts">
+    Three guided workflows — audit a payment, set up an agent, explain a failure.
+  </Card>
+</Cards>

@@ -3,9 +3,12 @@
   "pages": [
     "index",
     "getting-started",
-    "integration-guides",
-    "sdk",
+    "architecture",
     "programs",
+    "sdk",
+    "mcp",
+    "integration-guides",
+    "verification",
     "reference"
   ]
 }

@@ -5,9 +5,10 @@
     "mainnet-program-ids",
     "byte-offset-reference",
     "discriminator-constants",
-    "formal-verification",
-    "changelog",
-    "quantu-agent-registry"
+    "deny-reason-codes",
+    "capability-namespaces",
+    "quantu-agent-registry",
+    "changelog"
   ],
   "defaultOpen": false
 }

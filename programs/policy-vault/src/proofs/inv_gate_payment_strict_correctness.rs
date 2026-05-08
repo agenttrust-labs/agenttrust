@@ -48,23 +48,23 @@ fn strict_returns_ok_iff_allow() {
         policy: PolicySnapshot {
             enabled_kinds_bitmask: kani::any(),
             spending: SpendingState {
-                per_tx_max:    kani::any(),
-                daily_max:     kani::any(),
-                weekly_max:    kani::any(),
-                today_used:    kani::any(),
-                week_used:     kani::any(),
-                today_anchor:  kani::any(),
-                week_anchor:   kani::any(),
+                per_tx_max: kani::any(),
+                daily_max: kani::any(),
+                weekly_max: kani::any(),
+                today_used: kani::any(),
+                week_used: kani::any(),
+                today_anchor: kani::any(),
+                week_anchor: kani::any(),
             },
             velocity: VelocityState {
-                window_secs:   kani::any(),
+                window_secs: kani::any(),
                 max_in_window: kani::any(),
             },
             counterparty: CounterpartyState {
-                gate_mode:                 kani::any(),
-                min_tier:                  kani::any(),
-                max_risk_score:            kani::any(),
-                min_confidence:            kani::any(),
+                gate_mode: kani::any(),
+                min_tier: kani::any(),
+                max_risk_score: kani::any(),
+                min_confidence: kani::any(),
                 default_unrated_treatment: kani::any(),
             },
             require_validation: RequireValidationState {
@@ -72,14 +72,16 @@ fn strict_returns_ok_iff_allow() {
                 // strict-correctness invariant is independent of the
                 // capability hash and the accepted-attestor list.
                 required_capability_hash: [0u8; 32],
-                accepted_attestors:       [Pubkey::default(); 2],
+                accepted_attestors: [Pubkey::default(); 2],
             },
         },
         ledger: VelocityLedgerSnapshot {
-            cumulative_amount:  kani::any(),
-            window_start_slot:  kani::any(),
+            cumulative_amount: kani::any(),
+            window_start_slot: kani::any(),
         },
-        killswitch: KillSwitchSnapshot { paused: kani::any() },
+        killswitch: KillSwitchSnapshot {
+            paused: kani::any(),
+        },
         payer_atom: None,
         payee_atom: None,
         attestation: None,
@@ -92,7 +94,7 @@ fn strict_returns_ok_iff_allow() {
     let result = compose_decision(input);
 
     let returns_ok = strict_handler_returns_ok(&result.decision);
-    let is_allow   = matches!(result.decision, GateDecision::Allow);
+    let is_allow = matches!(result.decision, GateDecision::Allow);
 
     // The biconditional — the strict contract.
     kani::assert(
@@ -115,35 +117,37 @@ fn gate_decision_is_one_of_three_disjoint_variants() {
         policy: PolicySnapshot {
             enabled_kinds_bitmask: kani::any(),
             spending: SpendingState {
-                per_tx_max:   kani::any(),
-                daily_max:    kani::any(),
-                weekly_max:   kani::any(),
-                today_used:   kani::any(),
-                week_used:    kani::any(),
+                per_tx_max: kani::any(),
+                daily_max: kani::any(),
+                weekly_max: kani::any(),
+                today_used: kani::any(),
+                week_used: kani::any(),
                 today_anchor: kani::any(),
-                week_anchor:  kani::any(),
+                week_anchor: kani::any(),
             },
             velocity: VelocityState {
-                window_secs:   kani::any(),
+                window_secs: kani::any(),
                 max_in_window: kani::any(),
             },
             counterparty: CounterpartyState {
-                gate_mode:                 kani::any(),
-                min_tier:                  kani::any(),
-                max_risk_score:            kani::any(),
-                min_confidence:            kani::any(),
+                gate_mode: kani::any(),
+                min_tier: kani::any(),
+                max_risk_score: kani::any(),
+                min_confidence: kani::any(),
                 default_unrated_treatment: kani::any(),
             },
             require_validation: RequireValidationState {
                 required_capability_hash: [0u8; 32],
-                accepted_attestors:       [Pubkey::default(); 2],
+                accepted_attestors: [Pubkey::default(); 2],
             },
         },
         ledger: VelocityLedgerSnapshot {
-            cumulative_amount:  kani::any(),
-            window_start_slot:  kani::any(),
+            cumulative_amount: kani::any(),
+            window_start_slot: kani::any(),
         },
-        killswitch: KillSwitchSnapshot { paused: kani::any() },
+        killswitch: KillSwitchSnapshot {
+            paused: kani::any(),
+        },
         payer_atom: None,
         payee_atom: None,
         attestation: None,
@@ -155,8 +159,8 @@ fn gate_decision_is_one_of_three_disjoint_variants() {
 
     let result = compose_decision(input);
 
-    let is_allow         = matches!(result.decision, GateDecision::Allow);
-    let is_deny          = matches!(result.decision, GateDecision::Deny(_));
+    let is_allow = matches!(result.decision, GateDecision::Allow);
+    let is_deny = matches!(result.decision, GateDecision::Deny(_));
     let is_requires_attn = matches!(result.decision, GateDecision::RequireValidation(_));
 
     // Exactly one variant — totality + disjointness in one assertion.

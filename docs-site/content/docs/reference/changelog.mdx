@@ -1,19 +1,236 @@
 ---
 title: Changelog
-description: Documentation-facing release notes for the Frontier build.
+description: Release notes for @agenttrust-sdk/trustgate and @agenttrust-sdk/mcp — auto-generated from each package's CHANGELOG.md.
 ---
 
-`In progress`
+The published packages keep their own `CHANGELOG.md` (Keep-a-Changelog format) under [`trustgate/sdk/`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/CHANGELOG.md) and [`mcp/`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/CHANGELOG.md). This page is built from those files at lint time so the docs never drift.
 
-| Date | Change |
-| --- | --- |
-| 2026-05-06 | Pay.sh adapter layer documented with SERVICE-signed challenges and proof validation. |
-| 2026-05-06 | `examples/pay-sh-demo` added as the Pay.sh + AgentTrust x402 walkthrough. |
-| 2026-05-06 | FacilitatorAdapter contract added for Pay.sh today and Dexter / atxp_ai / MCPay roadmap adapters. |
-| 2026-05-06 | Atomic settlement narrative updated: policy check, SPL transfer, and feedback stay tied to one settlement path. |
-| 2026-05-02 | PolicyVault composer and all five policies completed. |
-| 2026-05-02 | Five Kani invariants proved green in CI. |
-| 2026-05-02 | TrustGate Anchor program and Express x402 service shipped. |
-| 2026-05-02 | `@agenttrust-sdk/trustgate@0.1.0` published. |
+Phase reports (Phase F → Phase Q) live separately under [`docs/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/docs/proofs); the [Live evidence](/verification/live-evidence) page indexes them.
 
-Source: [`execution.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/execution.md)
+{/* BEGIN AUTO-GEN: changelog */}
+
+> Auto-generated from upstream package `CHANGELOG.md` files at build time.
+> If you spot drift, the `mcp/` and `trustgate/sdk/` sources are authoritative.
+
+## @agenttrust-sdk/trustgate
+
+Source of truth: [`trustgate/sdk/CHANGELOG.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/CHANGELOG.md).
+
+### [Unreleased]
+
+### [0.2.0] — 2026-05-07
+
+Tag: [`sdk-v0.2.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/sdk-v0.2.0)
+· Commit: `00ca222`
+
+#### Changed (breaking)
+
+- `ProgramIds.trustgate` renamed to `ProgramIds.trustGate` (camelCase,
+  matches `policyVault`). Same value (the deployed-devnet trustgate
+  program ID) — only the field name changed. One-line consumer
+  migration: `.trustgate` → `.trustGate`.
+
+#### Added
+
+- `ProgramIds.validationRegistry` — populated by default with the
+  deployed-devnet validation-registry program ID
+  `Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv`. Previously consumers
+  had to import `VALIDATION_REGISTRY_DEVNET_ID` separately; that import
+  still works but `DEFAULT_DEVNET_PROGRAM_IDS.validationRegistry` is the
+  preferred entry point.
+
+### [0.1.1] — 2026-05-04
+
+Tag: [`sdk-v0.1.1`](https://github.com/agenttrust-labs/agenttrust/releases/tag/sdk-v0.1.1)
+· Commit: `64fe14d`
+
+#### Changed
+
+- Metadata refresh after the org rebrand to
+  [`agenttrust-labs`](https://github.com/agenttrust-labs). `homepage`,
+  `repository`, and `bugs` URLs now point at the new repo. No code
+  changes.
+
+### [0.1.0] — 2026-05-02
+
+Tag: [`sdk-v0.1.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/sdk-v0.1.0)
+· Commit: `29f9961`
+
+#### Added
+
+- Initial publish of the TrustGate SDK as a drop-in middleware for x402
+  facilitators on Solana.
+- Express middleware: `mountTrustGate(app, …)` adds `POST /verify`,
+  `POST /settle`, `POST /dispute`, `GET /receipt/:hash`.
+- Client helpers: `gatePayment`, `settle`, `dispute`.
+- Atomic-tx invariant: `AtomicityEnforced` literal-true marker +
+  `assertAtomicityEnforced` runtime guard + `composeAtomicSettleTx`
+  that bundles `gate_payment_strict + SPL transferChecked +
+  emit_feedback` into one Solana transaction.
+- ValidationRegistry surface: `register_namespace` / `register_attestor`
+  / `request_validation` / `respond_to_validation` / `revoke_validation`
+  instruction builders + PDA derivers + read fetchers.
+- PolicyVault surface: `simulateGatePayment`, `parseGateDecision`, all
+  PDA derivers (`derivePolicyPda`, `deriveVelocityPda`,
+  `deriveKillSwitchPda`, `deriveFeedbackLogPda`,
+  `deriveTrustGateAuthorityPda`).
+- Quantu helpers: `deriveAgentAccountPda`, `deriveAtomStatsPda`,
+  `deriveQuantuFeedbackAccounts`, `DEFAULT_DEVNET_QUANTU_IDS`,
+  `MAINNET_QUANTU_IDS`.
+- Production factories: `makeValidateOnChainTx`, `makeEmitFeedbackCpi`,
+  `makePriorEmissionLookup`.
+
+## @agenttrust-sdk/mcp
+
+Source of truth: [`mcp/CHANGELOG.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/CHANGELOG.md).
+
+### [Unreleased]
+
+#### Planned
+
+- `agenttrust_lookup_feedback_by_tx({ tx_signature })` — resolve a Solana
+  transaction signature to its `emit_feedback` payment_id_hash by parsing
+  the tx's inner instructions. Useful when an integrator has the settle
+  signature but not the digest. Targeted for v0.3.0.
+
+### [0.2.6] — 2026-05-08
+
+Tag: `mcp-v0.2.6` · Phase Q1 — fixes the only data-correctness bug Phase P uncovered. The MCP catalog now produces correct on-chain values for every tool that returns data.
+
+#### Fixed
+
+- `agenttrust_get_quantu_reputation` was reading Quantu `AtomStats` at fabricated byte offsets (`40 / 41 / 49 / 50 / 51`) and returning bogus values — Phase P E2E showed `tier: 164` for an actually-tier-0 agent, plus a u64-max-ish `feedbackCount` that was junk re-interpretation of the asset-pubkey region. The PDA address, owner, and account size were correct; only the field decoding was wrong.
+
+  0.2.6 mirrors the canonical offsets from `programs/policy-vault/src/ext/atom_engine.rs` verbatim:
+
+  | offset | width | field            |
+  |-------:|------:|------------------|
+  |    549 |   u8  | `risk_score`     |
+  |    551 |   u8  | `tier_immediate` |
+  |    555 |   u8  | `tier_confirmed` |
+  |    557 |   u16 LE | `confidence`  |
+  |    560 |   u8  | `schema_version` (canary, must equal 1) |
+
+  Adds the schema-version canary at byte 560 and the `tier ≤ ATOM_TIER_MAX = 4` range check the on-chain parser uses, so a future Quantu layout change fails loud rather than silently emitting garbage.
+
+#### Changed (breaking, response shape)
+
+- `agenttrust_get_quantu_reputation` response `reputation` block now contains:
+  - `tierImmediate` (number, 0..=4) — v1 fast-path tier; what `CounterpartyTier` reads in v1 demo mode
+  - `tierConfirmed` (number, 0..=4) — post-vesting tier; production policies prefer this
+  - `riskScore` (number, 0..=255 — lower is better)
+  - `confidence` (number, 0..=10_000 basis points)
+  - `schemaVersion` (number, always 1 in v1)
+- Removed `feedbackCount` and `averageScore` — those fields were not in the canonical `AtomStats` struct; values were nonsense reinterpretations of unrelated bytes.
+- Added an `error` field on the top-level response when the schema-version canary or size check fails — populated in place of `reputation`.
+
+#### Tests
+
+- `mcp/test/tools/read/get-quantu-reputation.test.ts` now asserts the canonical offsets match the on-chain Rust source exactly, plus 8 byte-level decode cases (zero-state, populated state, undersized buffer, schema-version mismatch, tier overflow on both fields, boundary case at `ATOM_TIER_MAX`, u16-LE confidence reads in the correct byte order).
+
+### [0.2.5] — 2026-05-08
+
+Tag: `mcp-v0.2.5` · Phase O — description copy polish surfaced by the Phase N+ real-user UX pass.
+
+#### Changed
+
+- Tool descriptions no longer reference internal repo paths. `agenttrust_demo_state`, `agenttrust_docs`, and `agenttrust_emit_feedback`'s `base_collection` arg now read as standalone product copy without `examples/pay-sh-demo/...` / `docs-site/content/docs/...` leaks. Resource `name` fields under `agenttrust://examples/*` use human-readable labels ("pay-sh-demo README" instead of `examples/pay-sh-demo/README.md`).
+- `agenttrust_emit_feedback.base_collection` description now points production integrators at their Quantu agent-registry collection address (the value passed to `agent_registry::register_agent`), not just at demo state.
+- `agenttrust_demo_state` error message — when the bundled snapshot is unreachable — drops the internal path and explains that the published package bundles it; only mentions `PAY_SH_DEMO_STATE_FILE` as the override hook.
+
+No behaviour changes; tools/list output cleaner for Claude Desktop / Cursor / any LLM doing tool-routing from natural-language questions.
+
+### [0.2.4] — 2026-05-07
+
+Tag: `mcp-v0.2.4` · UX-pass fix: real-user audit found `agenttrust_get_validation_attestation` requires a 64-char hex `capability_hash` while its sibling `agenttrust_request_validation` accepts the friendly `capability_name`. Real users / LLMs typically have the human-readable capability name; requiring the digest was a Claude-Desktop-level friction point.
+
+#### Added
+
+- `agenttrust_get_validation_attestation` now accepts either `capability_name` (preferred — the SDK computes SHA256(name)) or `capability_hash`. At least one is required; `capability_name` wins when both are passed. Mirrors the existing `agenttrust_request_validation` ergonomics.
+
+### [0.2.3] — 2026-05-07
+
+Tag: `mcp-v0.2.3` · Path-resolution fix follow-up to 0.2.2.
+
+#### Fixed
+
+- 0.2.2 bundled the embedded-docs / embedded-examples assets correctly but the consumer `path.resolve(__dirname, "…")` had an off-by-one — `dist/tools/discovery/__dirname + "../../../embedded-docs"` resolved to `<package-root>/embedded-docs`, missing the `dist/` segment. Files were in the tarball but the loaders couldn't find them. Three relative paths corrected (discovery/docs.ts, discovery/facilitator-walkthrough.ts, resources/docs.ts). Fresh `npx` install now returns full corpus + walkthrough content.
+
+### [0.2.2] — 2026-05-07
+
+Tag: `mcp-v0.2.2` · Phase N — Phase M E2E surfaced three bugs; this release closes all three plus the SERVER_VERSION fix that landed in 0.2.1.
+
+#### Fixed
+
+- `agenttrust_demo_state` no longer reports `available: false` on a fresh `npx` install. The build script now bundles the live devnet JSON snapshots (counterparties, demo-policies, smoke, attestor-trace, namespaces, chained-validation) into `dist/embedded-data/`. The tool prefers the bundled path; a local clone still wins the source-of-truth `examples/.../...json` lookup. (Phase M Bug #2)
+- `agenttrust_docs` now returns ranked hits from the full MDX corpus (27 pages) on `npx` installs. The build script materialises `docs-site/content/docs/**/*.mdx` into `dist/embedded-docs/`; the doc loader prefers that directory and falls back to the live tree on a local clone. The `agenttrust://docs/*` resource scheme works the same way. (Phase M Bug #3)
+- `agenttrust_facilitator_walkthrough` reads its source MDX + the trustgate facilitators README from `dist/embedded-docs/` first; no more "no walkthrough bundled" responses. (Phase M Bug #3)
+- The `agenttrust://examples/*` resource scheme now reads from `dist/embedded-examples/` (READMEs + `src/*.ts` for both pay-sh-demo and attestor-demo). (Phase M Bug #3)
+- HTTP transport now spins up one `Server` + `StreamableHTTPServerTransport` pair per `Mcp-Session-Id` instead of a singleton. Concurrent clients no longer interfere; second `initialize` no longer errors `-32600 Server already initialized`. Idle sessions evict after 30 minutes. (Phase M Bug #4)
+
+#### Changed
+
+- Build pipeline: `pnpm --filter ./mcp run build` now runs `tsc && node scripts/copy-embedded-assets.js`. The copy script prints a per-bucket count summary so regressions in the bundled set are visible at build time.
+
+#### Note
+
+The bundled `dist/embedded-docs/` is a **publish-time snapshot**. The live docs at `docs.agenttrust.tech` evolve independently — clients that need fresh docs should set `MCP_DOCS_DIR` to a checkout's `docs-site/content/docs/` directory, or use the hosted MCP at `mcp.agenttrust.tech` (redeployed on every `main` push).
+
+### [0.2.1] — 2026-05-07
+
+Tag: `mcp-v0.2.1` · `simulate_payment` clearer error when no caller / KEYPAIR_B58 set.
+
+#### Fixed
+
+- `agenttrust_simulate_payment` returns an actionable error ("requires a funded fee-payer on devnet — pass `caller` or set `KEYPAIR_B58`") instead of cryptic `AccountNotFound` when neither input is provided. Phase M E2E driver verified the fix via stdio + HTTP.
+- `serverInfo.version` now reads from `package.json` so MCP clients see the same version as `npm view`. Previously hardcoded to `0.1.0` — drifted across 0.1.0 → 0.2.0 → 0.2.1.
+
+### [0.2.0] — 2026-05-07
+
+Tag: [`mcp-v0.2.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/mcp-v0.2.0)
+· Commit: `00ca222`
+
+#### Changed
+
+- Re-pinned the `@agenttrust-sdk/trustgate` dep from `workspace:*` to
+  `workspace:^`, so the published tarball ranges to `^0.2.0` (matches
+  the SDK's own 0.2.0 bump). MCP code itself swept to the renamed
+  `programs.trustGate` field + the new `programs.validationRegistry`
+  field that the SDK 0.2.0 release added.
+- `AgentTrustConfig.validationRegistryId` (top-level field) folded into
+  `AgentTrustConfig.programs.validationRegistry` — single source of
+  truth, matches the SDK's `ProgramIds` shape. The
+  `VALIDATION_REGISTRY_PROGRAM_ID` env override is unchanged.
+
+No new tools, no protocol-conformance changes — every MCP tool surface
+behaves identically to 0.1.0. 76 unit tests + 21 protocol-conformance
+checks still green.
+
+### [0.1.0] — 2026-05-04
+
+Tag: [`mcp-v0.1.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/mcp-v0.1.0)
+· Commit: `66d4f04`
+
+#### Added
+
+- Initial publish of the AgentTrust MCP server. 18 tools across three
+  categories:
+  - **Read** (10): `get_policy`, `get_velocity_ledger`, `get_killswitch`,
+    `get_authority`, `get_feedback_log`, `get_capability_namespace`,
+    `get_attestor_profile`, `get_validation_request`,
+    `get_validation_attestation`, `simulate_gate_payment`.
+  - **Write** (5): `init_authority`, `init_killswitch`, `set_killswitch`,
+    `request_validation`, `respond_to_validation`, `emit_feedback`.
+  - **Discovery** (3): `list_facilitators`, `health`, plus an MCP
+    resource at `agenttrust://programs` exposing program IDs and
+    explorer URLs.
+- Two transports: stdio (default; `npx -y @agenttrust-sdk/mcp`) and
+  HTTP (`MCP_TRANSPORT=http MCP_HTTP_PORT=8765`).
+- Bundled IDLs for `policy_vault`, `trustgate`, `validation_registry`
+  so the server boots against a freshly-redeployed program before
+  `anchor idl init` lands.
+- Optional signer via `KEYPAIR_B58` for write tools; read tools work
+  with no env beyond defaults.
+- Network selection via `NETWORK=solana-devnet | solana-mainnet`.
+
+{/* END AUTO-GEN: changelog */}
