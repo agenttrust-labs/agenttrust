@@ -50,6 +50,14 @@ exclude = [
   # against fresh deploys when new MDX pages haven't propagated yet;
   # the docs-site headless sweep is the authoritative check for these.
   "^https?://docs\\.agenttrust\\.tech",
+  # Hosted-service roots return 404 because each service only serves
+  # its own routes (`api.agenttrust.tech/healthz`,
+  # `demo.agenttrust.tech/protected`, etc.). The MDX cites the host
+  # as a label (read: 'this is where the service lives'), not as a
+  # destination. Their healthz paths are validated separately by the
+  # daily-devnet-smoke + hosted-surface-check workflows.
+  "^https?://(api|demo)\\.agenttrust\\.tech/?$",
+  "^https?://agenttrust-(api|demo|mcp)\\.fly\\.dev/?$",
 ]
 
 # Don't follow links inside fenced code blocks — they're usually
