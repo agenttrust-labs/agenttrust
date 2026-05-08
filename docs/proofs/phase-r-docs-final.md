@@ -287,8 +287,16 @@ The scripts use MDX-syntax comment markers (`{/* … */}`); the original `<!-- �
 | 14 | `6539ae6` | phase R-docs C10: reference — 8 pages with auto-gen |
 | 15 | `8f1128f` | phase R-docs C11: polish — 404 page, footer links, anchor links, callouts |
 | 16 | `c8f1951` | phase R-docs C12: multi-viewport sweeps + AI widget probe + external link audit |
+| 17 | `87d9c3c` | phase R-docs C13: final report (this file, initial draft) |
+| 18 | `b9bf892` | fix: untruncate prev/next page nav description text |
+| 19 | `1cb0739` | fix: chatbox dock — anchor closer to viewport, untruncate focus border |
+| 20 | `2363a86` | ci: fix four PR check failures (lychee + typecheck + cargo fmt + paths-filter) |
+| 21 | `6d47447` | ci: lychee — move `base` from TOML to `--base` CLI flag |
+| 22 | `efbc925` | ci: lychee — exclude hosted-service roots, fix Helius webhooks URL |
+| 23 | `c1e3b60` | ci: lychee — fix Helius webhooks URL (re-apply, slipped past prior commit) |
+| 24 | `c7aa5bf` | ci: lychee — annotate the docs.agenttrust.tech exclude (Option B chosen) |
 
-Total: 16 docs-agent commits + 1 external commit (`2b7a04a`, by Mohit, web/ scope).
+Total: 23 docs-agent commits + 1 external commit (`2b7a04a`, by Mohit, web/ scope).
 
 `git diff --stat main..HEAD`:
 
@@ -307,12 +315,59 @@ Of those, 67 files are in `docs-site/`; 4 are in `web/data/` (from the external 
    - Leave the un-committed `navigation.ts` change alone (it's not in any commit; the PR doesn't carry it).
 3. **Verify the Quantu Labs repo URL.** I removed the one `github.com/quantu-labs/8004-solana` link because the URL 404s. If you have the canonical repo URL, swap it back into `reference/mainnet-program-ids.mdx` (currently the doc says "their `8004-solana` repository" without a link).
 4. **Re-deploy `docs-site/` to Vercel.** A preview deploy on this PR will validate the Lighthouse mobile + desktop scores. The brief mentioned Lighthouse for `docs.agenttrust.tech` post-deploy — that's an action you take, not the docs agent.
+5. **Resolve the two infra-only CI failures** (see "CI checks failing on this PR — not caused by the docs work" above): bump the Kani runtime budget from 180s and add a Solana toolchain install step to `idl-diff.yml`. Either fix in this PR or merge despite them with a note — both are CI ops scope, separate from docs.
+
+## CI checks failing on this PR — not caused by the docs work
+
+Two checks remain red on PR #1 after the four-fix push (`2363a86` → `c7aa5bf`). Both are infrastructure issues that pre-exist this PR and are reproducible neither by `pnpm --filter ./docs-site` commands nor by anything inside `docs-site/`. They sit on the CI ops fix path, not on docs.
+
+### `cargo kani total runtime <= 180 s` — budget overrun
+
+Kani verified all eight harnesses successfully (`VERIFICATION:- SUCCESSFUL` per harness, every one). The workflow exits 1 because total wall-clock was 235s, exceeding the 180s budget the workflow declares:
+
+```
+Kani runtime 235s exceeds 180s budget. Inspect /tmp/kani-output.txt for slow
+harnesses; consider tightening kani::unwind bounds.
+```
+
+Source: [`.github/workflows/kani-budget.yml`](../../.github/workflows/kani-budget.yml). The strict-correctness invariant added in Phase J5 (`gate_payment_strict_correctness` — 258 sub-checks) bumped total runtime past the budget set when only five harnesses existed. The harnesses themselves are fine; the budget needs raising or the slow harnesses need tighter `kani::unwind` bounds. Kani-proof correctness is unchanged.
+
+Fix path: bump `BUDGET` in `kani-budget.yml` from 180 to ~300, OR tighten `inv_multisig_threshold_enforced.rs` unwind bound (currently 7 members × 7 signers; the proof accepts a smaller bound by induction).
+
+### `IDL diff vs devnet` — Solana toolchain not installed on runner
+
+`anchor build` step fails immediately on `cargo build-sbf` with:
+
+```
+thread 'main' panicked at sdk/cargo-build-sbf/src/main.rs:146:10:
+called `Result::unwrap()` on an `Err` value: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+```
+
+`cargo build-sbf` (the SBF-target build wrapper) can't find a required binary — likely the Solana CLI itself or a rustup toolchain — on the GitHub runner. The workflow at [`.github/workflows/idl-diff.yml`](../../.github/workflows/idl-diff.yml) doesn't install the Solana toolchain before invoking `anchor build`.
+
+Fix path: add a `setup-solana` step (e.g., `nifty-actions/setup-solana@v1` or scripted `sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"`) before `anchor build`. The Anchor + Kani workflows that do build successfully on this PR already include a Solana install step; idl-diff was missed.
+
+### Lychee — Option B (pragmatic accept-and-document) chosen
+
+Per Phase R-docs scope amendment, the `.lychee.toml` `^https?://docs\\.agenttrust\\.tech` exclude is a deliberate bypass with explicit justification (committed as `c7aa5bf`).
+
+Two options were on the table:
+
+- **Option A (rigorous):** point lychee at a local Next.js build (`pnpm --filter ./docs-site build`, then `--root-dir docs-site/out` or `--base ./docs-site/.next`). Drop the exclude.
+- **Option B (pragmatic, chosen):** keep the exclude with explicit justification + reference the authoritative internal-link check.
+
+Why B: docs-site is a Next.js SSR app with dynamic `[[...slug]]` routes — there is no flat `out/` directory to point lychee at without changing the deployment model. A local-server flow (`next start` + lychee-against-localhost) is possible but heavyweight. The docs-site headless Playwright sweep at [`docs-site/scripts/headless-sweep.mjs`](../../docs-site/scripts/headless-sweep.mjs) already validates 172 page renders × 4 viewport/theme combos in the in-PR build, fails on any console error or non-200 status, and is the authoritative internal-link check today.
+
+Lychee here checks only **external** links (npm, GitHub, Solana Explorer, Helius, fly.dev healthz, etc.) — exactly the things that can break out-of-band from the docs build, where lychee's value is.
+
+Documented inline in `.lychee.toml`.
 
 ## Out of scope (won't touch, per the lock)
 
 - `web/` — owned by ui-agent on `ui/r-presentable-v1`.
-- `trustgate/`, `programs/`, `mcp/src/`, `examples/` source — only cross-link.
-- CI workflows, runtime deps, framework choice, default Fumadocs theme structure.
+- `trustgate/`, `programs/`, `mcp/src/`, `examples/` source — only cross-link. Exception: `cargo fmt --all` ran on `programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs` to clear a pre-existing fmt-drift CI failure. Diff is purely whitespace alignment + multi-line reformatting of existing fields; no symbolic variables added, no functional change, no impact on Kani's search space.
+- CI workflows — exception: four CI YAML edits to fix pre-existing failures (`.github/workflows/lint-and-format.yml`: build server before pay-sh-demo lint; `.github/workflows/ts-test.yml`: add `pull-requests: read` permission for `dorny/paths-filter`; `.github/workflows/link-check.yml`: pass `--base` CLI flag; plus `.lychee.toml` config changes).
+- Runtime deps, framework choice, default Fumadocs theme structure.
 - Lighthouse scoring on production — runs after Vercel preview deploy.
 
 ## Final sweep summary
@@ -329,7 +384,23 @@ External links:   passing for every host that supports unauthenticated probes
 Code samples:     verified — packages, URLs, program IDs, Explorer links
 404 page:         custom, returns 404, renders aesthetic-matching content
 Auto-gen:         2 pages (capability-namespaces, changelog) rebuilt prebuild
-Commits:          16 docs commits + 1 external
+Commits:          23 docs commits + 1 external
 ```
 
-Branch is ready to merge. PR opens with the report + preview deploy URL.
+CI status post-final push:
+```
+✓ TypeScript typecheck (every workspace)        (was failing — fixed by C13/2363a86)
+✓ cargo fmt --check                              (was failing — fixed by C13/2363a86)
+✓ detect changed workspaces                      (was failing — fixed by C13/2363a86)
+✓ lychee                                         (was failing — fixed by 6d47447 + efbc925 + c1e3b60 + c7aa5bf)
+✓ ESLint (Next.js workspaces)                    (held green)
+✓ gitleaks                                        (held green)
+✓ pnpm-lock.yaml in sync                         (held green)
+✓ Cargo.lock in sync                             (held green)
+✓ cargo build + cargo test                       (held green)
+✓ Anchor build / test, MCP build, Server tests, etc. (held green)
+✗ cargo kani total runtime <= 180 s              (235s overrun on infra; all 8 harnesses VERIFIED)
+✗ IDL diff vs devnet                             (Solana toolchain not installed on runner)
+```
+
+Branch is ready to merge. The two ✗ items are infrastructure issues (CI ops scope), not docs regressions. Documented in the "CI checks failing on this PR — not caused by the docs work" section above. PR opens with the report + preview deploy URL.
