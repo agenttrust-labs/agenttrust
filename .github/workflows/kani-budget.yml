@@ -1,14 +1,16 @@
 name: Kani proof budget
 
 # Catches a proof regression that would balloon the formal-
-# verification runtime without anyone noticing locally. Today's run
-# is ~95 s on a fast local arm64 host (Phase F2.6 measured ~78 s on
-# CI, but caching state varies). We set the budget at 180 s — ~90%
-# headroom over the 95 s baseline, generous enough to absorb CI
-# cold-cache variance, tight enough to catch a 2x runtime
-# regression. If the budget gets tripped, the team has to either
-# rein in the proof complexity, narrow a kani::unwind bound, or
-# revisit the budget itself with a paired comment update.
+# verification runtime without anyone noticing locally. Phase J5 grew
+# the harness set from 6 (5 invariants + smoke) to 8 (added
+# strict_returns_ok_iff_allow + gate_decision_is_one_of_three_disjoint_variants).
+# Cold-cache CI now lands at ~195 s on x86_64 ubuntu-24.04; the
+# threshold sits at 300 s — ~55% headroom, generous enough to absorb
+# normal cold-cache variance and a future 1 or 2 invariant additions,
+# tight enough to catch a real 2x regression. If the budget gets
+# tripped, the team has to either rein in the proof complexity,
+# narrow a kani::unwind bound, or revisit the budget itself with a
+# paired comment update.
 #
 # Wall-clock is the right signal here: it captures the symbolic-
 # search blow-up (CBMC's solver loops) that's the actual failure
@@ -112,12 +114,14 @@ jobs:
             exit 1
           fi
 
-          # Threshold rationale: current ~95 s on local arm64; CI's
-          # x86_64 cold-cache historically lands at ~78 s. 180 s gives
-          # ~90% headroom — catches a 2x regression without flapping
-          # on normal CI variance. Bump only with a paired update to
-          # the workflow YAML's top comment + commit explanation.
-          BUDGET=180
+          # Threshold rationale: ~95 s on local arm64; CI's x86_64
+          # cold-cache lands at ~195 s post-Phase J5 (8 harnesses, +2
+          # strict-correctness proofs). 300 s gives ~55% headroom over
+          # the 195 s baseline — catches a 2x regression without
+          # flapping on normal CI variance + future 1-2 invariant
+          # additions. Bump only with a paired update to the workflow
+          # YAML's top comment + commit explanation.
+          BUDGET=300
           if [ "$elapsed" -gt "$BUDGET" ]; then
             echo "::error file=programs/policy-vault/src/proofs/mod.rs::Kani runtime ${elapsed}s exceeds ${BUDGET}s budget. Inspect /tmp/kani-output.txt for slow harnesses; consider tightening kani::unwind bounds."
             tail -60 /tmp/kani-output.txt
