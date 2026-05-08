@@ -25,6 +25,13 @@ accept = [200, 201, 204, 301, 302, 304, 308, 403]
 # User-agent — some sites (notably GitHub) 403 default crawler UAs.
 user_agent = "lychee/agenttrust-link-check"
 
+# Base for root-relative MDX links inside docs-site (e.g.
+# `/architecture`, `/programs/policy-vault`). Without this, lychee
+# fails to build URLs from those paths. The `base` is also matched by
+# the exclude rule below so lychee doesn't actually fetch the live
+# site (the docs-site headless sweep validates internal routing).
+base = "https://docs.agenttrust.tech"
+
 # Allowlist: regex patterns for URLs we never validate. These are
 # legitimately not crawl-friendly.
 exclude = [
@@ -40,6 +47,10 @@ exclude = [
   "^https?://github\\.com/agenttrust-labs/agenttrust(/|$)",
   # Vercel preview URLs (rotate per deploy; not stable).
   "vercel\\.app/?$",
+  # Internal docs links resolved via `base` above. Lychee would race
+  # against fresh deploys when new MDX pages haven't propagated yet;
+  # the docs-site headless sweep is the authoritative check for these.
+  "^https?://docs\\.agenttrust\\.tech",
 ]
 
 # Don't follow links inside fenced code blocks — they're usually

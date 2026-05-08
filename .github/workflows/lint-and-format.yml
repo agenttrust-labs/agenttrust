@@ -53,6 +53,12 @@ jobs:
       # consumers `import` from compiled .d.ts files).
       - run: pnpm --filter ./trustgate/sdk run build
 
+      # Build the server workspace next — examples/pay-sh-demo imports
+      # types from `@agenttrust/trustgate-server` (workspace:*) and its
+      # tsc --noEmit fails to resolve those types unless the dist
+      # artefacts exist.
+      - run: pnpm --filter ./trustgate/server run build
+
       # Run lint per workspace. The shape lets a single failing
       # workspace surface clearly in the run summary.
       - run: pnpm --filter ./trustgate/sdk    run lint
