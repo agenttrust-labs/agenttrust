@@ -46,9 +46,25 @@ exclude = [
   "^https?://github\\.com/agenttrust-labs/agenttrust(/|$)",
   # Vercel preview URLs (rotate per deploy; not stable).
   "vercel\\.app/?$",
-  # Internal docs links resolved via `base` above. Lychee would race
-  # against fresh deploys when new MDX pages haven't propagated yet;
-  # the docs-site headless sweep is the authoritative check for these.
+  # Internal docs links — explicit bypass (Option B per Phase R-docs
+  # final report). Lychee resolves root-relative MDX links via the
+  # `--base https://docs.agenttrust.tech` CLI flag (set in
+  # `.github/workflows/link-check.yml`); excluding the same host here
+  # means lychee builds the URL but skips the actual fetch.
+  #
+  # Rationale: lychee fetched against the live host would race against
+  # fresh deploys (a PR adding /verification/foo would 404 until merge
+  # + Vercel rebuild). The authoritative check for internal docs links
+  # is the docs-site headless Playwright sweep at
+  # `docs-site/scripts/headless-sweep.mjs`, which renders every MDX
+  # page in the in-PR build at four viewport/theme combos (172 page
+  # renders) and fails on any console error or non-200 status. It is
+  # what catches broken internal links during the docs build, not
+  # this lychee step.
+  #
+  # The trade-off is explicit: lychee here checks only EXTERNAL links
+  # (npm, GitHub, Solana Explorer, Helius, fly.dev healthz, etc.) —
+  # the things that can break out-of-band from the docs build.
   "^https?://docs\\.agenttrust\\.tech",
   # Hosted-service roots return 404 because each service only serves
   # its own routes (`api.agenttrust.tech/healthz`,
