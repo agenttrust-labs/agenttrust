@@ -17,23 +17,24 @@ export const HERO_FOUNDATION_LINE =
 
 export const HERO_HEADLINE_LINES: readonly (readonly HeadlineWord[])[] = [
   [
-    { text: "Smart" },
-    { text: "contracts" },
-    { text: "held up." },
+    { text: "The" },
+    { text: "trust", isEmphasized: true },
+    { text: "layer" },
   ],
   [
-    { text: "The" },
-    { text: "human-trust" },
-    { text: "layer" },
-    { text: "didn't.", isEmphasized: true },
+    { text: "for" },
+    { text: "AI-agent" },
+    { text: "payments" },
+    { text: "on" },
+    { text: "Solana." },
   ],
 ];
 
 export const HERO_HEADLINE =
-  "Smart contracts held up. The human-trust layer didn't.";
+  "The trust layer for AI-agent payments on Solana.";
 
 export const HERO_BODY =
-  "AgentTrust gates AI-agent payments by counterparty trust — completing Solana's ERC-8004 stack with day-one Pay.sh integration.";
+  "AgentTrust completes Solana's ERC-8004 trust stack — three Anchor programs that gate every payment by counterparty identity, reputation, and capability validation. Drop-in for Pay.sh and the next x402 facilitator.";
 
 export const HERO_ACTIONS: readonly HeroAction[] = [
   {
