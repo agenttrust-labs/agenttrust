@@ -13,25 +13,27 @@ export interface HeroAction {
 }
 
 export const HERO_FOUNDATION_LINE =
-  "Live on Solana devnet - identity, policy, and feedback checks before settlement.";
+  "Live on Solana devnet · 6 / 6 Kani proofs · 635 sub-checks";
 
 export const HERO_HEADLINE_LINES: readonly (readonly HeadlineWord[])[] = [
   [
-    { text: "Trust" },
-    { text: "AI-agent" },
-    { text: "payments" },
+    { text: "Smart" },
+    { text: "contracts" },
+    { text: "held up." },
   ],
   [
-    { text: "before", isEmphasized: true },
-    { text: "settlement." },
+    { text: "The" },
+    { text: "human-trust" },
+    { text: "layer" },
+    { text: "didn't.", isEmphasized: true },
   ],
 ];
 
 export const HERO_HEADLINE =
-  "Trust AI-agent payments before settlement.";
+  "Smart contracts held up. The human-trust layer didn't.";
 
 export const HERO_BODY =
-  "AgentTrust ties payment decisions to identity, reputation, and policy. Pay.sh proves the first live x402 route; the same trust path can follow the next facilitator.";
+  "AgentTrust gates AI-agent payments by counterparty trust — completing Solana's ERC-8004 stack with day-one Pay.sh integration.";
 
 export const HERO_ACTIONS: readonly HeroAction[] = [
   {
