@@ -2,11 +2,12 @@
   "title": "PolicyVault",
   "pages": [
     "index",
+    "composer",
+    "kill-switch-policy",
     "spending-policy",
-    "counterparty-tier-policy",
     "velocity-policy",
-    "require-validation-policy",
-    "kill-switch-policy"
+    "counterparty-tier-policy",
+    "require-validation-policy"
   ],
   "defaultOpen": true
 }

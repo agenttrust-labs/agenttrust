@@ -1,0 +1,8 @@
+---
+title: Composer
+description: The pure-Rust orchestration that ties the five policy kinds together with fail-fast semantics.
+---
+
+`compose_decision` is the single function that returns the gate's `Allow` / `Deny(reason)` / `RequireValidation(hash)` verdict. Every Anchor handler is a thin wrapper around it.
+
+(Populated in C4 — placeholder during scaffold.)
