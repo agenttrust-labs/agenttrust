@@ -194,6 +194,6 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
 ];
 
 export const PRIMARY_NAV_CTA: NavigationCta = {
-  label: "Read Docs",
+  label: "Read the Documentation",
   href: PUBLIC_LINKS.docs,
 };
