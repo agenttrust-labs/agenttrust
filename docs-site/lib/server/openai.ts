@@ -3,7 +3,7 @@ import 'server-only';
 import { createOpenAI } from '@ai-sdk/openai';
 import type { LanguageModel } from 'ai';
 
-export const ASK_AI_MODEL = 'gpt-4o-mini';
+export const ASK_AI_MODEL = 'gpt-4.1-mini';
 
 export interface OpenAIProvider {
   chatModel(modelId?: string): LanguageModel;

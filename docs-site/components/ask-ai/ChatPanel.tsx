@@ -153,13 +153,18 @@ export default function ChatPanel({
         </div>
       </header>
 
-      <div className={styles.panelBody}>
+      <div className={styles.panelBody} data-chat-scroller="true">
         {messages.length === 0 ? (
           <div className={styles.empty}>
             <p>Responses are generated using AI and may contain mistakes.</p>
           </div>
         ) : (
-          <MessageList isBusy={isBusy} messages={messages} onRegenerate={handleRegenerate} />
+          <MessageList
+            isBusy={isBusy}
+            messages={messages}
+            onRegenerate={handleRegenerate}
+            status={status}
+          />
         )}
         {error ? <p className={styles.error}>{error.message}</p> : null}
       </div>
