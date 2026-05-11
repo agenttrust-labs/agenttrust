@@ -62,6 +62,7 @@ Same 4-sig output is captured in `examples/attestor-demo/devnet-chained-validati
 |---|---|---|
 | MCP npm package | https://www.npmjs.com/package/@agenttrust-sdk/mcp | scoped public npm package — `npx @agenttrust-sdk/mcp` for stdio installs (Claude Desktop / Cursor). Tarball verified via dry-run; awaits operator publish. |
 | Status page | https://status.agenttrust.tech | Next.js workspace at `status-page/` — server-rendered + client-refreshed every 30s, polls 6 surfaces. Builds clean locally; awaits operator `vercel --prod` from `status-page/`. |
+| Live decisions (subdomain) | https://live.agenttrust.tech | Standalone Next.js workspace at `live-app/` — premium subdomain mirror of the `/decisions` route on the main site. Same client-side devnet polling, no backend. Roadmap until operator runs `vercel link && vercel --prod` from `live-app/` and points the `live` CNAME at the new Vercel project. The mirror at `agenttrust.tech/decisions` stays live. |
 
 When a Roadmap surface goes live, move it to the Live table + open a UI integration pass that surfaces it (hero CTA / Try-it button / integrations grid / status badge / quickstart command updates).
 
