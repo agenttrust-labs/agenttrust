@@ -13,7 +13,7 @@
  */
 
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
+import { BN, Program } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, SystemProgram, ComputeBudgetProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { expect } from "chai";
 import type { Trustgate } from "../target/types/trustgate";
@@ -242,7 +242,7 @@ describe("trustgate", () => {
 
       const sig = await program.methods.emitFeedback(
         Array.from(paymentIdHash), facilitator, asset.publicKey,
-        100, "trustgate-test", "policy=1", "/protected", "",
+        100, new BN(1_000_000), 6, "trustgate-test", "policy=1", "/protected", "",
       ).accountsStrict({
         payer:         facilitator,
         authority:     authorityPda,
@@ -302,7 +302,7 @@ describe("trustgate", () => {
       // First emission — succeeds.
       await program.methods.emitFeedback(
         Array.from(paymentIdHash), facilitator, asset.publicKey,
-        100, "test", "policy=1", "/protected", "",
+        100, new BN(1_000_000), 6, "test", "policy=1", "/protected", "",
       ).accountsStrict({
         payer: facilitator, authority: authorityPda,
         emissionLog: logPda, systemProgram: SystemProgram.programId,
@@ -312,7 +312,7 @@ describe("trustgate", () => {
       try {
         await program.methods.emitFeedback(
           Array.from(paymentIdHash), facilitator, asset.publicKey,
-          100, "test", "policy=1", "/protected", "",
+          100, new BN(1_000_000), 6, "test", "policy=1", "/protected", "",
         ).accountsStrict({
           payer: facilitator, authority: authorityPda,
           emissionLog: logPda, systemProgram: SystemProgram.programId,

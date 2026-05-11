@@ -29,7 +29,7 @@
  * `priorEmissionLookup` to surface the prior emission's signature.
  */
 
-import { Program } from "@coral-xyz/anchor";
+import { BN, Program } from "@coral-xyz/anchor";
 import {
   Connection,
   Keypair,
@@ -64,11 +64,17 @@ export interface EmitFeedbackCpiInput {
     readonly paymentIdHash: Uint8Array;
   };
   readonly fields: {
-    readonly score:       number;
-    readonly tag1:        string;
-    readonly tag2:        string;
-    readonly endpoint:    string;
-    readonly feedbackUri: string;
+    readonly score:          number;
+    readonly tag1:           string;
+    readonly tag2:           string;
+    readonly endpoint:       string;
+    readonly feedbackUri:    string;
+    /** Optional mint decimals for the payment value. Defaults to 6 (USDC).
+     *  When passed, the SDK forwards `ctx.amount` + this decimal exponent
+     *  to Quantu's `give_feedback`, which unblocks `quality_score` accrual
+     *  and lets `tier_immediate` promote. Older callers that omit this
+     *  still work (with the 6-decimal default). */
+    readonly valueDecimals?: number;
   };
 }
 
@@ -136,12 +142,26 @@ export function makeEmitFeedbackCpi(opts: MakeEmitFeedbackCpiOptions): EmitFeedb
       pubkey: opts.agentRegistryId, isSigner: false, isWritable: false,
     });
 
+    // Quantu's `give_feedback` accrues `quality_score` from `value*score`.
+    // If value=0, quality_score stays at 0 and `tier_immediate` never
+    // promotes regardless of how many positive feedbacks land. Forward
+    // the gated payment amount + mint decimals to fix this.
+    //
+    // `valueDecimals` is optional on the input interface to keep older
+    // callers working. The 6-decimal default matches USDC, which is the
+    // overwhelmingly common case for x402 payments today. Callers paying
+    // in non-6-decimal mints (e.g., SOL=9) should pass the right value.
+    // TODO: replace the hardcoded fallback with a real `getMint`-backed
+    // lookup once the SDK exposes a mint cache.
+    const valueDecimals = input.fields.valueDecimals ?? 6;
     const txSignature = await opts.trustgate.methods
       .emitFeedback(
         Array.from(input.settlement.paymentIdHash),
         facilitatorPk,
         input.ctx.payeeAgent,
         input.fields.score,
+        new BN(input.ctx.amount.toString()),
+        valueDecimals,
         input.fields.tag1,
         input.fields.tag2,
         input.fields.endpoint,
