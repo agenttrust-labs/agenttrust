@@ -40,6 +40,17 @@ const InputSchema = z.object({
     "agent was minted.",
   ),
   score:               z.number().int().min(0).max(100),
+  // `value` + `value_decimals` are forwarded to Quantu's give_feedback so
+  // `quality_score` can accrue (otherwise tier_immediate stays pinned at 0).
+  // Default of 1_000_000 @ 6 decimals = $1 USDC equivalent, a sensible
+  // representative value when the caller doesn't have the real amount handy.
+  value:               z.union([z.string(), z.number()]).default("1000000").describe(
+    "Raw payment amount in base token units (u64). Forwarded to Quantu's " +
+    "give_feedback for quality_score accrual. Defaults to 1_000_000 ($1 USDC).",
+  ),
+  value_decimals:      z.number().int().min(0).max(18).default(6).describe(
+    "Decimal exponent of the mint backing `value`. Defaults to 6 (USDC).",
+  ),
   tag1:                z.string().max(32).default(""),
   tag2:                z.string().max(32).default(""),
   endpoint:            z.string().max(64).default(""),
@@ -101,12 +112,17 @@ export const emitFeedbackTool: Tool<Input, Output> = {
       );
     }
 
+    // Forward `value` + `value_decimals` so Quantu's give_feedback can
+    // accrue quality_score (drives tier_immediate promotion).
+    const valueBn = new BN(typeof input.value === "string" ? input.value : input.value.toString());
     const txSignature: string = await trustgate.methods
       .emitFeedback(
         Array.from(paymentIdHash),
         facilitator.publicKey,
         payeeAsset,
         input.score,
+        valueBn,
+        input.value_decimals,
         input.tag1,
         input.tag2,
         input.endpoint,

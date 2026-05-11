@@ -55,6 +55,8 @@ pub fn handler<'info>(
     facilitator: Pubkey,
     payee_asset: Pubkey,
     score: u8,
+    value: u64,
+    value_decimals: u8,
     tag1: String,
     tag2: String,
     endpoint: String,
@@ -84,9 +86,16 @@ pub fn handler<'info>(
     let now_slot = Clock::get()?.slot;
 
     // Build give_feedback args.
+    //
+    // `value` represents the payment amount in raw token units (e.g., 1_000_000
+    // = $1 USDC at 6 decimals). Quantu's `give_feedback` accrues a
+    // `quality_score` proportional to value*score; passing value=0 keeps that
+    // score pinned at 0 and prevents `tier_immediate` from ever promoting,
+    // even after dozens of positive feedbacks. See diagnostic in
+    // docs/proofs/* / commit history if needed.
     let args = GiveFeedbackArgs {
-        value: 0,
-        value_decimals: 0,
+        value: value as i128,
+        value_decimals,
         score: Some(score),
         feedback_file_hash: None,
         tag1,

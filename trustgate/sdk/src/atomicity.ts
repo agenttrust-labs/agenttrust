@@ -227,6 +227,12 @@ export async function composeAtomicSettleTx(
       args.facilitator,
       args.payeeAgentAsset,
       args.score,
+      // Forward the gated payment amount + mint decimals so Quantu's
+      // `give_feedback` can accrue `quality_score` and let
+      // `tier_immediate` promote. Hardcoding value=0 (the prior
+      // behavior) silently pinned tier_immediate at 0 forever.
+      new BN(args.amount.toString()),
+      args.mintDecimals,
       args.tag1,
       args.tag2,
       args.endpoint,
