@@ -12,6 +12,7 @@ ships.
 | surface | URL | backing project |
 |---|---|---|
 | Landing | https://www.agenttrust.tech | Vercel: `agenttrust-web` |
+| Live decisions stream | https://agenttrust.tech/decisions | Vercel: `agenttrust-web` (client-side route; polls Solana devnet RPC every 4s for `PolicyAllowed` / `PolicyDenied` events emitted by PolicyVault `8Y6f...QTR`; no backend) |
 | Docs | https://docs.agenttrust.tech | Vercel: `agenttrust-docs-site` |
 | MCP HTTP endpoint | https://mcp.agenttrust.tech (CNAME → `agenttrust-mcp.fly.dev`, Let's Encrypt cert issued) | Fly.io: `agenttrust-mcp` (sin region, shared-cpu-1x@256mb, 2 machines for HA) |
 | Facilitator service | https://api.agenttrust.tech (CNAME → `agenttrust-api.fly.dev`, Let's Encrypt cert issued) | Fly.io: `agenttrust-api` (sin region, shared-cpu-1x@256mb, dedicated facilitator pubkey `7Pf3...ntyZ` funded with 0.5 SOL devnet) |
