@@ -74,6 +74,12 @@ exclude = [
   # daily-devnet-smoke + hosted-surface-check workflows.
   "^https?://(api|demo)\\.agenttrust\\.tech/?$",
   "^https?://agenttrust-(api|demo|mcp)\\.fly\\.dev/?$",
+  # `agenttrust.tech/decisions` — client-side route on the landing
+  # Vercel project that serves real content only after PR merge +
+  # auto-deploy. Pre-merge, lychee correctly 404s; we exclude here
+  # because the docs source-of-truth (HOSTED_SURFACES.md) references
+  # the public URL. Verified live by curl post-deploy.
+  "^https?://(www\\.)?agenttrust\\.tech/decisions/?$",
 ]
 
 # Don't follow links inside fenced code blocks — they're usually
