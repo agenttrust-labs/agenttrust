@@ -1,4 +1,4 @@
-import { convertToModelMessages, streamText } from 'ai';
+import { convertToModelMessages, smoothStream, streamText } from 'ai';
 import { buildDocsAssistantPrompt } from '@/lib/server/docs-context';
 import {
   askRequestSchema,
@@ -59,6 +59,12 @@ export async function POST(req: Request): Promise<Response> {
       system: await buildDocsAssistantPrompt(),
       messages: await convertToModelMessages(messages),
       temperature: 0.2,
+      experimental_transform: smoothStream({ chunking: 'word' }),
+      providerOptions: {
+        openai: {
+          promptCacheKey: 'docs-assistant-v1',
+        },
+      },
     });
 
     return result.toUIMessageStreamResponse();
