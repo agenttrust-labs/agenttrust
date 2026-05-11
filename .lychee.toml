@@ -80,6 +80,12 @@ exclude = [
   # because the docs source-of-truth (HOSTED_SURFACES.md) references
   # the public URL. Verified live by curl post-deploy.
   "^https?://(www\\.)?agenttrust\\.tech/decisions/?$",
+  # `live.agenttrust.tech` — standalone Vercel project at `live-app/`.
+  # Roadmap surface tracked in HOSTED_SURFACES.md until the operator
+  # runs `vercel --prod` + adds the `live` CNAME. Pre-deploy, lychee
+  # correctly fails; verified live by curl post-deploy and moved to the
+  # Live table at that point.
+  "^https?://live\\.agenttrust\\.tech/?$",
 ]
 
 # Don't follow links inside fenced code blocks — they're usually

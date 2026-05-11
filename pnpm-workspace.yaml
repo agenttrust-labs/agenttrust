@@ -1,5 +1,6 @@
 packages:
   - "web"
+  - "live-app"
   - "docs-site"
   - "status-page"
   - "trustgate/sdk"
