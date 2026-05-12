@@ -1,6 +1,6 @@
 {
   "name": "@agenttrust-sdk/trustgate",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "TrustGate SDK for Solana x402 facilitators — atomic gate_payment + emit_feedback Express middleware",
   "author": "AgentTrust Labs (https://agenttrust.tech)",
   "license": "MIT",
