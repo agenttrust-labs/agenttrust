@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `makePayShFacilitator(args)` and `makeDefaultRegistry(RegistryCtor, args)`
+  in the new `@agenttrust-sdk/trustgate/facilitator-factory` subpath
+  export. Bundles the boilerplate `validateOnChainTx` + `emitFeedbackCpi`
+  + `priorEmissionLookup` + `signDecision` wiring documented in
+  `trustgate/server/src/production.ts` into a single deps-builder. The
+  `PaySh` class and `FacilitatorRegistry` themselves remain in the
+  private `@agenttrust/trustgate-server` reference impl — consumers pass
+  `new PaySh(deps)` and `FacilitatorRegistry` into the SDK factories.
+  Non-breaking; previous manual wiring continues to work.
+- `ReplayCacheLike` shape exported alongside the factory. Production
+  consumers wire a persistent (Redis-backed or similar) implementation;
+  the in-memory default from `@agenttrust/trustgate-server` is documented
+  as NOT production-safe (replay window re-opens on restart).
+
 ## [0.2.0] — 2026-05-07
 
 Tag: [`sdk-v0.2.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/sdk-v0.2.0)

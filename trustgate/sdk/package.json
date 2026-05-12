@@ -40,6 +40,10 @@
       "types": "./dist/emit-feedback.d.ts",
       "default": "./dist/emit-feedback.js"
     },
+    "./facilitator-factory": {
+      "types": "./dist/facilitator-factory.d.ts",
+      "default": "./dist/facilitator-factory.js"
+    },
     "./onchain-validator": {
       "types": "./dist/onchain-validator.d.ts",
       "default": "./dist/onchain-validator.js"

@@ -82,6 +82,7 @@ import {
 Every named module is also reachable via subpath import, e.g.
 `@agenttrust-sdk/trustgate/atomicity`, `@agenttrust-sdk/trustgate/chain`,
 `@agenttrust-sdk/trustgate/emit-feedback`,
+`@agenttrust-sdk/trustgate/facilitator-factory`,
 `@agenttrust-sdk/trustgate/onchain-validator`,
 `@agenttrust-sdk/trustgate/quantu`, `@agenttrust-sdk/trustgate/spl`,
 `@agenttrust-sdk/trustgate/types`,
@@ -89,6 +90,62 @@ Every named module is also reachable via subpath import, e.g.
 `@agenttrust-sdk/trustgate/x402`. Each subpath maps to a single file in
 the package — useful when a consumer wants tighter tree-shaking than the
 root re-export bundle.
+
+## Facilitator wiring — `makePayShFacilitator`
+
+For Pay.sh integrators who want the boilerplate documented in
+`trustgate/server/src/production.ts` collapsed into a one-liner:
+
+```ts
+import { Connection, Keypair } from "@solana/web3.js";
+import {
+  DEFAULT_DEVNET_PROGRAM_IDS, DEFAULT_DEVNET_QUANTU_IDS,
+  loadTrustGate, makeProvider, makePayShFacilitator, makeDefaultRegistry,
+  Wallet,
+} from "@agenttrust-sdk/trustgate";
+import { PaySh, FacilitatorRegistry } from "@agenttrust/trustgate-server";
+
+const connection         = new Connection("https://api.devnet.solana.com", "confirmed");
+const facilitatorKeypair = Keypair.fromSecretKey(/* your facilitator key */);
+const provider           = makeProvider({ rpcUrl: "https://api.devnet.solana.com", wallet: facilitatorKeypair });
+const trustgate          = await loadTrustGate(provider, DEFAULT_DEVNET_PROGRAM_IDS.trustGate);
+
+const resolveQuantu = async (payeeAgent) => ({
+  agentAccount:      payeeAgent,
+  asset:             /* the agent_asset for the payee */,
+  collection:        /* base collection */,
+  atomConfig:        deriveAtomConfigPda(DEFAULT_DEVNET_QUANTU_IDS),
+  atomStats:         /* atom_stats PDA */,
+  atomEngineProgram: DEFAULT_DEVNET_QUANTU_IDS.atomEngine,
+  registryAuthority: deriveAtomRegistryAuthorityPda(DEFAULT_DEVNET_QUANTU_IDS),
+});
+
+const deps  = makePayShFacilitator({
+  connection,
+  facilitatorKeypair,
+  resolveQuantu,
+  programIds:     DEFAULT_DEVNET_PROGRAM_IDS,
+  quantuIds:      DEFAULT_DEVNET_QUANTU_IDS,
+  trustgate,
+  signingNetwork: "solana-devnet",
+});
+const paySh    = new PaySh(deps);
+const registry = makeDefaultRegistry(FacilitatorRegistry, { paySh });
+```
+
+`makePayShFacilitator` is the public-SDK facade for the Pay.sh adapter
+wiring. The `PaySh` class itself remains in the private
+`@agenttrust/trustgate-server` reference impl, alongside the
+`mountFacilitatorRoutes` route binder — that boundary stays the same.
+Consumers who don't want to vendor the server package's routes use the
+SDK factory to construct deps and run their own Express plumbing.
+
+**Production `replayCache` is REQUIRED.** The default in-memory
+`ReplayCache` is fine for unit tests and single-process demos but a
+restart wipes the anti-replay state. Pass a Redis-backed (or similar)
+`ReplayCacheLike` via `replayCache:` for production. The shape is
+small — `observe(signature, paymentIdHash) -> 'fresh' | 'replay' |
+'collision'`.
 
 ## Quick start — Express middleware
 
