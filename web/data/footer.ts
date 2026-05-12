@@ -46,7 +46,6 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
     links: [
       { href: "#benchmark", label: "Benchmark" },
       { href: PUBLIC_LINKS.docsFormalVerification, label: "Kani Checks" },
-      { href: "#events", label: "Operator Briefings" },
       { href: PUBLIC_LINKS.docsChangelog, label: "Field Notes" },
     ],
   },
