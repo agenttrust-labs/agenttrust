@@ -308,6 +308,19 @@ export async function startProduction(cfg: ProductionConfig): Promise<{
   registry.register(paySh);
   registry.setDefault("pay-sh");
 
+  // Friendly root handler — replaces the bare Express "Cannot GET /" 404
+  // for visitors landing on https://api.agenttrust.tech/ from a browser.
+  // Returns 200 with a small JSON payload pointing at the docs and the
+  // functional endpoints. Mounted before the facilitator routes so an
+  // adapter dispatch failure cannot mask it.
+  app.get("/", (_req: Request, res: Response) => {
+    res.status(200).json({
+      service:   "agenttrust-api",
+      docs:      "https://docs.agenttrust.tech",
+      endpoints: ["/verify", "/settle", "/receipt", "/healthz"],
+    });
+  });
+
   // /healthz BEFORE the facilitator routes mount so it never gates
   // on adapter dispatch failure.
   app.get(["/healthz", "/health"], async (_req: Request, res: Response) => {

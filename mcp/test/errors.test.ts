@@ -80,6 +80,74 @@ describe("classifyError", () => {
     });
   });
 
+  describe("SendTransactionError -> chain_error", () => {
+    // Closes the polish item surfaced by the 2026-05-13 gate rerun:
+    // Beat F's downstream-CPI failure surfaced as `errorCode: internal`
+    // because the missing-account error came back from
+    // Connection.simulateTransaction as a `SendTransactionError` text
+    // shape (not a `Custom NNN` InstructionError). The classifier now
+    // catches the SendTransactionError shape and lands it as
+    // `chain_error` with a remediation-specific hint.
+    //
+    // Source for the verbatim sample below:
+    //   submission/e2e-claude-code-rerun-2026-05-13/beat-F-claude-output.json
+    //   (the `cause` field of the structured error envelope)
+    it("classifies a simulate-action SendTransactionError as chain_error (missing-account hint)", () => {
+      // The literal message format emitted by web3.js's SendTransactionError
+      // constructor when `action: "simulate"` and a downstream CPI hits a
+      // missing-account runtime error. Includes the auto-appended
+      // "SendTransactionError" guide text so the substring check matches.
+      const err = Object.assign(
+        new Error(
+          "Simulation failed. \nMessage: Transaction simulation failed: " +
+          "Error processing Instruction 0: An account required by the " +
+          "instruction is missing. \nLogs: \n[\n  \"Program HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N invoke [1]\",\n" +
+          "  \"Program log: Instruction: EmitFeedback\",\n  \"Unknown program 8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C\"\n]. " +
+          "\nCatch the `SendTransactionError` and call `getLogs()` on it for full details.",
+        ),
+        { name: "SendTransactionError" },
+      );
+      const result = classifyError(err);
+      expect(result.errorCode, "errorCode").to.equal("chain_error");
+      expect(result.hint, "hint mentions missing required account").to.match(/required account/i);
+      expect(result.hint, "hint names the seeding remediation").to.match(/seeded|register|init/i);
+    });
+
+    it("classifies a send-action SendTransactionError as chain_error (generic hint)", () => {
+      // The other web3.js shape — thrown by sendRawTransaction when the
+      // tx fails after a real send. Same class, different message prefix.
+      const err = new Error(
+        "Transaction 4abcDEF... resulted in an error. \n" +
+        "Some non-Custom runtime error. \n" +
+        "Catch the `SendTransactionError` and call `getLogs()` on it for full details.",
+      );
+      const result = classifyError(err);
+      expect(result.errorCode).to.equal("chain_error");
+    });
+
+    it("classifies a SendTransactionError whose text is missing the guideText (truncated case) by error name", () => {
+      // The cause field gets clamped to ~500 chars in the envelope, so
+      // the guideText might be cut off. The name property is the
+      // belt-and-braces fallback.
+      const err = Object.assign(new Error("Simulation failed. \nMessage: anything"), {
+        name: "SendTransactionError",
+      });
+      const result = classifyError(err);
+      expect(result.errorCode).to.equal("chain_error");
+    });
+
+    it("classifies a Transaction-simulation-failed text shape as chain_error", () => {
+      // Some older web3.js versions and some RPC failure paths surface
+      // "Transaction simulation failed:" without the SendTransactionError
+      // class wrapping. Match that too so the envelope is consistent.
+      const err = new Error(
+        "Transaction simulation failed: Blockhash not found",
+      );
+      const result = classifyError(err);
+      expect(result.errorCode).to.equal("chain_error");
+    });
+  });
+
   describe("config_error", () => {
     it("classifies a ConfigError-named throw as config_error", () => {
       const err = new Error(

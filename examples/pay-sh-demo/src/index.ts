@@ -254,6 +254,18 @@ function assembleDemoApp(args: AssembleArgs): DemoApp {
   const app = express();
   app.use(express.json({ limit: "256kb" }));
 
+  // Friendly root handler. Replaces the bare Express "Cannot GET /"
+  // 404 for visitors landing on https://demo.agenttrust.tech/ from a
+  // browser. Returns 200 with a small JSON payload pointing at the
+  // docs and the functional endpoints.
+  app.get("/", (_req, res) => {
+    res.status(200).json({
+      service:   "agenttrust-demo",
+      docs:      "https://docs.agenttrust.tech",
+      endpoints: ["/protected", "/health"],
+    });
+  });
+
   app.get("/health", (_req, res) => {
     res.json({
       status:        "ok",

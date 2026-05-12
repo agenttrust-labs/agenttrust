@@ -48,7 +48,7 @@
     "test": "ts-mocha -p ./test/tsconfig.json -t 30000 \"test/**/*.test.ts\"",
     "test:integration": "INTEGRATION=1 ts-mocha -p ./test/tsconfig.json -t 60000 test/integration.test.ts",
     "test:conformance": "pnpm run build && ts-node test/protocol-conformance.ts",
-    "prepublishOnly": "pnpm run lint && pnpm run build && pnpm run test && pnpm run test:conformance",
+    "prepublishOnly": "node scripts/check-no-workspace-spec.cjs && pnpm run lint && pnpm run build && pnpm run test && pnpm run test:conformance",
     "publish:dry": "npm publish --dry-run"
   },
   "dependencies": {
