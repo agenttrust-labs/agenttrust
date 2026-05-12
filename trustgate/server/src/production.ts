@@ -34,6 +34,8 @@ import {
   ProgramIds,
   QuantuFeedbackAccounts,
   QuantuProgramIds,
+  deriveAtomConfigPda,
+  deriveAtomRegistryAuthorityPda,
   loadPolicyVault,
   loadTrustGate,
   makeEmitFeedbackCpi,
@@ -96,12 +98,27 @@ function loadCounterpartyMap(): CounterpartyMap | null {
  * `quantuIds` is threaded in by `startProduction` so the bundle's
  * `atomEngineProgram` / `registryAuthority` track the active cluster
  * (devnet → DEFAULT_DEVNET_QUANTU_IDS, mainnet → MAINNET_QUANTU_IDS).
+ *
+ * `atomConfig` and `registryAuthority` are the cluster-scoped PDAs
+ * derived from `quantuIds`. The on-chain `give_feedback` CPI in
+ * `programs/trustgate/src/ext/agent_registry.rs` expects:
+ *
+ *   atomConfig         = PDA(["atom_config"],            atom_engine)
+ *   registryAuthority  = PDA(["atom_cpi_authority"],     agent_registry)
+ *
+ * Earlier revisions of this function set both slots to the raw program
+ * IDs (`quantuIds.atomEngine` / `quantuIds.agentRegistry`), which is
+ * what `give_feedback` rejected at the runtime constraint check. The
+ * SDK exports `deriveAtomConfigPda` / `deriveAtomRegistryAuthorityPda`
+ * for exactly this derivation — both are cluster-pure (no chain RPC).
  */
 function makeQuantuResolver(
   map:       CounterpartyMap,
   quantuIds: QuantuProgramIds,
 ): (payeeAgent: PublicKey) => Promise<QuantuFeedbackAccounts> {
-  const collection = new PublicKey(map.baseCollection);
+  const collection       = new PublicKey(map.baseCollection);
+  const atomConfigPda    = deriveAtomConfigPda(quantuIds);
+  const registryAuthPda  = deriveAtomRegistryAuthorityPda(quantuIds);
   const byAgent = new Map<string, CounterpartyEntry>();
   for (const cp of map.counterparties) byAgent.set(cp.agentAccount, cp);
 
@@ -118,10 +135,10 @@ function makeQuantuResolver(
       agentAccount:      payeeAgent,
       asset:             new PublicKey(entry.asset),
       collection,
-      atomConfig:        new PublicKey(quantuIds.atomEngine.toBase58()), // overwritten by deriveAtomConfigPda below
+      atomConfig:        atomConfigPda,
       atomStats:         new PublicKey(entry.atomStats),
       atomEngineProgram: quantuIds.atomEngine,
-      registryAuthority: quantuIds.agentRegistry, // ditto
+      registryAuthority: registryAuthPda,
     };
   };
 }

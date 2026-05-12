@@ -53,7 +53,24 @@ export function makeVerifyRoute(deps: VerifyDeps): Router {
 
     let ctx: VerifyContext | null;
     try {
-      ctx = await adapter.parseRequest(req);
+      // Prefer the discriminated `parseRequestDetailed` so /verify can
+      // surface a machine-parseable rejection reason (schema_invalid /
+      // signature_invalid / expired / network_mismatch) plus a human-
+      // readable detail. Adapters that don't override it fall back to
+      // the opaque boolean path below.
+      if (adapter.parseRequestDetailed) {
+        const r = await adapter.parseRequestDetailed(req);
+        if (!r.ok) {
+          return res.status(400).json({
+            error:  `facilitator "${adapter.name}" rejected the request`,
+            reason: r.reason,
+            detail: r.detail,
+          });
+        }
+        ctx = r.value;
+      } else {
+        ctx = await adapter.parseRequest(req);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       return res.status(500).json({

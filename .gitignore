@@ -40,6 +40,7 @@ agenttrust-grant/
 !trustgate/sdk/PUBLISHING.md
 !trustgate/sdk/README.md
 !trustgate/sdk/CHANGELOG.md
+!trustgate/server/README.md
 !trustgate/server/src/facilitators/README.md
 !examples/**/README.md
 !mcp/README.md

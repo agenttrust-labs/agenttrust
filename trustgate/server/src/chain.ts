@@ -8,7 +8,7 @@
  */
 
 import * as anchor from "@coral-xyz/anchor";
-import { AnchorProvider, BN, Program, web3 } from "@coral-xyz/anchor";
+import { AnchorProvider, BN, Idl, Program, web3 } from "@coral-xyz/anchor";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 
 import { GateDecision } from "./types";
@@ -79,19 +79,44 @@ export function deriveFeedbackLogPda(paymentIdHash: Buffer): PublicKey {
 
 // ---------------------------------------------------------------------------
 // Program loaders
+//
+// The optional `idl` arg matches the SDK's `loadPolicyVault`/`loadTrustGate`
+// shape — pass a bundled IDL snapshot to skip the on-chain fetch. Useful
+// when the deployed IDL hasn't been published yet (`anchor idl init` not
+// run), when the runtime Anchor version can't deserialise the on-chain
+// format (Phase F1 finding for @coral-xyz/anchor 0.31 vs CLI 1.0+), or
+// to shave one RPC hop in latency-sensitive paths.
 // ---------------------------------------------------------------------------
 export async function loadPolicyVault(
   provider: AnchorProvider,
+  idl?:     Idl,
 ): Promise<Program> {
-  const idl = await Program.fetchIdl(POLICY_VAULT_ID, provider);
-  if (!idl) throw new Error("policy_vault IDL not on-chain — deploy IDL first");
-  return new Program(idl, provider);
+  if (idl) return new Program(idl, provider);
+  const fetched = await Program.fetchIdl(POLICY_VAULT_ID, provider);
+  if (!fetched) {
+    throw new Error(
+      `policy_vault IDL not on-chain at ${POLICY_VAULT_ID.toBase58()}. ` +
+      `Run \`anchor idl init ${POLICY_VAULT_ID.toBase58()}\` to publish the IDL, ` +
+      `or pass an explicit \`idl\` arg to loadPolicyVault.`,
+    );
+  }
+  return new Program(fetched, provider);
 }
 
-export async function loadTrustGate(provider: AnchorProvider): Promise<Program> {
-  const idl = await Program.fetchIdl(TRUSTGATE_ID, provider);
-  if (!idl) throw new Error("trustgate IDL not on-chain — deploy IDL first");
-  return new Program(idl, provider);
+export async function loadTrustGate(
+  provider: AnchorProvider,
+  idl?:     Idl,
+): Promise<Program> {
+  if (idl) return new Program(idl, provider);
+  const fetched = await Program.fetchIdl(TRUSTGATE_ID, provider);
+  if (!fetched) {
+    throw new Error(
+      `trustgate IDL not on-chain at ${TRUSTGATE_ID.toBase58()}. ` +
+      `Run \`anchor idl init ${TRUSTGATE_ID.toBase58()}\` to publish the IDL, ` +
+      `or pass an explicit \`idl\` arg to loadTrustGate.`,
+    );
+  }
+  return new Program(fetched, provider);
 }
 
 // ---------------------------------------------------------------------------

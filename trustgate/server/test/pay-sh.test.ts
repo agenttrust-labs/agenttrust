@@ -329,6 +329,64 @@ describe("PaySh.parseRequest", () => {
   });
 });
 
+describe("PaySh.parseRequestDetailed", () => {
+  let adapter: PaySh;
+  beforeEach(() => {
+    adapter = new PaySh(makeDeps(new StubChain()));
+  });
+
+  it("returns ok:true with value on the happy path", async () => {
+    const r = await adapter.parseRequestDetailed(reqWith(makeBody()) as any);
+    expect(r.ok).to.equal(true);
+    if (r.ok) {
+      expect(r.value.facilitator).to.equal("pay-sh");
+      expect(r.value.amount).to.equal(1000n);
+    }
+  });
+
+  it("returns ok:false with reason=schema_invalid when memo is missing", async () => {
+    const body = makeBody();
+    delete (body.paymentRequirements as any).extra.memo;
+    const r = await adapter.parseRequestDetailed(reqWith(body) as any);
+    expect(r.ok).to.equal(false);
+    if (!r.ok) {
+      expect(r.reason).to.equal("schema_invalid");
+      // Memo-specific remediation pointer is surfaced.
+      expect(r.detail).to.match(/extra\.memo/);
+      expect(r.detail).to.match(/deriveMemoHash/);
+    }
+  });
+
+  it("returns ok:false with reason=signature_invalid on bad sig", async () => {
+    const body = makeBody({}, { forceSignatureHex: "00".repeat(64) });
+    const r = await adapter.parseRequestDetailed(reqWith(body) as any);
+    expect(r.ok).to.equal(false);
+    if (!r.ok) expect(r.reason).to.equal("signature_invalid");
+  });
+
+  it("returns ok:false with reason=expired when challenge is past expiry", async () => {
+    const issuedAt = Date.now() - 121_000;
+    const body = makeBody({}, { issuedAt });
+    const r = await adapter.parseRequestDetailed(reqWith(body) as any);
+    expect(r.ok).to.equal(false);
+    if (!r.ok) expect(r.reason).to.equal("expired");
+  });
+
+  it("returns ok:false with reason=network_mismatch on cluster slug drift", async () => {
+    const r = await adapter.parseRequestDetailed(
+      reqWith(makeBody({ network: "solana-mainnet" })) as any,
+    );
+    expect(r.ok).to.equal(false);
+    if (!r.ok) expect(r.reason).to.equal("network_mismatch");
+  });
+
+  it("parseRequest still returns null on the same rejection (interface contract)", async () => {
+    const body = makeBody();
+    delete (body.paymentRequirements as any).extra.memo;
+    expect(await adapter.parseRequest(reqWith(body) as any)).to.equal(null);
+  });
+});
+
 describe("PaySh.formatChallenge", () => {
   const adapter = new PaySh(makeDeps(new StubChain()));
   let ctx: VerifyContext;

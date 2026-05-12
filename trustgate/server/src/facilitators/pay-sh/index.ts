@@ -38,6 +38,7 @@ import {
   FacilitatorAdapter,
   FacilitatorProtocol,
   FeedbackEmissionResult,
+  ParseRequestResult,
   PaymentProofRejection,
   PaymentProofValidation,
   SettlementResponse,
@@ -142,29 +143,66 @@ export class PaySh implements FacilitatorAdapter {
   }
 
   async parseRequest(req: ExpressRequest): Promise<VerifyContext | null> {
+    const r = await this.parseRequestDetailed(req);
+    return r.ok ? r.value : null;
+  }
+
+  /**
+   * Same checks as `parseRequest` but returns a discriminated `ParseRequestResult`
+   * so /verify and /settle can surface the rejection reason. The reason
+   * union (`schema_invalid` / `signature_invalid` / `expired` /
+   * `network_mismatch`) is intentionally coarse — integrators get a
+   * single string to dispatch on, plus a `detail` line that points at
+   * the canonical fix (e.g., `deriveMemoHash` for missing memo).
+   */
+  async parseRequestDetailed(req: ExpressRequest): Promise<ParseRequestResult> {
     const parsed = FacilitatorBodySchema.safeParse(req.body);
-    if (!parsed.success) return null;
+    if (!parsed.success) {
+      return { ok: false, reason: "schema_invalid", detail: schemaInvalidDetail(parsed.error) };
+    }
 
     const { paymentRequirements: pr } = parsed.data;
     const amountStr = pickAmount(pr);
-    if (amountStr === null) return null;
-    if (amountStr === "0") return null;
+    if (amountStr === null) {
+      return {
+        ok: false, reason: "schema_invalid",
+        detail: "paymentRequirements.amount and paymentRequirements.maxAmountRequired are both missing or disagree",
+      };
+    }
+    if (amountStr === "0") {
+      return { ok: false, reason: "schema_invalid", detail: "paymentRequirements amount must be > 0" };
+    }
 
     // u64 upper bound — Anchor / on-chain `gate_payment` expects u64.
     const amountBig = BigInt(amountStr);
-    if (amountBig > U64_MAX) return null;
+    if (amountBig > U64_MAX) {
+      return { ok: false, reason: "schema_invalid", detail: "amount exceeds u64 upper bound" };
+    }
 
-    if (!sameNetwork(pr.network, this.deps.signingNetwork)) return null;
+    if (!sameNetwork(pr.network, this.deps.signingNetwork)) {
+      return {
+        ok: false, reason: "network_mismatch",
+        detail: `paymentRequirements.network=${pr.network} != facilitator signingNetwork=${this.deps.signingNetwork}`,
+      };
+    }
     if (pr.extra.agentTrust.expectedNetwork
         && !sameNetwork(pr.extra.agentTrust.expectedNetwork, this.deps.signingNetwork)) {
-      return null;
+      return {
+        ok: false, reason: "network_mismatch",
+        detail: `extra.agentTrust.expectedNetwork=${pr.extra.agentTrust.expectedNetwork} != facilitator signingNetwork=${this.deps.signingNetwork}`,
+      };
     }
 
     // B2 config-error trap: payTo and extra.agentTrust.payeeRecipient must
     // address the same SPL transfer destination. Drift between the two means
     // a SERVICE has misconfigured one of them; the proof would settle to a
     // different account than the verify-time policy gate analysed.
-    if (pr.payTo !== pr.extra.agentTrust.payeeRecipient) return null;
+    if (pr.payTo !== pr.extra.agentTrust.payeeRecipient) {
+      return {
+        ok: false, reason: "schema_invalid",
+        detail: "paymentRequirements.payTo and extra.agentTrust.payeeRecipient must address the same destination (B2 config-error trap)",
+      };
+    }
 
     // B5 — verify the SERVICE-signed challenge and enforce expiry. The
     // signature binds these requirements to the facilitator that emitted
@@ -172,13 +210,23 @@ export class PaySh implements FacilitatorAdapter {
     // could fabricate fresh requirements with their own paymentIdHash and
     // race the legitimate /settle call.
     const memoHash = deriveMemoHash(pr.extra.memo);
-    if (!this.verifyServiceSignature(pr, memoHash, amountBig)) return null;
+    if (!this.verifyServiceSignature(pr, memoHash, amountBig)) {
+      return {
+        ok: false, reason: "signature_invalid",
+        detail: "extra.agentTrust.serviceSignature did not verify against facilitator pubkey (deps.feePayer). Re-sign the canonical challenge envelope with the facilitator keypair; see canonicalChallengeBytes() in @agenttrust/trustgate-server/facilitators/pay-sh/sig.ts.",
+      };
+    }
 
     const skew = this.deps.clockSkewMs ?? 60_000;
     const expiresAtMs = pr.extra.agentTrust.issuedAt
       + (pr.maxTimeoutSeconds ?? 60) * 1000
       + skew;
-    if (Date.now() > expiresAtMs) return null;
+    if (Date.now() > expiresAtMs) {
+      return {
+        ok: false, reason: "expired",
+        detail: `challenge expired at ${new Date(expiresAtMs).toISOString()}; re-request a fresh 402`,
+      };
+    }
 
     const meta: PayShRawMeta = {
       expectedRecipient: new PublicKey(pr.extra.agentTrust.payeeRecipient),
@@ -186,7 +234,7 @@ export class PaySh implements FacilitatorAdapter {
       body:    parsed.data,
     };
 
-    return attachMeta(
+    const value = attachMeta(
       {
         payerAgent:    new PublicKey(pr.extra.agentTrust.payerAgentAsset),
         payeeAgent:    new PublicKey(pr.extra.agentTrust.payeeAgentAsset),
@@ -199,6 +247,7 @@ export class PaySh implements FacilitatorAdapter {
       },
       meta,
     );
+    return { ok: true, value };
   }
 
   private verifyServiceSignature(
@@ -396,6 +445,35 @@ export class PaySh implements FacilitatorAdapter {
 
 /** u64 max — bound on `amount` to keep on-chain `gate_payment` packing safe. */
 const U64_MAX = 0xFFFF_FFFF_FFFF_FFFFn;
+
+/**
+ * Surface the first Zod issue as a human-readable string. The memo path
+ * gets a richer detail so a SERVICE that omits `extra.memo` (one of the
+ * top integration footguns) sees how to mint one.
+ *
+ * The memo carries the 32-byte payment_id_hash that seeds the on-chain
+ * `FeedbackEmissionLog` PDA. Two accepted shapes (see `deriveMemoHash`
+ * in `pay-sh/helpers.ts`): a 64-char lowercase hex string is decoded
+ * directly; any other string is SHA-256'd as UTF-8 bytes.
+ */
+function schemaInvalidDetail(error: import("zod").ZodError): string {
+  const first = error.issues[0];
+  if (!first) return "PaymentRequirements schema rejected (no issue payload)";
+  const path = first.path.join(".");
+  const message = first.message ?? "schema invariant violated";
+  if (/(^|\.)extra\.memo$/.test(path) || path === "memo") {
+    return (
+      `${path}: ${message}. ` +
+      `paymentRequirements.extra.memo is REQUIRED. It carries the 32-byte ` +
+      `payment_id that seeds the on-chain FeedbackEmissionLog PDA. Two accepted ` +
+      `shapes (see deriveMemoHash in @agenttrust/trustgate-server/facilitators/pay-sh/helpers.ts): ` +
+      `a 64-char lowercase hex string is decoded directly to 32 bytes; any other ` +
+      `string is SHA-256'd as UTF-8 bytes. SERVICEs that emit 402 challenges ` +
+      `typically pre-derive the memo and forward it as 64-char hex (lowercase, no 0x prefix).`
+    );
+  }
+  return path ? `${path}: ${message}` : message;
+}
 
 /**
  * Pick the amount field, preferring `maxAmountRequired`. Returns `null`

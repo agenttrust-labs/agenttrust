@@ -51,7 +51,19 @@ export function makeSettleRoute(deps: SettleDeps): Router {
 
     let ctx: VerifyContext | null;
     try {
-      ctx = await adapter.parseRequest(req);
+      if (adapter.parseRequestDetailed) {
+        const r = await adapter.parseRequestDetailed(req);
+        if (!r.ok) {
+          return res.status(400).json({
+            error:  `facilitator "${adapter.name}" rejected the settle request`,
+            reason: r.reason,
+            detail: r.detail,
+          });
+        }
+        ctx = r.value;
+      } else {
+        ctx = await adapter.parseRequest(req);
+      }
     } catch (e) {
       if (e instanceof NotImplementedError) {
         return res.status(501).json({ error: "not_implemented", description: e.message });

@@ -95,6 +95,41 @@ export interface VerifyContext {
 }
 
 // ---------------------------------------------------------------------------
+// ParseRequestResult — discriminated parse outcome with debug reason
+// ---------------------------------------------------------------------------
+
+/**
+ * Machine-parseable reason for a `parseRequestDetailed` rejection.
+ *
+ *   - `schema_invalid`     — body shape did not pass Zod (missing field,
+ *                            wrong type, unknown key on a strict schema).
+ *                            `detail` carries the first Zod issue message.
+ *   - `signature_invalid`  — facilitator-bound signature failed ed25519
+ *                            verification. Caused by a forged challenge,
+ *                            wrong signing key, or schema drift between
+ *                            SERVICE and AgentTrust.
+ *   - `expired`            — `issuedAt + maxTimeoutSeconds + clockSkewMs`
+ *                            sits in the past. Caller should retry against
+ *                            a fresh 402 challenge.
+ *   - `network_mismatch`   — `paymentRequirements.network` (or the
+ *                            adapter-specific `expectedNetwork` override)
+ *                            disagrees with `deps.signingNetwork`.
+ *
+ * Adapters MAY return adapter-specific extras alongside `detail` but the
+ * `reason` field is the union of these four codes only — routes match on
+ * the code, never on the prose.
+ */
+export type ParseRejectionReason =
+  | "schema_invalid"
+  | "signature_invalid"
+  | "expired"
+  | "network_mismatch";
+
+export type ParseRequestResult =
+  | { readonly ok: true;  readonly value: VerifyContext }
+  | { readonly ok: false; readonly reason: ParseRejectionReason; readonly detail?: string };
+
+// ---------------------------------------------------------------------------
 // ChallengeResponse — what `formatChallenge` returns to the routes layer
 // ---------------------------------------------------------------------------
 
@@ -273,6 +308,21 @@ export interface FacilitatorAdapter {
    * route the error.
    */
   parseRequest(req: ExpressRequest): Promise<VerifyContext | null>;
+
+  /**
+   * Same as `parseRequest` but returns a discriminated union so /verify and
+   * /settle can surface a machine-parseable `reason` (`schema_invalid` /
+   * `signature_invalid` / `expired` / `network_mismatch`) and human-readable
+   * `detail` in the 400 response body.
+   *
+   * Optional. Adapters that don't override this fall back to the boolean
+   * `parseRequest` and the route surfaces an opaque "did not recognise the
+   * request body" message. The PaySh adapter implements this for full
+   * integrator debugability; new adapters SHOULD override it.
+   *
+   * Like `parseRequest`, MUST NOT throw on malformed inputs.
+   */
+  parseRequestDetailed?(req: ExpressRequest): Promise<ParseRequestResult>;
 
   /**
    * Translate AgentTrust's internal `GateDecision` into the wire-level
