@@ -36,8 +36,8 @@ plan/
 research/
 agenttrust-grant/
 
-# Other heavy local-only workspaces not needed by either web build
-# (status-page deploys separately, examples/pay-sh-demo is unrelated)
-examples/pay-sh-demo/
-status-page/
+# Local-only workspaces not deployed via Vercel (kept out of Vercel uploads
+# to keep them lean, but only for projects that don't need them).
+# NOTE: do not exclude `status-page/` here — it has its own Vercel project
+# rooted at status-page/ and needs its source uploaded with the monorepo.
 migrations/
