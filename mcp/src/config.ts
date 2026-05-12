@@ -48,6 +48,11 @@ export interface AgentTrustConfig {
   readonly transport:              "stdio" | "http";
   /** HTTP transport port (only used when transport === "http"). */
   readonly httpPort:               number;
+  /** HTTP transport bind host (only used when transport === "http").
+   *  Defaults to 127.0.0.1 so a laptop developer doesn't expose the
+   *  server on the LAN. Production-style deploys (Fly, Vercel) set
+   *  `MCP_HTTP_HOST=0.0.0.0` explicitly. */
+  readonly httpHost:               string;
   /** Optional default facilitator name to surface in tool replies. */
   readonly defaultFacilitator?:    string;
 }
@@ -186,11 +191,15 @@ function readSigner(): Keypair | undefined {
   return undefined;
 }
 
-function readTransport(): { transport: "stdio" | "http"; httpPort: number } {
+function readTransport(): { transport: "stdio" | "http"; httpPort: number; httpHost: string } {
   const raw = (process.env.MCP_TRANSPORT ?? "stdio").trim().toLowerCase();
   const port = Number.parseInt(process.env.MCP_HTTP_PORT ?? "8765", 10);
-  if (raw === "http" || raw === "sse") return { transport: "http", httpPort: port };
-  return { transport: "stdio", httpPort: port };
+  // Default bind 127.0.0.1 — a local-laptop user starting `MCP_TRANSPORT=http`
+  // should NOT expose the server on the LAN by accident. Hosted deploys
+  // (Fly, Vercel) explicitly set MCP_HTTP_HOST=0.0.0.0.
+  const host = (process.env.MCP_HTTP_HOST ?? "127.0.0.1").trim();
+  if (raw === "http" || raw === "sse") return { transport: "http", httpPort: port, httpHost: host };
+  return { transport: "stdio", httpPort: port, httpHost: host };
 }
 
 export function loadConfig(): AgentTrustConfig {
@@ -204,7 +213,7 @@ export function loadConfig(): AgentTrustConfig {
       `RPC_URL is not a valid URL: ${(err as Error).message}. Got: ${rpcUrl}`,
     );
   }
-  const { transport, httpPort } = readTransport();
+  const { transport, httpPort, httpHost } = readTransport();
 
   // AgentTrust programs ship on devnet. Quantu ships on both devnet and
   // mainnet. When mainnet is selected the AgentTrust program IDs must be
@@ -240,6 +249,7 @@ export function loadConfig(): AgentTrustConfig {
     signer:               readSigner(),
     transport,
     httpPort,
+    httpHost,
     defaultFacilitator:   process.env.MCP_DEFAULT_FACILITATOR?.trim() || undefined,
   };
 }

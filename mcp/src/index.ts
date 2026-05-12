@@ -17,7 +17,7 @@ const HELP_TEXT = `agenttrust-mcp — Model Context Protocol server for AgentTru
 
 USAGE
   agenttrust-mcp                       Start in stdio mode (Claude Desktop / Cursor)
-  MCP_TRANSPORT=http agenttrust-mcp    Start in HTTP mode on \$MCP_HTTP_PORT (default 8080)
+  MCP_TRANSPORT=http agenttrust-mcp    Start in HTTP mode on $MCP_HTTP_PORT (default 8765)
 
 INSTALL — Claude Desktop
   Add to ~/Library/Application Support/Claude/claude_desktop_config.json:
@@ -38,10 +38,11 @@ ENVIRONMENT
   NETWORK                  solana-devnet | solana-mainnet
   KEYPAIR_B58              Base58 64-byte secret. Required for write tools.
   MCP_TRANSPORT            stdio (default) | http
-  MCP_HTTP_PORT            8080 (default; Fly.io also injects PORT)
+  MCP_HTTP_PORT            8765 (default; Fly.io also injects PORT)
+  MCP_HTTP_HOST            127.0.0.1 (default). Set 0.0.0.0 for hosted deploys.
 
 DOCS
-  Tools / resources / prompts: https://agenttrust-labs.github.io/agenttrust/mcp
+  Tools / resources / prompts: https://docs.agenttrust.tech/mcp
   Repo: https://github.com/agenttrust-labs/agenttrust
 `;
 
@@ -174,9 +175,15 @@ async function main() {
         if (!res.headersSent) res.writeHead(500).end();
       }
     });
-    httpServer.listen(cfg.httpPort, () => {
+    httpServer.listen(cfg.httpPort, cfg.httpHost, () => {
+      // Banner prints http://localhost so a developer can click the link
+      // even when bound to 127.0.0.1 or 0.0.0.0. The actual bind address
+      // (cfg.httpHost) is appended for machine logs / ops debugging.
       // eslint-disable-next-line no-console
-      console.error(`AgentTrust MCP server listening on http://0.0.0.0:${cfg.httpPort}`);
+      console.error(
+        `AgentTrust MCP server listening on http://localhost:${cfg.httpPort} ` +
+        `(bind ${cfg.httpHost}:${cfg.httpPort})`,
+      );
     });
     return;
   }
