@@ -1,0 +1,83 @@
+---
+title: Quickstart
+description: AgentTrust in 60 seconds. Install the MCP server into Claude Desktop, create a policy, run a gate-decision simulation. No clone, no Anchor build.
+---
+
+Sixty seconds, three steps, one MCP server. By the end you have a real `PolicyAccount` PDA on devnet and a decoded `gate_payment` decision in your chat client. No clone, no Anchor build, no local validator.
+
+## 1. Install the MCP server into Claude Desktop
+
+Drop this block into `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, or `%APPDATA%\Claude\claude_desktop_config.json` on Windows:
+
+```json
+{
+  "mcpServers": {
+    "agenttrust": {
+      "command": "npx",
+      "args": ["-y", "@agenttrust-sdk/mcp"],
+      "env": {
+        "RPC_URL": "https://api.devnet.solana.com",
+        "NETWORK": "solana-devnet"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop. Eighteen tools are now wired in. Ten read-only tools work immediately on devnet with zero credentials. The five write tools resolve a signer through the chain `KEYPAIR_B58` then `KEYPAIR_PATH` then `~/.config/solana/id.json` then `SOLANA_KEYPAIR_PATH` and use the first one that parses. If you already use `solana-keygen`, the default `id.json` is picked up automatically and no env var is needed.
+
+## 2. Create a policy
+
+Ask Claude Desktop, in plain English:
+
+> Use agenttrust_init_policy to create policy 1 for my agent. Enable Spending (bitmask 2) with a per-transaction max of 1 USDC.
+
+The `agenttrust_init_policy` tool is self-healing. If your agent's `PolicyAuthority` PDA does not yet exist on devnet, the tool prepends an `init_authority` instruction (single member = your signer, threshold = 1) and submits both in one atomic transaction. You never see Anchor error 3012. Spending caps also default sanely: when at least one cap is set, unspecified peer caps default to the max of the specified caps rather than zero, so v1 policies (immutable post-init) cannot accidentally hard-deny every payment.
+
+```text
+Output:
+  txSignature:       4n8…ZxR
+  explorerTxUrl:     https://explorer.solana.com/tx/4n8…ZxR?cluster=devnet
+  policyPda:         9aF…tNm
+  effectiveSpending: { perTxMax: "1000000", dailyMax: "1000000", weeklyMax: "1000000" }
+  selfHealed:        true
+  healedSteps:       ["init_authority"]
+```
+
+Open the `explorerTxUrl` to see the on-chain transaction. The `policyPda` is the `PolicyAccount` PDA the gate evaluates against on every payment.
+
+## 3. Run a gate-decision simulation
+
+Now ask:
+
+> Use agenttrust_simulate_payment to gate a 5-USDC payment from the tier-3 demo agent to the tier-0 demo agent against policy 1. What does the gate decide?
+
+`agenttrust_simulate_payment` is read-only. It calls the on-chain `gate_payment` instruction in simulate mode and decodes the `GateDecision` return value — `Allow`, `Deny` with a stable reason code (1 through 15), or `RequireValidation` with the 32-byte capability hash. The same call path the Express service's `POST /verify` route uses for the real x402 v2 challenge.
+
+```text
+Output:
+  kind:       "Deny"
+  reasonCode: 5
+  reasonName: "SpendingPerTxExceeded"
+```
+
+The gate denied the payment because 5 USDC exceeds the 1 USDC per-tx cap you set in step 2. Drop the amount to 0.5 USDC and ask again. The decision flips to `Allow`. You have just exercised the full PolicyVault decision path on devnet from a chat prompt.
+
+## Where to next
+
+Sixty seconds is enough to feel the shape. The deeper paths:
+
+<Cards>
+  <Card title="The three live paths" href="/getting-started/quickstart">
+    Hit the live x402 demo, mount the SDK middleware on Express, wire the MCP server, all against the hosted devnet build.
+  </Card>
+  <Card title="MCP server" href="/mcp">
+    Eighteen tools, four resources, three guided prompts. Full install reference at /mcp/install.
+  </Card>
+  <Card title="@agenttrust-sdk/trustgate" href="/sdk">
+    The TypeScript SDK every facilitator pulls in. Express middleware, client helpers, the atomicity guard, the full ValidationRegistry instruction builder set.
+  </Card>
+  <Card title="Architecture" href="/architecture">
+    How the three Anchor programs compose into one settlement path. The atomic-tx invariant. The FacilitatorAdapter pattern.
+  </Card>
+</Cards>
