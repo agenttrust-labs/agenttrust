@@ -157,7 +157,7 @@ function isNotFound(message: string): boolean {
  * the specific tool that needed auth instead of a generic blurb.
  */
 function isAuthRequired(message: string): boolean {
-  return /requires KEYPAIR_B58/i.test(message);
+  return /requires a signer/i.test(message);
 }
 
 /**

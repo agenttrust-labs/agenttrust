@@ -70,7 +70,8 @@ export const emitFeedbackTool: Tool<Input, Output> = {
   name:        "agenttrust_emit_feedback",
   description:
     "Emit ERC-8004 feedback for a confirmed payment. Facilitator-only: " +
-    "KEYPAIR_B58 must equal the facilitator wallet whose TrustGateAuthority " +
+    "requires a signer (KEYPAIR_B58 / KEYPAIR_PATH / Solana CLI default) " +
+    "whose pubkey must equal the facilitator wallet whose TrustGateAuthority " +
     "PDA is being signed. Threads Quantu agent_account/atom_stats accounts " +
     "through remaining_accounts. Idempotent on payment_id_hash.",
   inputSchema: InputSchema,

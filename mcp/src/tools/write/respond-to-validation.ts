@@ -49,10 +49,10 @@ export const respondToValidationTool: Tool<Input, Output> = {
   name:        "agenttrust_respond_to_validation",
   description:
     "Attestor responds to a ValidationRequest by creating a " +
-    "ValidationAttestation PDA. Requires KEYPAIR_B58 (must equal the " +
-    "attestor pubkey registered in AttestorProfile). Surfaces the " +
-    "attestation PDA + Explorer URL for downstream PolicyVault " +
-    "RequireValidation reads.",
+    "ValidationAttestation PDA. Requires a signer (KEYPAIR_B58 / " +
+    "KEYPAIR_PATH / Solana CLI default) whose pubkey must equal the " +
+    "attestor registered in AttestorProfile. Surfaces the attestation " +
+    "PDA + Explorer URL for downstream PolicyVault RequireValidation reads.",
   inputSchema: InputSchema,
 
   async handler(input: Input, ctx: ToolContext): Promise<Output> {

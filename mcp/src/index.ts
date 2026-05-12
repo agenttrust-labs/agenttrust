@@ -36,7 +36,9 @@ INSTALL — Cursor
 ENVIRONMENT
   RPC_URL                  Solana RPC endpoint (default: devnet)
   NETWORK                  solana-devnet | solana-mainnet
-  KEYPAIR_B58              Base58 64-byte secret. Required for write tools.
+  KEYPAIR_B58              Base58 64-byte secret. One way to supply a signer.
+  KEYPAIR_PATH             Path to a Solana CLI keypair JSON. Alt signer source.
+                           (~/.config/solana/id.json is picked up automatically.)
   MCP_TRANSPORT            stdio (default) | http
   MCP_HTTP_PORT            8765 (default; Fly.io also injects PORT)
   MCP_HTTP_HOST            127.0.0.1 (default). Set 0.0.0.0 for hosted deploys.

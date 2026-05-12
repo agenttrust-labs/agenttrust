@@ -24,7 +24,7 @@ deployed AgentTrust programs through natural language.
 | `agenttrust_list_facilitators` | Active facilitator adapters (Pay.sh / Dexter / atxp / MCPay) + ship status. |
 | `agenttrust_demo_state` | Three pre-warmed devnet counterparties used by `examples/pay-sh-demo`. |
 
-### Write (require `KEYPAIR_B58` env)
+### Write (require a signer: `KEYPAIR_B58` / `KEYPAIR_PATH` / Solana CLI default)
 
 | Tool | Effect |
 |--|--|

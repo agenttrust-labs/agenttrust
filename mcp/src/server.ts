@@ -53,9 +53,11 @@ const SERVER_VERSION = PKG_VERSION;
 
 const SERVER_INSTRUCTIONS =
   "AgentTrust MCP server. Read tools work without auth (devnet by default). " +
-  "Write tools require KEYPAIR_B58 in env. Resources expose the AgentTrust " +
-  "docs corpus, deployed program manifest, and example demo source. Prompts " +
-  "ship three guided workflows: audit_payment, setup_agent, explain_failure.";
+  "Write tools require a signer (KEYPAIR_B58 / KEYPAIR_PATH / Solana CLI " +
+  "default ~/.config/solana/id.json; full chain documented in the MCP " +
+  "README). Resources expose the AgentTrust docs corpus, deployed program " +
+  "manifest, and example demo source. Prompts ship three guided workflows: " +
+  "audit_payment, setup_agent, explain_failure.";
 
 export function createMcpServer(cfg: AgentTrustConfig): Server {
   const chain  = new ChainClient(cfg);

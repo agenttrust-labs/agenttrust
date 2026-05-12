@@ -134,7 +134,7 @@ Phase M flagged this as Bug #4. Fixing it requires restructuring the transport i
 
 ## Auth
 
-The hosted endpoint has no authentication for read tools. Write tools require a `KEYPAIR_B58` environment variable on the *server*; the hosted instance doesn't have one set, so write tools surface the standard `signer required` error.
+The hosted endpoint has no authentication for read tools. Write tools require a signer on the *server* (resolved via `KEYPAIR_B58` / `KEYPAIR_PATH` / Solana CLI default); the hosted instance has none of these set, so write tools surface the standard `signer required` error.
 
 For write-tool access from a hosted MCP context, run your own instance with your own keypair:
 

@@ -45,7 +45,8 @@ export const requestValidationTool: Tool<Input, Output> = {
     "Open a ValidationRequest PDA inviting attestors to attest to a " +
     "subject's capability. Pass either capability_name (preferred — the SDK " +
     "computes SHA256(name) and stamps it as the hash) or capability_hash_hex " +
-    "directly. Requires KEYPAIR_B58. Returns the request PDA's Explorer URL.",
+    "directly. Requires a signer (KEYPAIR_B58 / KEYPAIR_PATH / Solana CLI " +
+    "default). Returns the request PDA's Explorer URL.",
   inputSchema: InputSchema,
 
   async handler(input: Input, ctx: ToolContext): Promise<Output> {
