@@ -151,6 +151,15 @@
       visibility 0s linear 200ms;
   }
 
+  .dropdown::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 6px;
+  }
+
   .item:hover .dropdown,
   .item:focus-within .dropdown {
     pointer-events: auto;
