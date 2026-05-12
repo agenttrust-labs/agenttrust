@@ -8,6 +8,15 @@ dist/
 build/
 *.log
 
+# Next.js + bundler build / cache artifacts (live-app, docs-site, web, status-page)
+.next/
+.turbo/
+.swc/
+out/
+.vercel
+coverage/
+next-env.d.ts
+
 # Internal docs and artifacts (do not ship)
 plan/
 research/
@@ -48,5 +57,21 @@ agenttrust-grant/
 /*.jpg
 /*.jpeg
 
+# Video files and partial downloads at root (yt-dlp, ffmpeg cruft, source clips)
+/*.webm
+/*.mp4
+/*.mov
+/*.part
+/*.ytdl
+
 # Generated video/reference drafts
 docs/video-scripts/
+
+# X / social orchestration workspace (private, expansive, not for git)
+x_posts_agenttrust/
+
+# Submission artifacts (local-only per submission/README.md)
+submission/
+
+# Marketing video Remotion project (brand-locked, renders are heavy, private)
+marketing-video/

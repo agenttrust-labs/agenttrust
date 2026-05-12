@@ -1,0 +1,81 @@
+{
+  "captured_at": "2026-05-11T03:12:47.430Z",
+  "rpc_url": "https://api.mainnet-beta.solana.com",
+  "program_id": "AToMw53aiPQ8j7iHVb4fGt6nzUNxUhcPc3tbPBZuzVVb",
+  "total_atomstats_accounts": 104,
+  "tier_immediate_zero_count": 104,
+  "tier_immediate_nonzero_count": 0,
+  "nonzero_examples": [],
+  "sample_first_10": [
+    {
+      "pubkey": "FHvoK58UogWy9ZrX7tHGLcRYUD7qfQZjHtDcMoxZShMc",
+      "tier_immediate": 0,
+      "tier_confirmed": 0,
+      "feedback_count": 11,
+      "quality_score": 1963
+    },
+    {
+      "pubkey": "9a5WjQos5MSqaZSgKKEzEzeMCYufkm1p3EhWeRztprNd",
+      "tier_immediate": 0,
+      "tier_confirmed": 0,
+      "feedback_count": 5,
+      "quality_score": 1795
+    },
+    {
+      "pubkey": "ERfWkmAwJf9A2QeMHyNSmkXvGsdSf4oYsxzop1MQY2DA",
+      "tier_immediate": 0,
+      "tier_confirmed": 0,
+      "feedback_count": 0,
+      "quality_score": 0
+    },
+    {
+      "pubkey": "FLuwjFmrBGMazzSygVh6SC2ZuEaDZd8NUnkTAao4JVUd",
+      "tier_immediate": 0,
+      "tier_confirmed": 0,
+      "feedback_count": 5,
+      "quality_score": 1986
+    },
+    {
+      "pubkey": "4WoczuQn2sBXvQdj1gtK7Y1h5JkFdfkW1N8RWjHRYJDL",
+      "tier_immediate": 0,
+      "tier_confirmed": 0,
+      "feedback_count": 78,
+      "quality_score": 6141
+    },
+    {
+      "pubkey": "7x4pSzmZKnMzL7BemUutvcZ5ZB31nbW1g179hUchmJJR",
+      "tier_immediate": 0,
+      "tier_confirmed": 0,
+      "feedback_count": 5,
+      "quality_score": 1986
+    },
+    {
+      "pubkey": "GRu8WmtoKtvbZQjr7ivW6PeDxYGeDeVqehNDEBjsj25R",
+      "tier_immediate": 0,
+      "tier_confirmed": 0,
+      "feedback_count": 0,
+      "quality_score": 0
+    },
+    {
+      "pubkey": "5JbCMUd6k4f56H2o4QkA8o5JRqP3Use58N6UyqdbA5z8",
+      "tier_immediate": 0,
+      "tier_confirmed": 0,
+      "feedback_count": 3,
+      "quality_score": 1155
+    },
+    {
+      "pubkey": "J4HVwYL5Hn5DfvKqm8XkUGS6RQqXu7rJUPQuRWK9EhuC",
+      "tier_immediate": 0,
+      "tier_confirmed": 0,
+      "feedback_count": 0,
+      "quality_score": 0
+    },
+    {
+      "pubkey": "65opuVezqPqX8uJ7LDqpxzRbnM6uK4djkiyh2GH59eNz",
+      "tier_immediate": 0,
+      "tier_confirmed": 0,
+      "feedback_count": 0,
+      "quality_score": 0
+    }
+  ]
+}

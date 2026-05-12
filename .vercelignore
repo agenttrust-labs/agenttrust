@@ -1,0 +1,43 @@
+# Vercel CLI upload exclusions for AgentTrust monorepo.
+# Vercel projects link from repo root with Root Directory configured
+# (web/ for agenttrust-web, docs-site/ for agenttrust-docs-site).
+# docs-site prebuild reads parent files (mcp/CHANGELOG.md,
+# trustgate/sdk/CHANGELOG.md, examples/attestor-demo/*.json), so we
+# can't exclude sibling workspaces wholesale — only heavy artifacts.
+
+# Solana / Anchor / Rust local-only artifacts (Unix sockets in
+# .anchor/test-ledger crash the uploader without this).
+.anchor/
+target/
+test-ledger/
+
+# Node / Next / TS build outputs
+node_modules/
+.next/
+.turbo/
+dist/
+build/
+
+# Python / venv
+.venv/
+__pycache__/
+
+# OS / editor / logs
+.DS_Store
+*.log
+
+# Internal docs and plan dirs (do not ship to Vercel)
+docs/plan/
+docs/internal/
+docs/research/
+docs/references/
+references/
+plan/
+research/
+agenttrust-grant/
+
+# Other heavy local-only workspaces not needed by either web build
+# (status-page deploys separately, examples/pay-sh-demo is unrelated)
+examples/pay-sh-demo/
+status-page/
+migrations/
