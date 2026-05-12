@@ -97,8 +97,12 @@ export const setKillswitchTool: Tool<Input, Output> = {
       const threshold = Number(auth.threshold ?? 0);
       if (threshold > 1) {
         throw new Error(
-          `PolicyAuthority threshold is ${threshold}; this tool only supports ` +
-          `lead-only signing (threshold=1). Cosigner support is roadmap.`,
+          `PolicyAuthority threshold is ${threshold}. This tool only supports ` +
+          `lead-only signing (threshold=1). Cosigner support is roadmap. ` +
+          `To run a multi-sig killswitch today, use the Anchor CLI flow at ` +
+          `https://docs.agenttrust.tech/programs/policy-vault/kill-switch-policy ` +
+          `(or build a custom transaction via @agenttrust-sdk/trustgate's ` +
+          `set_killswitch composer).`,
         );
       }
     }

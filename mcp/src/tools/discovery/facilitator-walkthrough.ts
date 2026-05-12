@@ -28,6 +28,11 @@ interface Output {
   content:        string;
   fallback?:      string;
   servicesReadme?: string;
+  /** Set when the docs corpus can't be located at runtime and `content`
+   *  is the literal "(no walkthrough bundled for ...)" placeholder. Lets
+   *  an LLM agent distinguish a real walkthrough from a missing-asset
+   *  placeholder. Additive + optional — existing consumers keep working. */
+  errorCode?:     "walkthrough_not_bundled";
 }
 
 const ADAPTER_DOCS: Record<string, string> = {
@@ -95,16 +100,26 @@ export const facilitatorWalkthroughTool: Tool<Input, Output> = {
       }
       if (content && services) break;
     }
+    // Track whether the doc body is a real walkthrough or a missing-asset
+    // placeholder. The string content is preserved for human readers; the
+    // errorCode below lets an LLM agent distinguish the two cases.
+    let contentResolved = !!content;
     if (!content) content = `(no walkthrough bundled for ${docRel})`;
 
     const out: Output = {
       name:           input.name,
-      matched,
+      // If the docs corpus couldn't be located, the placeholder above is
+      // surfaced and `matched` is set to false regardless of the adapter
+      // name lookup — so an LLM doesn't treat the placeholder as authoritative.
+      matched:        matched && contentResolved,
       source:         docRel,
       content,
       servicesReadme: services || undefined,
     };
-    if (!matched) {
+    if (!contentResolved) {
+      out.errorCode = "walkthrough_not_bundled";
+      out.fallback  = "Walkthrough asset not bundled at runtime (docs corpus missing). Content is a placeholder.";
+    } else if (!matched) {
       out.fallback = "Unknown facilitator; returning the generic adapter guide.";
     }
     return out;

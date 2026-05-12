@@ -27,7 +27,12 @@ const InputSchema = z.object({
                           .describe("Direct 32-byte capability hash (hex); use only if you already have the digest"),
   claim_uri_hash_hex:   HexHashSchema.describe("32-byte hash of the off-chain claim URI"),
   deadline_slot:        z.union([z.number().int().positive(), z.string().regex(/^\d+$/)])
-                          .describe("Slot by which an attestor must respond"),
+                          .describe(
+                            "Slot by which an attestor must respond. Must be greater than the " +
+                            "current Solana slot. Devnet slots advance roughly every 400ms " +
+                            "(so `current_slot + 60 * 1000 / 400 = current_slot + 150` is " +
+                            "approximately one minute in the future).",
+                          ),
 });
 type Input = z.infer<typeof InputSchema>;
 

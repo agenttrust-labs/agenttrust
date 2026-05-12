@@ -36,6 +36,23 @@ const InputSchema = z.object({
 });
 type Input = z.infer<typeof InputSchema>;
 
+/**
+ * Stable, machine-parseable error codes the LLM can branch on when the
+ * atom_stats fetch / decode misses. The string `error` field stays for
+ * human readability; new callers should prefer `errorCode`.
+ *
+ *   - "wrong_owner"     — account exists but owner != Quantu atom_engine
+ *                         (e.g., user pointed at a non-Quantu PDA).
+ *   - "size_mismatch"   — account exists but data.len() != ATOM_STATS_SIZE
+ *                         (Quantu schema drift or wrong account).
+ *   - "schema_mismatch" — schema_version byte != expected (1) OR a
+ *                         tier-range canary failed (>ATOM_TIER_MAX).
+ */
+export type QuantuReputationErrorCode =
+  | "wrong_owner"
+  | "size_mismatch"
+  | "schema_mismatch";
+
 interface Output {
   pda:           string;
   explorerUrl:   string;
@@ -47,6 +64,9 @@ interface Output {
   rawByteLen:    number;
   /** Set when the schema-version canary fails or the account is undersized. */
   error?:        string;
+  /** Machine-parseable companion to `error` — LLM agents should branch on this
+   *  rather than grep `error`. Only set when `error` is set. */
+  errorCode?:    QuantuReputationErrorCode;
   reputation?: {
     /** v1 fast-path tier (0..=4). The CounterpartyTier policy reads
      *  this in v1 demo mode. */
@@ -84,29 +104,44 @@ export const ATOM_STATS_SCHEMA_VERSION_OFFSET   = 560;
 export const ATOM_STATS_SCHEMA_VERSION_EXPECTED = 1;
 export const ATOM_TIER_MAX                      = 4;
 
-/** Pure-fn bytes → reputation. Returns `{ error }` when the buffer fails any
- *  canary (size, schema_version, tier-range). Mirrors the on-chain parser's
- *  fail-loud semantics — caller surfaces the error. */
+/** Pure-fn bytes → reputation. Returns `{ error, errorCode }` when the buffer
+ *  fails any canary (size, schema_version, tier-range). Mirrors the on-chain
+ *  parser's fail-loud semantics — caller surfaces the error.
+ *
+ *  `errorCode` is machine-parseable: `"size_mismatch"` for length canary,
+ *  `"schema_mismatch"` for schema_version byte or tier-range canary. */
 export function decodeAtomStatsBytes(
   data: Buffer | Uint8Array,
-): NonNullable<Output["reputation"]> | { error: string } {
+): NonNullable<Output["reputation"]> | { error: string; errorCode: QuantuReputationErrorCode } {
   if (data.length !== ATOM_STATS_SIZE) {
-    return { error: `account size ${data.length} != expected ${ATOM_STATS_SIZE}` };
+    return {
+      error:     `account size ${data.length} != expected ${ATOM_STATS_SIZE}`,
+      errorCode: "size_mismatch",
+    };
   }
   const buf = data instanceof Buffer ? data : Buffer.from(data);
   const schemaVersion = buf.readUInt8(ATOM_STATS_SCHEMA_VERSION_OFFSET);
   if (schemaVersion !== ATOM_STATS_SCHEMA_VERSION_EXPECTED) {
-    return { error: `schema_version ${schemaVersion} != expected ${ATOM_STATS_SCHEMA_VERSION_EXPECTED}` };
+    return {
+      error:     `schema_version ${schemaVersion} != expected ${ATOM_STATS_SCHEMA_VERSION_EXPECTED}`,
+      errorCode: "schema_mismatch",
+    };
   }
   const tierImmediate = buf.readUInt8(ATOM_STATS_TIER_IMMEDIATE_OFFSET);
   const tierConfirmed = buf.readUInt8(ATOM_STATS_TIER_CONFIRMED_OFFSET);
   const riskScore     = buf.readUInt8(ATOM_STATS_RISK_SCORE_OFFSET);
   const confidence    = buf.readUInt16LE(ATOM_STATS_CONFIDENCE_OFFSET);
   if (tierImmediate > ATOM_TIER_MAX) {
-    return { error: `tier_immediate ${tierImmediate} > ATOM_TIER_MAX ${ATOM_TIER_MAX}` };
+    return {
+      error:     `tier_immediate ${tierImmediate} > ATOM_TIER_MAX ${ATOM_TIER_MAX}`,
+      errorCode: "schema_mismatch",
+    };
   }
   if (tierConfirmed > ATOM_TIER_MAX) {
-    return { error: `tier_confirmed ${tierConfirmed} > ATOM_TIER_MAX ${ATOM_TIER_MAX}` };
+    return {
+      error:     `tier_confirmed ${tierConfirmed} > ATOM_TIER_MAX ${ATOM_TIER_MAX}`,
+      errorCode: "schema_mismatch",
+    };
   }
   return { tierImmediate, tierConfirmed, riskScore, confidence, schemaVersion };
 }
@@ -139,9 +174,20 @@ export const getQuantuReputationTool: Tool<Input, Output> = {
     };
     if (!accountInfo) return out;
 
+    // Owner check is a separate canary from the decode below — surface
+    // it with its own errorCode so an LLM can branch ("wrong_owner"
+    // typically means the user passed a pubkey that doesn't belong to
+    // Quantu, vs. "schema_mismatch" which means the Quantu IDL drifted).
+    if (!out.ownerMatches) {
+      out.error     = `atom_stats decode failed: owner ${out.ownerProgram ?? "(null)"} != expected ${out.ownerExpected}`;
+      out.errorCode = "wrong_owner";
+      return out;
+    }
+
     const decoded = decodeAtomStatsBytes(accountInfo.data);
     if ("error" in decoded) {
-      out.error = `atom_stats decode failed: ${decoded.error}`;
+      out.error     = `atom_stats decode failed: ${decoded.error}`;
+      out.errorCode = decoded.errorCode;
       return out;
     }
     out.reputation = decoded;

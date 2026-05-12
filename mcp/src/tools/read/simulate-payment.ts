@@ -7,6 +7,7 @@
  */
 
 import { BN } from "@coral-xyz/anchor";
+import { Keypair } from "@solana/web3.js";
 import { z } from "zod";
 
 import { simulateGatePayment } from "../../chain";
@@ -40,23 +41,20 @@ export const simulatePaymentTool: Tool<Input, DecisionOutput> = {
 
   async handler(input: Input, ctx: ToolContext): Promise<DecisionOutput> {
     const policyVault = await ctx.chain.policyVault();
-    // Solana's simulate requires the fee-payer to be a real funded
-    // system-program-owned account. We need an explicit funded caller:
-    //   1. explicit input.caller arg (caller's responsibility to fund)
-    //   2. configured KEYPAIR_B58 signer (real funded account)
-    //   else: throw a clear error explaining the requirement.
-    if (!input.caller && !ctx.chain.signerPubkey()) {
-      throw new Error(
-        "agenttrust_simulate_payment requires a funded fee-payer on devnet. " +
-        "Either pass `caller` arg as a base58 pubkey of a funded account, or " +
-        "set KEYPAIR_B58 in the MCP environment to a base58-encoded keypair " +
-        "with at least one lamport. Read tools without `simulate_*` work " +
-        "without any signer."
-      );
-    }
+    // F-024: the SDK's simulateGatePayment threads the gate_payment ix
+    // through `simulateTransaction({ replaceRecentBlockhash: true,
+    // sigVerify: false })` — the RPC fills in a fresh blockhash and the
+    // signature check is skipped, so the fee-payer doesn't need to be
+    // funded for simulation to succeed. We pick the caller in priority
+    // order:
+    //   1. explicit input.caller arg (lets the user pin a known funded
+    //      pubkey when they're auditing a specific deployment)
+    //   2. configured KEYPAIR_B58 signer pubkey (matches their identity)
+    //   3. an ephemeral throwaway pubkey — safe because sigVerify=false
+    //      means the fee-payer never has to sign and is never debited.
     const callerPubkey = input.caller
       ? parsePubkey(input.caller, "caller")
-      : ctx.chain.signerPubkey()!;
+      : (ctx.chain.signerPubkey() ?? Keypair.generate().publicKey);
 
     const decision = await simulateGatePayment({
       policyVault,

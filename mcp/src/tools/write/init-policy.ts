@@ -45,7 +45,11 @@ const SpendingSchema = z.object({
 const VelocitySchema = z.object({
   window_secs:        z.union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)]).default(0),
   max_in_window:      z.union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)]).default(0),
-  tier0_decay_factor: z.union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)]).default(10000),
+  tier0_decay_factor: z.union([z.number().int().nonnegative(), z.string().regex(/^\d+$/)]).default(10000).describe(
+    "Basis points (10_000 = 100%). Rate the velocity counter decays toward zero per slot. " +
+    "10_000 means full decay every slot (no rollover). 0 means the counter persists forever. " +
+    "Tune per agent's usage pattern.",
+  ),
 }).default({ window_secs: 0, max_in_window: 0, tier0_decay_factor: 10000 });
 
 const CounterpartySchema = z.object({
