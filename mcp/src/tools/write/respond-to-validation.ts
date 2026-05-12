@@ -32,7 +32,11 @@ const InputSchema = z.object({
   capability_hash_hex:  HexHashSchema.optional(),
   claim_payload_hash_hex: HexHashSchema.describe("32-byte hash of the attestor's signed claim payload"),
   claim_uri_hash_hex:   HexHashSchema.describe("32-byte hash of the canonical claim URI"),
-  expires_at_slot:      z.union([z.number().int().positive(), z.string().regex(/^\d+$/)])
+  // Use `.min(1)` rather than `.positive()` so `zodToJsonSchema(..., { target: "openApi3" })`
+  // emits `{ "minimum": 1 }` (JSON Schema draft 2020-12 compatible) rather than the
+  // draft-04 boolean form `{ "exclusiveMinimum": true, "minimum": 0 }`, which the
+  // Anthropic /v1/messages tool validator rejects with HTTP 400.
+  expires_at_slot:      z.union([z.number().int().min(1), z.string().regex(/^\d+$/)])
                           .describe("Attestation expiry slot (0 = never)"),
 });
 type Input = z.infer<typeof InputSchema>;

@@ -14,6 +14,103 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the tx's inner instructions. Useful when an integrator has the settle
   signature but not the digest.
 
+## [0.3.4] — 2026-05-13
+
+Tag: `mcp-v0.3.4` · Hot-fix release for the four regressions surfaced by
+the gate E2E run against published 0.3.3 (Claude Code over `claude -p`,
+real devnet RPC, real mainnet RPC for the Quantu read beat). Full
+verification report at `submission/e2e-claude-code-2026-05-13/README.md`.
+
+The gate found that 0.3.3 booted and listed the expected nineteen tools
+but blocked Claude Code on three of seven tested tools at the Anthropic
+API tool-validation layer and at the Anchor argument-marshalling layer,
+plus over-reached on the mainnet program-ID guard. 0.3.4 fixes all four
+items and ships unit-test coverage so each regression has a defence in
+the test suite going forward.
+
+### Fixed
+
+- `agenttrust_request_validation` and `agenttrust_respond_to_validation`
+  no longer ship JSON Schema draft-04 `exclusiveMinimum: true` in their
+  generated input schemas (the form the Anthropic /v1/messages tool
+  validator rejects with HTTP 400 under draft 2020-12). Both
+  `deadline_slot` and `expires_at_slot` now use Zod `.min(1)` so the
+  emitted fragment is the draft 2020-12 form `{ "type": "integer",
+  "minimum": 1 }`. Two surfaces fixed: `mcp/src/tools/write/request-
+  validation.ts` and `mcp/src/tools/write/respond-to-validation.ts`. A
+  defence-in-depth post-processor `rewriteExclusiveBoundsToDraft2020`
+  was added in `mcp/src/server.ts` and runs on every tool's generated
+  schema, so a future `.positive()` or `.gt(N)` in any tool input
+  cannot regress the Anthropic tool-validation path unnoticed.
+
+- `agenttrust_emit_feedback` no longer fails with the Anchor "provided
+  too many arguments" error. The on-chain `trustgate::emit_feedback`
+  Rust signature added two parameters (`value: u64`, `value_decimals:
+  u8`) between `score` and `tag1` for Quantu `quality_score` accrual,
+  but the bundled `mcp/src/idl/trustgate.json` still listed the older
+  eight-argument shape. Anchor 0.31's `splitArgsAndCtx` compared the
+  ten args the handler passed (correct, matches the SDK call) against
+  the stale eight in the IDL and rejected the call. Fix: regenerated
+  the IDL fragment to add `value` and `value_decimals` in the correct
+  positional slot. The handler call site in
+  `mcp/src/tools/write/emit-feedback.ts` continues to pass the 32-byte
+  `payment_id_hash` as a single positional array (`Array.from(...)`),
+  which is what Anchor expects for `[u8; 32]`.
+
+- Mainnet boot no longer hard-throws when AgentTrust program IDs are
+  unset, which previously blocked Quantu-only reads on mainnet (Beat G
+  in the gate report). The boot guard in `mcp/src/config.ts` now emits
+  a one-time stderr warning, fills the three AT program IDs with a
+  sentinel pubkey (the System Program `11111111111111111111111111111111`),
+  and exports `isMainnetUndeployedSentinel(pubkey)` so the chain layer
+  can detect the sentinel. `mcp/src/chain.ts` runs a `guardATProgramId`
+  check before each `loadPolicyVault` / `loadTrustGate` /
+  `loadValidationRegistry` call and throws a `ConfigError`-named Error
+  that classifies as the new `config_error` envelope code. Quantu
+  reads use the real `MAINNET_QUANTU_IDS` and are unaffected.
+
+- `classifyError` in `mcp/src/errors.ts` now maps Solana
+  `InstructionError` payloads (JSON-shaped and text-shaped) to
+  `errorCode: "chain_error"` rather than the generic `internal`
+  fallback. The Custom NNN code is extracted, named where it appears
+  in the small table of known Anchor error numbers (e.g. 3012 -> 
+  `AccountNotInitialized`), and surfaced in the `hint` field. A new
+  `config_error` code was added to `ToolErrorCode` to cover the
+  mainnet-undeployed sentinel case from the chain-layer guard.
+
+### Tests
+
+- `mcp/test/json-schema-output.test.ts` (new). Recursively walks every
+  tool input schema after the `rewriteExclusiveBoundsToDraft2020`
+  post-processor and asserts no boolean `exclusiveMinimum` /
+  `exclusiveMaximum` survives anywhere in the nested tree. Pins the
+  `deadline_slot` and `expires_at_slot` shapes to `{ "type":
+  "integer", "minimum": 1 }`. Covers six cases including the
+  `anyOf` / `oneOf` / `allOf` / `items` walk paths.
+
+- `mcp/test/tools/write/emit-feedback.test.ts` (extended). Adds a
+  handler-level test that mocks the Anchor `trustgate.methods.emit
+  Feedback(...)` chain and asserts the handler passes exactly ten
+  positional arguments matching the on-chain Rust signature, with
+  `payment_id_hash` as a single 32-element `number[]` (not spread).
+
+- `mcp/test/config.test.ts` (new). Asserts `loadConfig` returns rather
+  than throws on `NETWORK=solana-mainnet` without overrides, fills
+  the three AT program IDs with the sentinel, leaves the Quantu IDs
+  as the real mainnet pubkeys, and respects explicit overrides.
+
+- `mcp/test/errors.test.ts` (new). Covers the new `chain_error`
+  routing for the four `InstructionError` shapes the gate saw
+  (simulation-failed JSON, raw `custom program error: 0x...` text,
+  text-shaped InstructionError without a Custom code, Anchor-style
+  with structured `error.errorCode.code`), the new `config_error`
+  routing, plus regression coverage for `auth_required`,
+  `input_invalid`, and the `internal` fallback.
+
+Suite size after this release: 110 passing (29 unit tests added vs
+0.3.3's 86), plus the stdio conformance harness (22 checks) which
+continues to pass against the regenerated server.
+
 ## [0.3.3] — 2026-05-13
 
 Tag: `mcp-v0.3.3` · Republish of 0.3.2 to fix a packaging bug.

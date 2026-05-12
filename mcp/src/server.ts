@@ -59,6 +59,64 @@ const SERVER_INSTRUCTIONS =
   "manifest, and example demo source. Prompts ship three guided workflows: " +
   "audit_payment, setup_agent, explain_failure.";
 
+/**
+ * Recursively rewrite JSON-Schema draft-04 boolean `exclusiveMinimum` /
+ * `exclusiveMaximum` to the draft 2020-12 numeric form expected by the
+ * Anthropic API.
+ *
+ * Input (draft-04, what `zod-to-json-schema`'s `openApi3` target emits
+ * for `z.number().positive()` / `.gt(N)` / `.negative()` / `.lt(N)`):
+ *
+ *   { type: "integer", exclusiveMinimum: true,  minimum: 0 }
+ *   { type: "integer", exclusiveMaximum: true,  maximum: 100 }
+ *
+ * Output (draft 2020-12, what Anthropic /v1/messages accepts):
+ *
+ *   { type: "integer", exclusiveMinimum: 0 }
+ *   { type: "integer", exclusiveMaximum: 100 }
+ *
+ * The `exclusiveMinimum: false` no-op form is also stripped (it means
+ * "the regular `minimum` is inclusive" in draft-04 and is meaningless in
+ * 2020-12).
+ *
+ * Walks `properties`, `items`, `oneOf` / `anyOf` / `allOf`, `definitions`,
+ * `$defs`, and nested objects so the rewrite catches every schema node
+ * regardless of how the tool author composed the Zod expression.
+ *
+ * Exported for tests in `test/json-schema-output.test.ts`.
+ */
+export function rewriteExclusiveBoundsToDraft2020(node: unknown): Record<string, unknown> {
+  if (!isPlainObject(node)) return node as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(node)) {
+    out[key] = rewriteValue(value);
+  }
+  // Fold draft-04 boolean exclusiveMinimum/Maximum into numeric form.
+  if (out.exclusiveMinimum === true && typeof out.minimum === "number") {
+    out.exclusiveMinimum = out.minimum;
+    delete out.minimum;
+  } else if (out.exclusiveMinimum === false) {
+    delete out.exclusiveMinimum;
+  }
+  if (out.exclusiveMaximum === true && typeof out.maximum === "number") {
+    out.exclusiveMaximum = out.maximum;
+    delete out.maximum;
+  } else if (out.exclusiveMaximum === false) {
+    delete out.exclusiveMaximum;
+  }
+  return out;
+}
+
+function rewriteValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(rewriteValue);
+  if (isPlainObject(value)) return rewriteExclusiveBoundsToDraft2020(value);
+  return value;
+}
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
 export function createMcpServer(cfg: AgentTrustConfig): Server {
   const chain  = new ChainClient(cfg);
   const server = new Server(
@@ -70,12 +128,26 @@ export function createMcpServer(cfg: AgentTrustConfig): Server {
   );
 
   // ---- tools/list ---------------------------------------------------------
+  // `zodToJsonSchema(..., { target: "openApi3" })` emits the draft-04 boolean
+  // form of `exclusiveMinimum` / `exclusiveMaximum` (`{ exclusiveMinimum: true,
+  // minimum: 0 }`) when a Zod field uses `.positive()` / `.gt(N)` / `.negative()`.
+  // The Anthropic /v1/messages tool-input-schema validator enforces JSON Schema
+  // draft 2020-12 where these fields must be numbers, not booleans, and rejects
+  // the entire tool array with HTTP 400 otherwise (see the gate E2E report at
+  // submission/e2e-claude-code-2026-05-13/README.md, Regression 1). The
+  // canonical Zod patterns we use now (`.min(1)` for slot ints) sidestep this,
+  // but this post-processor is defence-in-depth so a future `.positive()` in
+  // any tool's input schema cannot regress the Anthropic tool-validation path
+  // unnoticed.
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: ALL_TOOLS.map((t) => ({
       name:        t.name,
       description: t.description,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      inputSchema: zodToJsonSchema(t.inputSchema as any, { target: "openApi3" }) as Record<string, unknown>,
+      inputSchema: rewriteExclusiveBoundsToDraft2020(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        zodToJsonSchema(t.inputSchema as any, { target: "openApi3" }) as Record<string, unknown>,
+      ),
     })),
   }));
 

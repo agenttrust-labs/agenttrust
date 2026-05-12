@@ -39,6 +39,7 @@ import { ZodError } from "zod";
 /** Stable enum of error categories surfaced to MCP clients. */
 export type ToolErrorCode =
   | "auth_required"
+  | "config_error"
   | "input_invalid"
   | "rpc_failure"
   | "chain_error"
@@ -121,10 +122,69 @@ function isAnchorError(err: unknown, name: string, message: string): boolean {
   if (name === "AnchorError") return true;
   // AnchorError.toString() includes "AnchorError caused by account..."
   if (message.startsWith("AnchorError")) return true;
+  // AnchorError exposes structured `error.errorCode.code` even when the
+  // surface message doesn't look Anchor-y (e.g. when a tool catches and
+  // rethrows). Sniff the shape directly.
+  if (typeof err === "object" && err !== null) {
+    const e = err as { error?: { errorCode?: { code?: unknown } } };
+    if (typeof e.error?.errorCode?.code === "string") return true;
+  }
   // SendTransactionError wraps AnchorError for .rpc() calls
   if (/Error Code:\s*\w+\.\s*Error Number:\s*\d+/i.test(message)) return true;
   // CPI-deep failures bubble up `custom program error: 0x...`
   if (/custom program error:\s*0x[0-9a-f]+/i.test(message)) return true;
+  // Raw Solana `InstructionError` payload — surfaces when a simulation /
+  // send hits a program error before Anchor decodes it. Two shapes:
+  //   - JSON string in message: 'simulation failed: {"InstructionError":[0,{"Custom":3012}]}'
+  //   - Plain text: 'transaction simulation failed: ... InstructionError ... Custom: 3012'
+  if (/InstructionError/.test(message)) return true;
+  if (/"Custom":\s*\d+/.test(message)) return true;
+  if (/\bCustom:\s*\d+\b/.test(message)) return true;
+  return false;
+}
+
+/**
+ * Extract a `Custom <n>` Anchor error number from an `InstructionError`
+ * payload. Used to build a richer hint in the `chain_error` envelope.
+ *
+ * Matches both JSON ({"Custom":3012}) and text (`Custom: 3012`) shapes.
+ * Returns undefined if no recognisable code is present.
+ */
+function extractCustomErrorCode(message: string): number | undefined {
+  const jsonMatch = /"Custom":\s*(\d+)/.exec(message);
+  if (jsonMatch) return Number.parseInt(jsonMatch[1], 10);
+  const textMatch = /\bCustom:\s*(\d+)\b/.exec(message);
+  if (textMatch) return Number.parseInt(textMatch[1], 10);
+  return undefined;
+}
+
+/**
+ * Map known Anchor error numbers to a short human label so the
+ * `chain_error` hint reads "Custom 3012 (AccountNotInitialized)" rather
+ * than just "Custom 3012". Only the codes we see in practice — the
+ * Anchor docs list the full table; we name the ones the gate E2E hits.
+ */
+const ANCHOR_ERROR_CODES: Record<number, string> = {
+  3012: "AccountNotInitialized",
+  3007: "InstructionFallbackNotFound",
+  6000: "(program-defined; see the program's `error.rs`)",
+};
+
+function formatInstructionErrorHint(message: string): string {
+  const code = extractCustomErrorCode(message);
+  if (code === undefined) {
+    return "On-chain program returned an InstructionError; inspect the cause for the failing instruction index and check the transaction logs on the explorer.";
+  }
+  const label = ANCHOR_ERROR_CODES[code];
+  const suffix = label ? ` (${label})` : "";
+  return `On-chain program returned Custom ${code}${suffix}. Inspect the transaction logs on the explorer; the failing constraint or seed mismatch is named in the program's error.rs.`;
+}
+
+function isConfigError(err: unknown, name: string): boolean {
+  if (name === "ConfigError") return true;
+  if (typeof err === "object" && err !== null && "name" in err) {
+    return (err as { name?: unknown }).name === "ConfigError";
+  }
   return false;
 }
 
@@ -186,7 +246,20 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
     };
   }
 
-  // 2. Zod schema validation — `instanceof ZodError` works because the
+  // 2. Config errors — thrown from `chain.ts:guardATProgramId` when an
+  //    AT-touching tool runs on mainnet without explicit program IDs.
+  //    Caught before the Anchor branch so the "ConfigError" name is
+  //    picked up before the message hits any Anchor heuristics.
+  if (isConfigError(err, name)) {
+    return {
+      errorCode: "config_error",
+      message:   "MCP server is misconfigured for this tool.",
+      hint:      message,
+      cause,
+    };
+  }
+
+  // 3. Zod schema validation — `instanceof ZodError` works because the
   //    server passes the parse error through directly (no wrapping).
   if (err instanceof ZodError) {
     return {
@@ -197,15 +270,22 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
     };
   }
 
-  // 3. Anchor / on-chain program errors.
+  // 4. Anchor / on-chain program errors. Includes raw Solana
+  //    `InstructionError` payloads (e.g. simulation hits an
+  //    `AccountNotInitialized` Custom 3012 on an unseeded PDA) so the
+  //    classifier lands them in `chain_error` rather than `internal`.
+  //    See the gate E2E Beat C polish item in
+  //    submission/e2e-claude-code-2026-05-13/README.md.
   if (isAnchorError(err, name, message)) {
+    const anchorHint = formatAnchorHint(err);
+    const fallbackHint = /InstructionError/.test(message) || /\bCustom\b/.test(message)
+      ? formatInstructionErrorHint(message)
+      : "Inspect the transaction logs on the explorer; the failing constraint or " +
+        "custom error code is included in the cause.";
     return {
       errorCode: "chain_error",
       message:   "On-chain transaction failed.",
-      hint:
-        formatAnchorHint(err) ??
-        "Inspect the transaction logs on the explorer; the failing constraint or " +
-        "custom error code is included in the cause.",
+      hint:      anchorHint ?? fallbackHint,
       cause,
     };
   }
