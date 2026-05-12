@@ -18,6 +18,10 @@ primary_region = "sin"   # Singapore — closest Fly region to India
 [env]
   MCP_TRANSPORT = "http"
   MCP_HTTP_PORT = "8080"
+  # Bind all interfaces inside the Fly machine so its proxy can reach
+  # the server. The MCP server's default is 127.0.0.1 so a laptop
+  # developer doesn't expose http transport on their LAN by accident.
+  MCP_HTTP_HOST = "0.0.0.0"
   NODE_ENV      = "production"
 
 [http_service]
