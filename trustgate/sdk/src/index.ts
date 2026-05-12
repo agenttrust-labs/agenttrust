@@ -6,7 +6,7 @@
  *
  *   ```ts
  *   import { mountTrustGate }                    from "@agenttrust-sdk/trustgate/express";
- *   import { gatePayment, settle, dispute }      from "@agenttrust-sdk/trustgate/client";
+ *   import { gatePayment, settle }               from "@agenttrust-sdk/trustgate/client";
  *   import { composeAtomicSettleTx }             from "@agenttrust-sdk/trustgate";
  *   ```
  *
@@ -114,6 +114,7 @@ export {
   deriveFeedbackLogPda, deriveTrustGateAuthorityPda,
   loadPolicyVault, loadTrustGate, makeProvider,
   simulateGatePayment, parseGateDecision,
+  type SignerLike,
 } from "./chain";
 
 export {
@@ -123,8 +124,22 @@ export {
 } from "./x402";
 
 export {
-  GateDecision, DenyReasonCode, ProgramIds, DEFAULT_DEVNET_PROGRAM_IDS,
+  GateDecision, DenyReasonCode, ProgramIds,
+  DEFAULT_DEVNET_PROGRAM_IDS, MAINNET_PROGRAM_IDS,
 } from "./types";
+
+export {
+  makePayShFacilitator,
+  makeDefaultRegistry,
+  type MakePayShFacilitatorArgs,
+  type MakeDefaultRegistryArgs,
+  type PayShFacilitatorDeps,
+  type ReplayCacheLike,
+  type SignDecisionFn,
+  type FacilitatorAdapterLike,
+  type FacilitatorRegistryLike,
+  type FacilitatorRegistryCtor,
+} from "./facilitator-factory";
 
 // Express + client modules also have their own dedicated entry points
 // via the package.json `exports` field; the root namespace doesn't

@@ -66,7 +66,7 @@ Peer dep: `express ^4.21` (only needed if you mount the middleware).
 
 ```ts
 import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
-import { gatePayment, settle, dispute } from "@agenttrust-sdk/trustgate/client";
+import { gatePayment, settle } from "@agenttrust-sdk/trustgate/client";
 ```
 
 Plus a root namespace with the atomicity guard, PDA derivations, and
@@ -78,6 +78,74 @@ import {
   derivePolicyPda, DEFAULT_DEVNET_PROGRAM_IDS,
 } from "@agenttrust-sdk/trustgate";
 ```
+
+Every named module is also reachable via subpath import, e.g.
+`@agenttrust-sdk/trustgate/atomicity`, `@agenttrust-sdk/trustgate/chain`,
+`@agenttrust-sdk/trustgate/emit-feedback`,
+`@agenttrust-sdk/trustgate/facilitator-factory`,
+`@agenttrust-sdk/trustgate/onchain-validator`,
+`@agenttrust-sdk/trustgate/quantu`, `@agenttrust-sdk/trustgate/spl`,
+`@agenttrust-sdk/trustgate/types`,
+`@agenttrust-sdk/trustgate/validation-registry`, and
+`@agenttrust-sdk/trustgate/x402`. Each subpath maps to a single file in
+the package — useful when a consumer wants tighter tree-shaking than the
+root re-export bundle.
+
+## Facilitator wiring — `makePayShFacilitator`
+
+For Pay.sh integrators who want the boilerplate documented in
+`trustgate/server/src/production.ts` collapsed into a one-liner:
+
+```ts
+import { Connection, Keypair } from "@solana/web3.js";
+import {
+  DEFAULT_DEVNET_PROGRAM_IDS, DEFAULT_DEVNET_QUANTU_IDS,
+  loadTrustGate, makeProvider, makePayShFacilitator, makeDefaultRegistry,
+  Wallet,
+} from "@agenttrust-sdk/trustgate";
+import { PaySh, FacilitatorRegistry } from "@agenttrust/trustgate-server";
+
+const connection         = new Connection("https://api.devnet.solana.com", "confirmed");
+const facilitatorKeypair = Keypair.fromSecretKey(/* your facilitator key */);
+const provider           = makeProvider({ rpcUrl: "https://api.devnet.solana.com", wallet: facilitatorKeypair });
+const trustgate          = await loadTrustGate(provider, DEFAULT_DEVNET_PROGRAM_IDS.trustGate);
+
+const resolveQuantu = async (payeeAgent) => ({
+  agentAccount:      payeeAgent,
+  asset:             /* the agent_asset for the payee */,
+  collection:        /* base collection */,
+  atomConfig:        deriveAtomConfigPda(DEFAULT_DEVNET_QUANTU_IDS),
+  atomStats:         /* atom_stats PDA */,
+  atomEngineProgram: DEFAULT_DEVNET_QUANTU_IDS.atomEngine,
+  registryAuthority: deriveAtomRegistryAuthorityPda(DEFAULT_DEVNET_QUANTU_IDS),
+});
+
+const deps  = makePayShFacilitator({
+  connection,
+  facilitatorKeypair,
+  resolveQuantu,
+  programIds:     DEFAULT_DEVNET_PROGRAM_IDS,
+  quantuIds:      DEFAULT_DEVNET_QUANTU_IDS,
+  trustgate,
+  signingNetwork: "solana-devnet",
+});
+const paySh    = new PaySh(deps);
+const registry = makeDefaultRegistry(FacilitatorRegistry, { paySh });
+```
+
+`makePayShFacilitator` is the public-SDK facade for the Pay.sh adapter
+wiring. The `PaySh` class itself remains in the private
+`@agenttrust/trustgate-server` reference impl, alongside the
+`mountFacilitatorRoutes` route binder — that boundary stays the same.
+Consumers who don't want to vendor the server package's routes use the
+SDK factory to construct deps and run their own Express plumbing.
+
+**Production `replayCache` is REQUIRED.** The default in-memory
+`ReplayCache` is fine for unit tests and single-process demos but a
+restart wipes the anti-replay state. Pass a Redis-backed (or similar)
+`ReplayCacheLike` via `replayCache:` for production. The shape is
+small — `observe(signature, paymentIdHash) -> 'fresh' | 'replay' |
+'collision'`.
 
 ## Quick start — Express middleware
 
@@ -109,19 +177,36 @@ You now have:
 - `GET /receipt/:paymentIdHashHex` — looks up the on-chain
   `FeedbackEmissionLog` PDA. Returns `{ exists: false }` until the
   payment settles.
-- `POST /settle` and `POST /dispute` — atomic-tx assembly stubs
-  (501 Not Implemented in v0.1; full transaction builders ship in v0.2
-  alongside the Phase 9 E2E integration).
+
+`mountTrustGate` intentionally mounts only the two read-only routes.
+The write-path routes (`POST /settle`, `POST /dispute`) live in the
+companion `@agenttrust/trustgate-server` package's
+`mountFacilitatorRoutes` — that's the canonical home of the keypair /
+x402 registry wiring. Use `client.settle(...)` directly for the atomic
+settle path from a TypeScript backend, or mount the server routes if
+you need HTTP-shaped `/settle`. `dispute_payment` exists on-chain; a
+typed SDK composer for it is a tracked follow-up — build the
+`disputePayment` tx directly via `loadTrustGate(provider).methods` in
+the meantime.
+
+The `facilitatorKeypair` field accepts `Keypair | PublicKey |
+{ publicKey: PublicKey }`. The middleware only reads the pubkey
+(gate_payment simulation runs with `sigVerify: false`); passing a
+`Keypair` is fine but not required.
 
 ## Quick start — client helpers
 
 ```ts
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { gatePayment } from "@agenttrust-sdk/trustgate/client";
 
+// `caller` accepts a full Keypair OR a pubkey-only shape — the simulate
+// path runs with sigVerify: false, so no signing occurs. Pass a
+// pubkey-only object from a read-only context to avoid handling secret
+// keys; pass a Keypair when calling `settle` afterwards.
 const decision = await gatePayment({
   rpcUrl:          "https://api.devnet.solana.com",
-  caller:          facilitatorKeypair,
+  caller:          { publicKey: new PublicKey("...") },
   payerAgentAsset: new PublicKey("..."),
   payeeAgentAsset: new PublicKey("..."),
   amount:          1_000_000n, // 1 USDC w/ 6 decimals
@@ -167,6 +252,12 @@ This is the load-bearing safety property of the SDK.
 | `validation_registry` | `Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv` |
 
 Override via the `programIds` config field for mainnet redeploys.
+`MAINNET_PROGRAM_IDS` is exported from the root namespace but is
+currently `undefined` — AgentTrust has not deployed to mainnet-beta
+yet. Mainnet callers must pass an explicit `ProgramIds` object built
+from the live mainnet pubkeys. The `loadValidationRegistry` loader
+refuses to apply the devnet default on a non-devnet RPC (URL heuristic
+check) and throws with a remediation pointer.
 
 All three Anchor IDLs are published on devnet. Verify with:
 

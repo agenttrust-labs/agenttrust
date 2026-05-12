@@ -162,24 +162,67 @@ export function computeCapabilityHash(capabilityName: string): Uint8Array {
 // Program loader
 // ---------------------------------------------------------------------------
 
+/**
+ * Detect whether the provider's RPC endpoint looks like Solana devnet.
+ * Used by `loadValidationRegistry` to decide whether the
+ * `VALIDATION_REGISTRY_DEVNET_ID` default is safe to apply.
+ *
+ * Heuristic: looks for "devnet" anywhere in the RPC URL (canonical
+ * `api.devnet.solana.com`, Helius / Triton devnet hosts, etc.). Localnet
+ * (`127.0.0.1`, `localhost`) is treated like devnet for ergonomics —
+ * local validators are dev environments. Mainnet / testnet URLs miss the
+ * heuristic and force explicit `programId` argument.
+ */
+function isDevnetLikeEndpoint(rpcUrl: string): boolean {
+  const url = rpcUrl.toLowerCase();
+  return (
+    url.includes("devnet") ||
+    url.includes("127.0.0.1") ||
+    url.includes("localhost")
+  );
+}
+
 /** Load the validation_registry Anchor `Program`. By default fetches the
  *  IDL from chain (verify any time with
  *  `anchor idl fetch <programId> --provider.cluster <network>`). Pass an
  *  explicit `idl` as a defensive fallback — useful for clients that bundle
  *  a known-good IDL snapshot, want to avoid an extra RPC hop, or are
  *  pointing at a freshly-redeployed program before `anchor idl init` has
- *  run. */
+ *  run.
+ *
+ *  Cluster-safety: if `programId` is omitted, the loader applies the
+ *  `VALIDATION_REGISTRY_DEVNET_ID` default ONLY when the provider's RPC
+ *  endpoint looks like devnet / localnet. On mainnet / testnet RPCs the
+ *  loader throws — passing the devnet pubkey on a mainnet RPC is a
+ *  cluster-mismatch landmine, not a sensible default.
+ */
 export async function loadValidationRegistry(
   provider:  AnchorProvider,
-  programId: PublicKey = VALIDATION_REGISTRY_DEVNET_ID,
+  programId?: PublicKey,
   idl?:      import("@coral-xyz/anchor").Idl,
 ): Promise<Program> {
+  let resolvedProgramId: PublicKey;
+  if (programId) {
+    resolvedProgramId = programId;
+  } else {
+    const rpcUrl = provider.connection.rpcEndpoint;
+    if (!isDevnetLikeEndpoint(rpcUrl)) {
+      throw new Error(
+        `loadValidationRegistry requires an explicit programId on non-devnet clusters ` +
+        `(provider RPC ${rpcUrl} does not look like devnet / localnet). ` +
+        `Pass the validation_registry program ID for your network, ` +
+        `or import DEFAULT_DEVNET_PROGRAM_IDS.validationRegistry for devnet.`,
+      );
+    }
+    resolvedProgramId = VALIDATION_REGISTRY_DEVNET_ID;
+  }
   if (idl) return new Program(idl, provider);
-  const fetched = await Program.fetchIdl(programId, provider);
+  const fetched = await Program.fetchIdl(resolvedProgramId, provider);
   if (!fetched) {
     throw new Error(
-      `validation_registry IDL not on-chain at ${programId.toBase58()}; ` +
-      `pass an explicit idl arg if anchor idl init has not been run`,
+      `validation_registry IDL not on-chain at ${resolvedProgramId.toBase58()}. ` +
+      `Run \`anchor idl init ${resolvedProgramId.toBase58()}\` to publish the IDL, ` +
+      `or pass an explicit \`idl\` arg to loadValidationRegistry.`,
     );
   }
   return new Program(fetched, provider);

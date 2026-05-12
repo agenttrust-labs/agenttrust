@@ -22,6 +22,8 @@ export {
   PaymentProofRejection,
   ConfirmedSettlement,
   FeedbackEmissionResult,
+  ParseRejectionReason,
+  ParseRequestResult,
 } from "./types";
 
 export {

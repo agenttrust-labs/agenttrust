@@ -7,8 +7,9 @@
  * must be the attestor (matches `attestor_profile.attestor`).
  *
  * If the attestor profile doesn't exist yet, this tool surfaces a clear
- * error pointing at the planned `register_attestor` flow — the
- * attestor-demo's bootstrap script is the source-of-truth lifecycle.
+ * error pointing at the attestor-demo bootstrap script and the SDK's
+ * validation-registry helpers — there's no MCP `register_attestor`
+ * tool, the SDK + demo path is the canonical bootstrap surface.
  */
 
 import { Transaction } from "@solana/web3.js";
@@ -49,10 +50,10 @@ export const respondToValidationTool: Tool<Input, Output> = {
   name:        "agenttrust_respond_to_validation",
   description:
     "Attestor responds to a ValidationRequest by creating a " +
-    "ValidationAttestation PDA. Requires KEYPAIR_B58 (must equal the " +
-    "attestor pubkey registered in AttestorProfile). Surfaces the " +
-    "attestation PDA + Explorer URL for downstream PolicyVault " +
-    "RequireValidation reads.",
+    "ValidationAttestation PDA. Requires a signer (KEYPAIR_B58 / " +
+    "KEYPAIR_PATH / Solana CLI default) whose pubkey must equal the " +
+    "attestor registered in AttestorProfile. Surfaces the attestation " +
+    "PDA + Explorer URL for downstream PolicyVault RequireValidation reads.",
   inputSchema: InputSchema,
 
   async handler(input: Input, ctx: ToolContext): Promise<Output> {
@@ -74,7 +75,9 @@ export const respondToValidationTool: Tool<Input, Output> = {
     if (!profile.data) {
       throw new Error(
         `AttestorProfile not initialised for signer ${signer.publicKey.toBase58()}. ` +
-        `Run the attestor-demo bootstrap (or register_attestor instruction) first.`,
+        `Bootstrap an attestor profile by running the demo script at ` +
+        `examples/attestor-demo/scripts/init.ts or composing a register_attestor ` +
+        `transaction with @agenttrust-sdk/trustgate's validation-registry helpers.`,
       );
     }
 

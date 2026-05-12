@@ -151,11 +151,12 @@ async function main() {
     // 2. tools/list returns expected count + names
     const tools = await client.send("tools/list", {});
     const toolList = (tools.result as { tools?: Array<{ name: string }> })?.tools ?? [];
-    check("tools/list returns 18 tools", toolList.length === 18, toolList.length);
+    check("tools/list returns 19 tools", toolList.length === 19, toolList.length);
     const expectedTools = [
       "agenttrust_get_policy",
       "agenttrust_simulate_payment",
       "agenttrust_explain_decision",
+      "agenttrust_init_authority",
       "agenttrust_init_policy",
       "agenttrust_demo_state",
       "agenttrust_list_facilitators",

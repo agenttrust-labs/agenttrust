@@ -30,7 +30,12 @@ import { AnchorProvider, Idl, Program, Wallet } from "@coral-xyz/anchor";
 import {
   DEFAULT_DEVNET_PROGRAM_IDS,
   DEFAULT_DEVNET_QUANTU_IDS,
+  MAINNET_QUANTU_IDS,
+  ProgramIds,
   QuantuFeedbackAccounts,
+  QuantuProgramIds,
+  deriveAtomConfigPda,
+  deriveAtomRegistryAuthorityPda,
   loadPolicyVault,
   loadTrustGate,
   makeEmitFeedbackCpi,
@@ -89,11 +94,31 @@ function loadCounterpartyMap(): CounterpartyMap | null {
  *
  * `atomEnabled` is true for the hosted facilitator — every pre-warmed
  * counterparty has an atom_stats PDA seeded.
+ *
+ * `quantuIds` is threaded in by `startProduction` so the bundle's
+ * `atomEngineProgram` / `registryAuthority` track the active cluster
+ * (devnet → DEFAULT_DEVNET_QUANTU_IDS, mainnet → MAINNET_QUANTU_IDS).
+ *
+ * `atomConfig` and `registryAuthority` are the cluster-scoped PDAs
+ * derived from `quantuIds`. The on-chain `give_feedback` CPI in
+ * `programs/trustgate/src/ext/agent_registry.rs` expects:
+ *
+ *   atomConfig         = PDA(["atom_config"],            atom_engine)
+ *   registryAuthority  = PDA(["atom_cpi_authority"],     agent_registry)
+ *
+ * Earlier revisions of this function set both slots to the raw program
+ * IDs (`quantuIds.atomEngine` / `quantuIds.agentRegistry`), which is
+ * what `give_feedback` rejected at the runtime constraint check. The
+ * SDK exports `deriveAtomConfigPda` / `deriveAtomRegistryAuthorityPda`
+ * for exactly this derivation — both are cluster-pure (no chain RPC).
  */
 function makeQuantuResolver(
-  map: CounterpartyMap,
+  map:       CounterpartyMap,
+  quantuIds: QuantuProgramIds,
 ): (payeeAgent: PublicKey) => Promise<QuantuFeedbackAccounts> {
-  const collection = new PublicKey(map.baseCollection);
+  const collection       = new PublicKey(map.baseCollection);
+  const atomConfigPda    = deriveAtomConfigPda(quantuIds);
+  const registryAuthPda  = deriveAtomRegistryAuthorityPda(quantuIds);
   const byAgent = new Map<string, CounterpartyEntry>();
   for (const cp of map.counterparties) byAgent.set(cp.agentAccount, cp);
 
@@ -110,15 +135,67 @@ function makeQuantuResolver(
       agentAccount:      payeeAgent,
       asset:             new PublicKey(entry.asset),
       collection,
-      atomConfig:        new PublicKey(DEFAULT_DEVNET_QUANTU_IDS.atomEngine.toBase58()), // overwritten by deriveAtomConfigPda below
+      atomConfig:        atomConfigPda,
       atomStats:         new PublicKey(entry.atomStats),
-      atomEngineProgram: DEFAULT_DEVNET_QUANTU_IDS.atomEngine,
-      registryAuthority: DEFAULT_DEVNET_QUANTU_IDS.agentRegistry, // ditto
+      atomEngineProgram: quantuIds.atomEngine,
+      registryAuthority: registryAuthPda,
     };
   };
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * Resolve AgentTrust program IDs for the active cluster.
+ *
+ * Devnet → `DEFAULT_DEVNET_PROGRAM_IDS` (with per-program env overrides).
+ * Mainnet → require explicit env overrides for every program. AgentTrust
+ *           mainnet programs aren't deployed yet; silently falling
+ *           through to devnet pubkeys produced wrong gate decisions
+ *           (F-052). When mainnet ships, set the three `*_PROGRAM_ID`
+ *           envs and this resolver passes them through.
+ */
+function resolveProgramIds(network: string): ProgramIds {
+  const envPolicyVault         = process.env.POLICY_VAULT_PROGRAM_ID?.trim();
+  const envTrustGate           = process.env.TRUSTGATE_PROGRAM_ID?.trim();
+  const envValidationRegistry  = process.env.VALIDATION_REGISTRY_PROGRAM_ID?.trim();
+
+  if (network === "solana-mainnet") {
+    const missing: string[] = [];
+    if (!envPolicyVault)        missing.push("POLICY_VAULT_PROGRAM_ID");
+    if (!envTrustGate)          missing.push("TRUSTGATE_PROGRAM_ID");
+    if (!envValidationRegistry) missing.push("VALIDATION_REGISTRY_PROGRAM_ID");
+    if (missing.length > 0) {
+      throw new Error(
+        `NETWORK=solana-mainnet but AgentTrust programs aren't deployed to mainnet yet. ` +
+        `Set explicit program IDs via env (${missing.join(", ")}) or use NETWORK=solana-devnet.`,
+      );
+    }
+  }
+
+  return {
+    policyVault:        envPolicyVault        ? parsePubkey("POLICY_VAULT_PROGRAM_ID",         envPolicyVault)        : DEFAULT_DEVNET_PROGRAM_IDS.policyVault,
+    trustGate:          envTrustGate          ? parsePubkey("TRUSTGATE_PROGRAM_ID",           envTrustGate)          : DEFAULT_DEVNET_PROGRAM_IDS.trustGate,
+    validationRegistry: envValidationRegistry ? parsePubkey("VALIDATION_REGISTRY_PROGRAM_ID",  envValidationRegistry) : DEFAULT_DEVNET_PROGRAM_IDS.validationRegistry,
+  };
+}
+
+/**
+ * Resolve Quantu (agent-registry-8004 + atom-engine) program IDs for the
+ * active cluster. Quantu IS deployed on both clusters, so the mainnet
+ * path is the live one — no boot-time gate (unlike AgentTrust above).
+ */
+function resolveQuantuIds(network: string): QuantuProgramIds {
+  return network === "solana-mainnet" ? MAINNET_QUANTU_IDS : DEFAULT_DEVNET_QUANTU_IDS;
+}
+
+function parsePubkey(name: string, raw: string): PublicKey {
+  try {
+    return new PublicKey(raw);
+  } catch (err) {
+    throw new Error(`${name} is not a valid base58 pubkey: ${(err as Error).message}`);
+  }
+}
 
 export interface ProductionConfig {
   rpcUrl:           string;
@@ -138,6 +215,13 @@ export async function startProduction(cfg: ProductionConfig): Promise<{
   const counterpartyMap = loadCounterpartyMap();
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const pkg        = require("../package.json");
+
+  // Resolve cluster-scoped program IDs once at boot. Mainnet throws here
+  // unless the operator pinned every AgentTrust program via env (F-052);
+  // Quantu is live on both clusters so the resolver just picks the right
+  // constant (F-053).
+  const programIds = resolveProgramIds(cfg.network);
+  const quantuIds  = resolveQuantuIds(cfg.network);
 
   app.use(express.json({ limit: "256kb" }));
   app.set("trust proxy", 1); // Fly's edge proxy sets X-Forwarded-For
@@ -169,26 +253,43 @@ export async function startProduction(cfg: ProductionConfig): Promise<{
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const trustgateIdl   = (cfg.trustgateIdl   ?? require("./idl/trustgate.json"))   as Idl;
 
-  const policyVault = await loadPolicyVault(provider, DEFAULT_DEVNET_PROGRAM_IDS.policyVault, policyVaultIdl);
-  const trustgate   = await loadTrustGate(provider, DEFAULT_DEVNET_PROGRAM_IDS.trustGate, trustgateIdl);
+  const policyVault = await loadPolicyVault(provider, programIds.policyVault, policyVaultIdl);
+  const trustgate   = await loadTrustGate(provider, programIds.trustGate, trustgateIdl);
 
   // PaySh adapter wiring.
   const validateOnChainTx = makeValidateOnChainTx({ connection });
+
+  // Quantu resolver bootstrap (F-051). If the counterparty map didn't
+  // load, the lazy throw below preserves the old behaviour as a
+  // defense-in-depth — but we surface the problem at boot too so a
+  // misconfigured deployment fails (or warns) before the first /settle.
   let resolveQuantu: (a: PublicKey) => Promise<QuantuFeedbackAccounts> = async () => {
     throw new Error("Quantu resolver not configured — counterparty map missing");
   };
-  if (counterpartyMap) resolveQuantu = makeQuantuResolver(counterpartyMap);
+  if (counterpartyMap) {
+    resolveQuantu = makeQuantuResolver(counterpartyMap, quantuIds);
+  } else {
+    const strict = (process.env.STRICT_RESOLVERS ?? "").trim().toLowerCase() === "true";
+    const msg =
+      "Quantu resolver not configured — counterparty map missing. " +
+      "/settle will fail until either the counterparty JSON is bundled " +
+      "(examples/pay-sh-demo/devnet-counterparties.json) or a custom " +
+      "resolver is wired before boot.";
+    if (strict) throw new Error(msg);
+    // eslint-disable-next-line no-console
+    console.warn(`[agenttrust-api] WARN ${msg}`);
+  }
 
   const emitFeedbackCpi = makeEmitFeedbackCpi({
     trustgate,
-    trustgateId:     DEFAULT_DEVNET_PROGRAM_IDS.trustGate,
-    agentRegistryId: DEFAULT_DEVNET_QUANTU_IDS.agentRegistry,
+    trustgateId:     programIds.trustGate,
+    agentRegistryId: quantuIds.agentRegistry,
     facilitator:     cfg.facilitator,
     resolveQuantu,
   });
   const priorEmissionLookup = makePriorEmissionLookup({
     trustgate,
-    trustgateId: DEFAULT_DEVNET_PROGRAM_IDS.trustGate,
+    trustgateId: programIds.trustGate,
     connection,
   });
   const replayCache = new ReplayCache();

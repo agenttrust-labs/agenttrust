@@ -1,18 +1,26 @@
 /**
  * `mountTrustGate(app, config)` — drop-in Express middleware.
  *
- * Adds the four x402 endpoints to any Express app:
+ * Adds the two read-only x402 endpoints to any Express app:
  *   - POST /verify          — read-only gate_payment simulation
  *   - GET  /receipt/:hashHex — FeedbackEmissionLog lookup
- *   - POST /settle          — atomic gate_payment + transfer + emit_feedback
- *   - POST /dispute         — dispute_payment ix
  *
- * The atomic-tx invariant is enforced at compile-time + runtime via the
- * `AtomicityEnforced` marker (see `./atomicity`). Skipping either layer
- * silently corrupts VelocityLedger on Token-2022 TransferHook reverts.
+ * The full settle / dispute write-path routes live in
+ * `@agenttrust/trustgate-server`'s `mountFacilitatorRoutes` — that's the
+ * canonical home of the tx-signing wiring. This SDK middleware is the
+ * minimal read-only surface a facilitator can drop into an existing
+ * Express app without taking on the server's keypair / x402 registry
+ * configuration.
+ *
+ * The atomic-tx invariant marker (`AtomicityEnforced`) is still required
+ * here because the SDK exports `client.settle` from the same package —
+ * passing `{ atomicityEnforced: true }` acknowledges callers will use
+ * the literal-type-guard + runtime-throw atomic settle path. Skipping
+ * the invariant silently corrupts VelocityLedger on Token-2022
+ * TransferHook reverts.
  */
 
-import { AnchorProvider, BN, Program } from "@coral-xyz/anchor";
+import { BN, Program } from "@coral-xyz/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import type { Application, Request, Response, Router } from "express";
 
@@ -23,7 +31,7 @@ import {
 } from "./atomicity";
 import {
   deriveFeedbackLogPda, loadPolicyVault, loadTrustGate, makeProvider,
-  simulateGatePayment,
+  simulateGatePayment, SignerLike,
 } from "./chain";
 import { ProgramIds, DEFAULT_DEVNET_PROGRAM_IDS } from "./types";
 import { buildHeadersForDecision } from "./x402";
@@ -31,8 +39,16 @@ import { buildHeadersForDecision } from "./x402";
 export interface MountTrustGateConfig extends AtomicityEnforced {
   /** Solana RPC URL. */
   rpcUrl: string;
-  /** Facilitator keypair (signs emit_feedback CPIs and pays tx fees). */
-  facilitatorKeypair: Keypair;
+  /**
+   * Facilitator identity. Accepts either a full `Keypair` or a pubkey-only
+   * shape (`{ publicKey: PublicKey }` / `PublicKey`). The middleware's
+   * `/verify` route only reads the pubkey (gate_payment simulation runs
+   * with `sigVerify: false`); pass a `Keypair` only if you intend to use
+   * the same provider for a downstream signing path. The full settle /
+   * dispute write-path lives in `trustgate-server::mountFacilitatorRoutes`
+   * and is the right home for the keypair requirement.
+   */
+  facilitatorKeypair: Keypair | PublicKey | { publicKey: PublicKey };
   /** Default policy_id if `/verify` request omits it. Optional. */
   defaultPolicyId?: number;
   /** Override pinned program IDs (e.g., mainnet redeploy). */
@@ -42,9 +58,24 @@ export interface MountTrustGateConfig extends AtomicityEnforced {
 }
 
 /**
- * Mount the four x402 endpoints onto `app`. Throws synchronously if
+ * Internal: normalise the broadened `facilitatorKeypair` field into the
+ * `SignerLike` shape `makeProvider` consumes. `PublicKey` instances are
+ * wrapped to `{ publicKey }`; the existing two valid shapes pass through.
+ */
+function toSignerLike(
+  input: Keypair | PublicKey | { publicKey: PublicKey },
+): SignerLike {
+  if (input instanceof PublicKey) {
+    return { publicKey: input };
+  }
+  return input;
+}
+
+/**
+ * Mount the read-only x402 endpoints onto `app`. Throws synchronously if
  * `atomicityEnforced` is not literal `true` — callers must pass
- * `{ atomicityEnforced: true }` to acknowledge the invariant.
+ * `{ atomicityEnforced: true }` to acknowledge the invariant covering
+ * the companion `client.settle` path.
  *
  * Returns a Promise that resolves once IDLs are loaded from the cluster
  * and routes are bound.
@@ -56,9 +87,10 @@ export async function mountTrustGate(
   assertAtomicityEnforced(config, "mountTrustGate");
 
   const programIds = config.programIds ?? DEFAULT_DEVNET_PROGRAM_IDS;
+  const wallet     = toSignerLike(config.facilitatorKeypair);
   const provider   = makeProvider({
     rpcUrl: config.rpcUrl,
-    wallet: config.facilitatorKeypair,
+    wallet,
   });
 
   const policyVault = await loadPolicyVault(provider, programIds.policyVault);
@@ -70,14 +102,12 @@ export async function mountTrustGate(
   app.use(makeVerifyRoute({
     policyVault,
     programIds,
-    caller:  config.facilitatorKeypair.publicKey,
+    caller:  wallet.publicKey,
     network: config.network,
     Router,
   }));
 
   app.use(makeReceiptRoute({ trustgate, programIds, Router }));
-  app.use(makeSettleRoute({ Router }));
-  app.use(makeDisputeRoute({ Router }));
 }
 
 // ---------------------------------------------------------------------------
@@ -169,45 +199,15 @@ function makeReceiptRoute(deps: {
 }
 
 // ---------------------------------------------------------------------------
-// /settle and /dispute — atomic-tx assembly stubs
+// /settle and /dispute — intentionally NOT mounted from this middleware.
 //
-// Phase 7 ships the atomicity-guard pattern; the actual atomic transaction
-// builder (gate_payment + spl-token transfer + emit_feedback) requires
-// real Quantu agent registration to test end-to-end and is therefore wired
-// up in Phase 9 E2E. Calling these endpoints in v0.1 returns 501 with a
-// pointer to the atomicity invariant — production deployments fill via a
-// project-specific transaction builder that calls `assertAtomicityEnforced`.
+// The write-path routes (settle, dispute) live in
+// `@agenttrust/trustgate-server`'s `mountFacilitatorRoutes`. The SDK
+// middleware stays minimal so consumers can drop /verify and /receipt
+// into an existing Express app without taking on the server's keypair /
+// x402 registry configuration. Use `client.settle(...)` directly from
+// the SDK for the atomic settle path, or mount the canonical server
+// routes from `@agenttrust/trustgate-server` if you want HTTP /settle.
 // ---------------------------------------------------------------------------
-function makeSettleRoute(deps: {
-  Router: typeof import("express")["Router"];
-}): Router {
-  const router = deps.Router();
-  router.post("/settle", async (_req: Request, res: Response) => {
-    return res.status(501).json({
-      error: "settle_not_implemented_in_v0_1",
-      description:
-        "atomic gate_payment+transfer+emit_feedback assembly ships in a follow-up. " +
-        "Implement using `client.settle({ ..., atomicityEnforced: true })` once " +
-        "your facilitator has registered Quantu agents on-chain.",
-      reference: "https://github.com/agenttrust-labs/agenttrust/blob/main/docs/plan/research/02-anchor-token2022-cpi-class.md#a2",
-    });
-  });
-  return router;
-}
-
-function makeDisputeRoute(deps: {
-  Router: typeof import("express")["Router"];
-}): Router {
-  const router = deps.Router();
-  router.post("/dispute", async (_req: Request, res: Response) => {
-    return res.status(501).json({
-      error: "dispute_not_implemented_in_v0_1",
-      description:
-        "dispute_payment tx assembly ships in a follow-up. Use " +
-        "`client.dispute({ ..., atomicityEnforced: true })` directly when ready.",
-    });
-  });
-  return router;
-}
 
 export { AtomicityNotEnforcedError };

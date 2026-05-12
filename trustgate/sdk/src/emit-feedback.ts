@@ -40,6 +40,22 @@ import {
 import { deriveFeedbackLogPda, deriveTrustGateAuthorityPda } from "./chain";
 import { QuantuFeedbackAccounts } from "./quantu";
 
+// Module-level guard so the warning fires once per process even if the
+// factory is invoked many times. Mirrors the same warn-once pattern the
+// MCP `agenttrust_emit_feedback` tool uses — the same defaults landmine
+// surfaces on both surfaces, so both surfaces warn.
+let warnedDefaultDecimals = false;
+function warnDefaultDecimalsOnce(): void {
+  if (warnedDefaultDecimals) return;
+  warnedDefaultDecimals = true;
+  process.stderr.write(
+    "[agenttrust] WARN emitFeedbackCpi: fields.valueDecimals omitted, " +
+    "defaulting to 6 (USDC). For non-USDC mints, pass fields.valueDecimals " +
+    "explicitly. Otherwise Quantu quality_score accrues at the wrong " +
+    "magnitude.\n",
+  );
+}
+
 // Same shape as the adapter expects (PayShDeps.emitFeedbackCpi signature).
 // We re-declare here to avoid pulling the server package into the SDK's
 // public surface — these types are structurally identical and intentionally
@@ -73,7 +89,10 @@ export interface EmitFeedbackCpiInput {
      *  When passed, the SDK forwards `ctx.amount` + this decimal exponent
      *  to Quantu's `give_feedback`, which unblocks `quality_score` accrual
      *  and lets `tier_immediate` promote. Older callers that omit this
-     *  still work (with the 6-decimal default). */
+     *  still work (with the 6-decimal default) AND see a one-time stderr
+     *  warning the first time the default fires in a process — pass the
+     *  real mint decimals for non-USDC integrations to keep quality_score
+     *  accrual at the right magnitude. */
     readonly valueDecimals?: number;
   };
 }
@@ -151,8 +170,11 @@ export function makeEmitFeedbackCpi(opts: MakeEmitFeedbackCpiOptions): EmitFeedb
     // callers working. The 6-decimal default matches USDC, which is the
     // overwhelmingly common case for x402 payments today. Callers paying
     // in non-6-decimal mints (e.g., SOL=9) should pass the right value.
+    // When the default fires we emit a one-time stderr warning (F-045)
+    // so non-USDC integrations notice the magnitude mismatch.
     // TODO: replace the hardcoded fallback with a real `getMint`-backed
     // lookup once the SDK exposes a mint cache.
+    if (input.fields.valueDecimals === undefined) warnDefaultDecimalsOnce();
     const valueDecimals = input.fields.valueDecimals ?? 6;
     const txSignature = await opts.trustgate.methods
       .emitFeedback(

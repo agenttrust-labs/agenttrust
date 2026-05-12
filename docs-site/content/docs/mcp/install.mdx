@@ -96,7 +96,14 @@ Behind any reverse proxy (Caddy, nginx, Vercel, Fly.io) this surfaces as a publi
 
 ## Write tools — adding a keypair
 
-The five write tools (`agenttrust_init_policy`, `agenttrust_set_killswitch`, `agenttrust_request_validation`, `agenttrust_respond_to_validation`, `agenttrust_emit_feedback`) require a signing keypair. Add `KEYPAIR_B58` to the `env` block:
+The five write tools (`agenttrust_init_policy`, `agenttrust_set_killswitch`, `agenttrust_request_validation`, `agenttrust_respond_to_validation`, `agenttrust_emit_feedback`) require a signing keypair. The MCP server resolves a signer through a four-step chain (first match wins):
+
+1. `KEYPAIR_B58` — base58-encoded 64-byte secret key
+2. `KEYPAIR_PATH` — absolute path to a JSON-array secret-key file (Solana CLI native format)
+3. `~/.config/solana/id.json` — Solana CLI's default keypair location, picked up automatically
+4. `SOLANA_KEYPAIR_PATH` — alt path env some tooling sets
+
+If you already use `solana-keygen` locally, no env is needed. To set an explicit signer in the Claude Desktop config, add `KEYPAIR_B58` to the `env` block:
 
 ```json
 {
@@ -114,7 +121,7 @@ The five write tools (`agenttrust_init_policy`, `agenttrust_set_killswitch`, `ag
 }
 ```
 
-Without `KEYPAIR_B58`, write tools surface a clear `signer required` error. Read and discovery tools never need it.
+Without any usable signer, write tools surface a clear `signer required` error. Read and discovery tools never need one.
 
 Convert a Solana CLI keypair to base58:
 
@@ -135,7 +142,9 @@ cat ~/.config/solana/id.json | jq -r '.[0:64]' | npx bs58 encode
 |---|---|---|
 | `RPC_URL` | devnet RPC | Solana RPC endpoint |
 | `NETWORK` | `solana-devnet` | `solana-devnet` or `solana-mainnet`. Drives Quantu program IDs. |
-| `KEYPAIR_B58` | unset | Base58-encoded 64-byte secret key. Required for write tools. |
+| `KEYPAIR_B58` | unset | Base58-encoded 64-byte secret key. First step in the signer-resolution chain. |
+| `KEYPAIR_PATH` | unset | Path to a JSON-array secret-key file (Solana CLI native format). Second step in the signer-resolution chain. |
+| `SOLANA_KEYPAIR_PATH` | unset | Alt path env some tooling sets. Fourth step in the signer-resolution chain. |
 | `MCP_TRANSPORT` | `stdio` | `stdio` or `http` |
 | `MCP_HTTP_PORT` | `8765` | Port for HTTP transport |
 | `POLICY_VAULT_PROGRAM_ID` | devnet ID | Override `policy_vault` program ID |

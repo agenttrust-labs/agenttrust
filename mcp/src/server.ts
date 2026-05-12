@@ -28,6 +28,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 
 import { ChainClient } from "./chain";
 import type { AgentTrustConfig } from "./config";
+import { classifyError, renderToolError } from "./errors";
 import { ALL_PROMPTS } from "./prompts";
 import {
   describeProgramsResource,
@@ -52,9 +53,11 @@ const SERVER_VERSION = PKG_VERSION;
 
 const SERVER_INSTRUCTIONS =
   "AgentTrust MCP server. Read tools work without auth (devnet by default). " +
-  "Write tools require KEYPAIR_B58 in env. Resources expose the AgentTrust " +
-  "docs corpus, deployed program manifest, and example demo source. Prompts " +
-  "ship three guided workflows: audit_payment, setup_agent, explain_failure.";
+  "Write tools require a signer (KEYPAIR_B58 / KEYPAIR_PATH / Solana CLI " +
+  "default ~/.config/solana/id.json; full chain documented in the MCP " +
+  "README). Resources expose the AgentTrust docs corpus, deployed program " +
+  "manifest, and example demo source. Prompts ship three guided workflows: " +
+  "audit_payment, setup_agent, explain_failure.";
 
 export function createMcpServer(cfg: AgentTrustConfig): Server {
   const chain  = new ChainClient(cfg);
@@ -77,22 +80,25 @@ export function createMcpServer(cfg: AgentTrustConfig): Server {
   }));
 
   // ---- tools/call ---------------------------------------------------------
+  // Every failure path here goes through `classifyError → renderToolError`
+  // so MCP clients see a uniform `{ errorCode, message, hint, cause }`
+  // envelope (F-013). The classifier handles plain `Error`, `ZodError`,
+  // `AnchorError`, `SendTransactionError`, and unknown throws.
   server.setRequestHandler(CallToolRequestSchema, async (req) => {
-    const tool = ALL_TOOLS.find((t) => t.name === req.params.name);
+    const toolName = req.params.name;
+    const tool = ALL_TOOLS.find((t) => t.name === toolName);
     if (!tool) {
-      return {
-        isError: true,
-        content: [{ type: "text", text: `unknown tool: ${req.params.name}` }],
-      };
+      return renderToolError({
+        errorCode: "not_found",
+        message:   `Unknown tool: ${toolName}.`,
+        hint:      "Call `tools/list` to discover the available tool names.",
+      });
     }
     let parsed: unknown;
     try {
       parsed = tool.inputSchema.parse(req.params.arguments ?? {});
     } catch (err) {
-      return {
-        isError: true,
-        content: [{ type: "text", text: `input validation failed: ${(err as Error).message}` }],
-      };
+      return renderToolError(classifyError(err, toolName));
     }
     try {
       const result = await tool.handler(parsed, { chain });
@@ -100,10 +106,7 @@ export function createMcpServer(cfg: AgentTrustConfig): Server {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
       };
     } catch (err) {
-      return {
-        isError: true,
-        content: [{ type: "text", text: `tool error: ${(err as Error).message}` }],
-      };
+      return renderToolError(classifyError(err, toolName));
     }
   });
 

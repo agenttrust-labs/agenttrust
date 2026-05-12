@@ -90,7 +90,7 @@ Returns the three pre-warmed devnet counterparties used by `examples/pay-sh-demo
 
 The demo state is bundled in the tarball as of 0.2.3 — the published package doesn't need a separate state file.
 
-## Write (5 tools — require `KEYPAIR_B58`)
+## Write (5 tools — require a signer: `KEYPAIR_B58` / `KEYPAIR_PATH` / Solana CLI default)
 
 | Tool | Effect |
 |---|---|
@@ -114,7 +114,7 @@ Required args: `subject_asset`, `claim_uri_hash_hex`, `deadline_slot`. The capab
 
 ### `agenttrust_respond_to_validation`
 
-Required args: `subject_asset`, `claim_payload_hash_hex`, `claim_uri_hash_hex`, `expires_at_slot`. The signer (the keypair behind `KEYPAIR_B58`) is the attestor. v1 trust model: tx signature authenticates; v1.1+ adds Ed25519 sysvar verify.
+Required args: `subject_asset`, `claim_payload_hash_hex`, `claim_uri_hash_hex`, `expires_at_slot`. The signer (resolved via the chain `KEYPAIR_B58` / `KEYPAIR_PATH` / Solana CLI default) is the attestor. v1 trust model: tx signature authenticates; v1.1+ adds Ed25519 sysvar verify.
 
 ### `agenttrust_emit_feedback`
 

@@ -1,13 +1,21 @@
 /**
- * Client-side helpers — `gatePayment`, `settle`, `dispute`.
+ * Client-side helpers — `gatePayment`, `settle`.
  *
  * Use these from your facilitator's backend (TypeScript) to invoke
  * AgentTrust without the Express middleware. `gatePayment` simulates the
- * decision (read-only); `settle` and `dispute` build atomic transactions
- * with the literal-type-guard + runtime-throw atomicity invariant.
+ * decision (read-only, accepts a pubkey-only caller); `settle` builds the
+ * atomic gate_payment + transfer + emit_feedback transaction with the
+ * literal-type-guard + runtime-throw atomicity invariant.
+ *
+ * `dispute_payment` is implemented on-chain (see
+ * `programs/trustgate/src/instructions/dispute_payment.rs`) but a typed
+ * SDK composer is not yet exposed — the on-chain instruction threads
+ * Quantu remaining_accounts and needs a dedicated composer mirroring
+ * `composeAtomicSettleTx`. Until that ships, build the dispute tx
+ * directly via `loadTrustGate(...)` + `program.methods.disputePayment(...)`.
  */
 
-import { AnchorProvider, BN, Program } from "@coral-xyz/anchor";
+import { BN } from "@coral-xyz/anchor";
 import {
   Keypair,
   PublicKey,
@@ -23,6 +31,7 @@ import {
 } from "./atomicity";
 import {
   loadPolicyVault, loadTrustGate, makeProvider, simulateGatePayment,
+  SignerLike,
 } from "./chain";
 import { GateDecision, ProgramIds, DEFAULT_DEVNET_PROGRAM_IDS } from "./types";
 
@@ -32,7 +41,15 @@ import { GateDecision, ProgramIds, DEFAULT_DEVNET_PROGRAM_IDS } from "./types";
 
 export interface GatePaymentRequest {
   rpcUrl:           string;
-  caller:           Keypair;       // facilitator (only used to sign the simulate-tx; not committed)
+  /**
+   * Caller pubkey. Accepts either a full `Keypair` or a pubkey-only shape
+   * (`{ publicKey: PublicKey }`). Only the pubkey is load-bearing on the
+   * read-only simulate path — the tx is built as a `VersionedTransaction`
+   * and submitted via `simulateTransaction({ sigVerify: false })`, so no
+   * signing occurs. Pass a pubkey-only shape to avoid handling a secret
+   * key from a read-only context.
+   */
+  caller:           SignerLike;
   payerAgentAsset:  PublicKey;
   payeeAgentAsset:  PublicKey;
   amount:           bigint | number;
@@ -146,29 +163,22 @@ export async function settle(req: SettleRequest): Promise<TransactionSignature> 
 }
 
 // ---------------------------------------------------------------------------
-// dispute — emit negative-score feedback
+// dispute — not yet exposed from this client.
+//
+// `dispute_payment` exists on-chain (programs/trustgate/src/instructions/
+// dispute_payment.rs) but the SDK does not yet ship a typed composer for
+// it. Adding `client.dispute` is tracked as a follow-up — the composer
+// needs to mirror `composeAtomicSettleTx`'s Quantu remaining_accounts
+// threading. Build the dispute tx directly via Anchor methods today:
+//
+//   const trustgate = await loadTrustGate(provider, programIds.trustGate);
+//   await trustgate.methods
+//     .disputePayment(paymentIdHash, facilitator, payeeAsset, disputeReasonHash, feedbackUri)
+//     .accounts({ ... })
+//     .remainingAccounts(quantuAccounts)
+//     .signers([facilitator])
+//     .rpc();
 // ---------------------------------------------------------------------------
-
-export interface DisputeRequest extends AtomicityEnforced {
-  rpcUrl:              string;
-  facilitator:         Keypair;
-  payerAgentAsset:     PublicKey;
-  payeeAgentAsset:     PublicKey;
-  paymentIdHash:       Uint8Array;
-  disputeReasonHash:   Uint8Array;       // 32 bytes
-  feedbackUri:         string;
-  agentAccountPda:     PublicKey;
-  collectionPda:       PublicKey;
-  programIds?:         ProgramIds;
-}
-
-export async function dispute(req: DisputeRequest): Promise<TransactionSignature> {
-  assertAtomicityEnforced(req, "dispute");
-  throw new Error(
-    "dispute: transaction builder ships in v0.2 alongside settle. v0.1 " +
-    "gates the API surface + invariant.",
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Re-export the atomicity types for convenience.

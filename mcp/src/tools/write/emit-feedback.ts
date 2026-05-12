@@ -29,27 +29,55 @@ import { explorerUrl } from "../../config";
 import { PubkeySchema, parsePubkey, HexHashSchema, hexToBytes } from "../common";
 import type { Tool, ToolContext } from "../types";
 
+// Module-level guard so the warning fires once per process even if the
+// tool is invoked many times (matches the F-051-style warn pattern used
+// elsewhere in the package).
+let warnedDefaults = false;
+function warnDefaultsOnce(): void {
+  if (warnedDefaults) return;
+  warnedDefaults = true;
+  process.stderr.write(
+    "[agenttrust] WARN agenttrust_emit_feedback: value and value_decimals " +
+    "defaulted to USDC (1_000_000 / 6 decimals). For non-USDC mints, pass " +
+    "explicit value and value_decimals. Otherwise Quantu quality_score " +
+    "accrues at the wrong magnitude.\n",
+  );
+}
+
+const DEFAULT_VALUE          = "1000000";
+const DEFAULT_VALUE_DECIMALS = 6;
+
 const InputSchema = z.object({
   payment_id_hash_hex: HexHashSchema.describe("32-byte SHA-256 of the payment_id"),
   payee_asset:         PubkeySchema.describe("Quantu agent asset receiving feedback"),
   base_collection:     PubkeySchema.describe(
-    "Metaplex Core collection that owns the agent assets. For demo runs use " +
-    "agenttrust_demo_state.programs.base_collection. For production " +
-    "integrations, use your Quantu agent registry's collection address — " +
-    "typically the value passed to agent_registry::register_agent when the " +
-    "agent was minted.",
+    "Metaplex Core collection that owns the agent assets. Discovery paths. " +
+    "(1) demo runs use agenttrust_demo_state.programs.base_collection. " +
+    "(2) production reads the `collection` field on the agent's on-chain " +
+    "agent_account PDA at `[b\"agent\", asset]` under the Quantu " +
+    "agent_registry program (see agenttrust_get_quantu_reputation output " +
+    "for the agent's PDA + ownerProgram), or uses the value passed to " +
+    "agent_registry::register_agent when the agent was minted.",
   ),
   score:               z.number().int().min(0).max(100),
   // `value` + `value_decimals` are forwarded to Quantu's give_feedback so
   // `quality_score` can accrue (otherwise tier_immediate stays pinned at 0).
   // Default of 1_000_000 @ 6 decimals = $1 USDC equivalent, a sensible
   // representative value when the caller doesn't have the real amount handy.
-  value:               z.union([z.string(), z.number()]).default("1000000").describe(
+  // When the defaults fire (caller omitted both fields) the handler emits a
+  // one-time stderr warning so non-USDC integrations notice the magnitude
+  // mismatch — see warnDefaultsOnce() below.
+  value:               z.union([z.string(), z.number()]).optional().describe(
     "Raw payment amount in base token units (u64). Forwarded to Quantu's " +
-    "give_feedback for quality_score accrual. Defaults to 1_000_000 ($1 USDC).",
+    "give_feedback for quality_score accrual. When omitted, defaults to " +
+    "1_000_000 ($1 USDC) AND the tool logs a one-time stderr warning. " +
+    "For non-USDC mints, pass the explicit value to keep quality_score " +
+    "accrual at the right magnitude.",
   ),
-  value_decimals:      z.number().int().min(0).max(18).default(6).describe(
-    "Decimal exponent of the mint backing `value`. Defaults to 6 (USDC).",
+  value_decimals:      z.number().int().min(0).max(18).optional().describe(
+    "Decimal exponent of the mint backing `value`. When omitted, defaults " +
+    "to 6 (USDC) AND the tool logs a one-time stderr warning. Pass the " +
+    "real mint decimals for non-USDC integrations.",
   ),
   tag1:                z.string().max(32).default(""),
   tag2:                z.string().max(32).default(""),
@@ -70,9 +98,13 @@ export const emitFeedbackTool: Tool<Input, Output> = {
   name:        "agenttrust_emit_feedback",
   description:
     "Emit ERC-8004 feedback for a confirmed payment. Facilitator-only: " +
-    "KEYPAIR_B58 must equal the facilitator wallet whose TrustGateAuthority " +
+    "requires a signer (KEYPAIR_B58 / KEYPAIR_PATH / Solana CLI default) " +
+    "whose pubkey must equal the facilitator wallet whose TrustGateAuthority " +
     "PDA is being signed. Threads Quantu agent_account/atom_stats accounts " +
-    "through remaining_accounts. Idempotent on payment_id_hash.",
+    "through remaining_accounts. Idempotent on payment_id_hash. When `value` " +
+    "and `value_decimals` are both omitted the tool falls back to USDC " +
+    "defaults (1_000_000 / 6) and logs a one-time stderr warning. Pass " +
+    "explicit values for non-USDC mints.",
   inputSchema: InputSchema,
 
   async handler(input: Input, ctx: ToolContext): Promise<Output> {
@@ -114,7 +146,21 @@ export const emitFeedbackTool: Tool<Input, Output> = {
 
     // Forward `value` + `value_decimals` so Quantu's give_feedback can
     // accrue quality_score (drives tier_immediate promotion).
-    const valueBn = new BN(typeof input.value === "string" ? input.value : input.value.toString());
+    //
+    // When the caller omits BOTH fields we fall back to the USDC default
+    // (1_000_000 @ 6 decimals) AND emit a one-time stderr warning so
+    // non-USDC integrations notice the magnitude mismatch. Keeping the
+    // defaults non-breaking — callers that explicitly pass value or
+    // value_decimals get the literal values they asked for and no warn.
+    const valueOmitted    = input.value === undefined;
+    const decimalsOmitted = input.value_decimals === undefined;
+    if (valueOmitted && decimalsOmitted) warnDefaultsOnce();
+
+    const valueStr      = input.value === undefined
+      ? DEFAULT_VALUE
+      : (typeof input.value === "string" ? input.value : input.value.toString());
+    const valueDecimals = input.value_decimals ?? DEFAULT_VALUE_DECIMALS;
+    const valueBn       = new BN(valueStr);
     const txSignature: string = await trustgate.methods
       .emitFeedback(
         Array.from(paymentIdHash),
@@ -122,7 +168,7 @@ export const emitFeedbackTool: Tool<Input, Output> = {
         payeeAsset,
         input.score,
         valueBn,
-        input.value_decimals,
+        valueDecimals,
         input.tag1,
         input.tag2,
         input.endpoint,

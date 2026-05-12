@@ -79,18 +79,41 @@ export function signEnvelope(message: Uint8Array, secretKey: Uint8Array): Uint8A
   return nacl.sign.detached(message, secretKey);
 }
 
-/** ed25519 verify against a 32-byte ed25519 pubkey (Solana wallet pubkey bytes). */
+/** ed25519 verify against a 32-byte ed25519 pubkey (Solana wallet pubkey bytes).
+ *
+ *  Returns `false` on every rejection path (length mismatch, tweetnacl
+ *  throw, signature does not verify). Operator-visible debug logs are gated
+ *  on `PAYSH_DEBUG=1` (or `NODE_ENV=development`) so production stays
+ *  silent — a forged signature is indistinguishable from a malformed one
+ *  to the caller, but the operator who set the debug env can see which
+ *  branch fired in stderr. */
 export function verifyEnvelope(
   message:   Uint8Array,
   signature: Uint8Array,
   publicKey: Uint8Array,
 ): boolean {
-  if (signature.length !== nacl.sign.signatureLength) return false;
-  if (publicKey.length !== nacl.sign.publicKeyLength) return false;
-  try {
-    return nacl.sign.detached.verify(message, signature, publicKey);
-  } catch {
+  if (signature.length !== nacl.sign.signatureLength) {
+    debugLog(`verifyEnvelope: signature length ${signature.length} != ${nacl.sign.signatureLength}`);
     return false;
+  }
+  if (publicKey.length !== nacl.sign.publicKeyLength) {
+    debugLog(`verifyEnvelope: publicKey length ${publicKey.length} != ${nacl.sign.publicKeyLength}`);
+    return false;
+  }
+  try {
+    const ok = nacl.sign.detached.verify(message, signature, publicKey);
+    if (!ok) debugLog("verifyEnvelope: signature did not verify against public key");
+    return ok;
+  } catch (e) {
+    debugLog(`verifyEnvelope: tweetnacl threw: ${(e as Error).message}`);
+    return false;
+  }
+}
+
+function debugLog(msg: string): void {
+  if (process.env.PAYSH_DEBUG === "1" || process.env.NODE_ENV === "development") {
+    // eslint-disable-next-line no-console
+    console.warn(`[pay-sh] ${msg}`);
   }
 }
 

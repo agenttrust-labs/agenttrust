@@ -83,15 +83,60 @@ export function deriveTrustGateAuthorityPda(
 // Provider + program loaders
 // ---------------------------------------------------------------------------
 
+/**
+ * Wallet-like input accepted by `makeProvider`. Either:
+ *
+ *   - a full `Keypair` (signing paths: `settle`, future `dispute`), or
+ *   - a `{ publicKey: PublicKey }` (read-only paths: `gatePayment`,
+ *     `mountTrustGate` /verify).
+ *
+ * The latter avoids forcing SDK consumers to construct a `Keypair` (and
+ * therefore handle a secret key) when only the pubkey is load-bearing.
+ * Simulation paths build a `VersionedTransaction` with
+ * `sigVerify: false`, so no signing occurs.
+ */
+export type SignerLike = Keypair | { publicKey: PublicKey };
+
 export interface ProviderConfig {
   rpcUrl: string;
-  wallet: Keypair;
+  wallet: SignerLike;
 }
 
+/**
+ * Internal: detect whether `w` is a full `Keypair` (has a `secretKey`).
+ * Pubkey-only shapes flow through the read-only AnchorProvider path
+ * that no-ops on sign requests.
+ */
+function isKeypair(w: SignerLike): w is Keypair {
+  return (w as Keypair).secretKey !== undefined;
+}
+
+/**
+ * Build an `AnchorProvider`. If `cfg.wallet` is a full `Keypair`,
+ * delegate to the standard `anchor.Wallet`. If it's a pubkey-only shape,
+ * construct a read-only wallet whose sign methods no-op (the tx flows
+ * through `simulateTransaction` with `sigVerify: false`). Attempting to
+ * actually `send` a tx via a read-only provider will throw — by design.
+ */
 export function makeProvider(cfg: ProviderConfig): AnchorProvider {
-  const conn   = new Connection(cfg.rpcUrl, "confirmed");
-  const wallet = new anchor.Wallet(cfg.wallet);
-  return new AnchorProvider(conn, wallet, { commitment: "confirmed" });
+  const conn = new Connection(cfg.rpcUrl, "confirmed");
+  if (isKeypair(cfg.wallet)) {
+    const wallet = new anchor.Wallet(cfg.wallet);
+    return new AnchorProvider(conn, wallet, { commitment: "confirmed" });
+  }
+  const pubkey = cfg.wallet.publicKey;
+  const readOnlyWallet = {
+    publicKey: pubkey,
+    signTransaction: async <T>(_tx: T): Promise<T> => {
+      throw new Error(
+        "read-only provider cannot sign transactions. Pass a Keypair to makeProvider " +
+        "(or to gatePayment / mountTrustGate) if you need to submit a tx; the pubkey-only " +
+        "path is for simulation / read-only RPC paths.",
+      );
+    },
+    signAllTransactions: async <T>(txs: T[]): Promise<T[]> => txs,
+  };
+  return new AnchorProvider(conn, readOnlyWallet as anchor.Wallet, { commitment: "confirmed" });
 }
 
 /**
@@ -111,7 +156,13 @@ export async function loadPolicyVault(
 ): Promise<Program> {
   if (idl) return new Program(idl, provider);
   const fetched = await Program.fetchIdl(programId, provider);
-  if (!fetched) throw new Error(`policy_vault IDL not on-chain at ${programId.toBase58()}`);
+  if (!fetched) {
+    throw new Error(
+      `policy_vault IDL not on-chain at ${programId.toBase58()}. ` +
+      `Run \`anchor idl init ${programId.toBase58()}\` to publish the IDL, ` +
+      `or pass an explicit \`idl\` arg to loadPolicyVault.`,
+    );
+  }
   return new Program(fetched, provider);
 }
 
@@ -123,7 +174,13 @@ export async function loadTrustGate(
 ): Promise<Program> {
   if (idl) return new Program(idl, provider);
   const fetched = await Program.fetchIdl(programId, provider);
-  if (!fetched) throw new Error(`trustgate IDL not on-chain at ${programId.toBase58()}`);
+  if (!fetched) {
+    throw new Error(
+      `trustgate IDL not on-chain at ${programId.toBase58()}. ` +
+      `Run \`anchor idl init ${programId.toBase58()}\` to publish the IDL, ` +
+      `or pass an explicit \`idl\` arg to loadTrustGate.`,
+    );
+  }
   return new Program(fetched, provider);
 }
 
@@ -187,9 +244,30 @@ export async function simulateGatePayment(
   }
   const returnData = sim.value.returnData;
   if (!returnData || !returnData.data || !returnData.data[0]) {
-    throw new Error("simulation produced no return_data");
+    // Pass the sim logs into parseGateDecision so the "empty return data"
+    // error message includes upstream context (e.g. a constraint failure
+    // that reverted the gate logic before set_return_data could fire).
+    return parseGateDecision(Buffer.alloc(0), sim.value.logs ?? undefined);
   }
-  return parseGateDecision(Buffer.from(returnData.data[0], "base64"));
+  return parseGateDecision(Buffer.from(returnData.data[0], "base64"), sim.value.logs ?? undefined);
+}
+
+/**
+ * Truncate a logs array into a single short string suitable for embedding
+ * in an error message. Caps at ~400 chars total so the error stays
+ * single-line-friendly. Used by `parseGateDecision`'s empty-return-data
+ * branch to surface upstream simulation context (F-039).
+ */
+function summariseSimLogs(logs: readonly string[] | undefined, maxLen = 400): string {
+  if (!logs || logs.length === 0) return "";
+  let acc = "";
+  for (const line of logs) {
+    if (acc.length + line.length + 1 > maxLen) {
+      acc += "..."; break;
+    }
+    acc += (acc ? "\n" : "") + line;
+  }
+  return acc;
 }
 
 /**
@@ -197,9 +275,20 @@ export async function simulateGatePayment(
  *   variant 0: Allow                      (no payload)
  *   variant 1: Deny(DenyReason)           (1-byte: variant index 0..14 → code 1..15)
  *   variant 2: RequireValidation([u8;32])
+ *
+ * Optional `simLogs` is appended to the "empty return data" error (F-039)
+ * so callers can see what the gate logic did before failing to emit a
+ * decision (e.g. a constraint failure that reverted before set_return_data).
+ * Truncated to ~400 chars to keep the error single-line-friendly.
  */
-export function parseGateDecision(buf: Buffer): GateDecision {
-  if (buf.length === 0) throw new Error("empty GateDecision return data");
+export function parseGateDecision(buf: Buffer, simLogs?: readonly string[]): GateDecision {
+  if (buf.length === 0) {
+    const logsCtx = summariseSimLogs(simLogs);
+    throw new Error(
+      `empty GateDecision return data` +
+      (logsCtx ? ` (upstream sim logs: ${logsCtx})` : ""),
+    );
+  }
   const variant = buf[0];
 
   if (variant === 0) return { kind: "Allow" };

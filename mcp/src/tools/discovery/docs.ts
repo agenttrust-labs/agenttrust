@@ -44,9 +44,17 @@ interface Hit {
 interface Output {
   query: string;
   hits:  Hit[];
+  /** Set when the docs corpus could not be located at runtime (e.g. a build
+   *  skipped `copy-embedded-assets.js` and the clone fallback paths don't
+   *  resolve). Optional + additive — existing consumers still see hits: [].
+   *  An LLM that branches on this can tell "corpus missing" apart from
+   *  "no hits for this query". */
+  errorCode?: "docs_corpus_not_found";
 }
 
 let cache: DocPage[] | null = null;
+// Module-level guard so the corpus-missing warn fires once per process.
+let warnedMissingCorpus = false;
 
 export function findDocsRoot(): string | null {
   const candidates = [
@@ -165,7 +173,19 @@ export const docsTool: Tool<Input, Output> = {
   async handler(input: Input): Promise<Output> {
     const corpus = loadDocsCorpus();
     if (corpus.length === 0) {
-      return { query: input.query, hits: [] };
+      // The corpus is missing AND the find-roots probe came up empty.
+      // Surface a machine-parseable signal AND log once to stderr so a
+      // regression in copy-embedded-assets.js is visible to operators.
+      if (!warnedMissingCorpus) {
+        warnedMissingCorpus = true;
+        process.stderr.write(
+          "[agenttrust] WARN agenttrust_docs: docs corpus not found at runtime. " +
+          "Set MCP_DOCS_DIR, re-run the build (scripts/copy-embedded-assets.js), " +
+          "or verify the install path includes dist/embedded-docs/. " +
+          "Returning empty hits.\n",
+        );
+      }
+      return { query: input.query, hits: [], errorCode: "docs_corpus_not_found" };
     }
     const ranked: Hit[] = [];
     for (const page of corpus) {

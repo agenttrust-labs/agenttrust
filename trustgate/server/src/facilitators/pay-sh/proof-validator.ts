@@ -42,6 +42,31 @@ const REPLAY_CACHE_DEFAULT_MAX = 10_000;
 /**
  * Insertion-ordered LRU map. Bounded so a malicious caller cannot exhaust
  * memory by submitting bogus signatures.
+ *
+ * WARNING — IN-MEMORY ONLY. PRODUCTION DEPLOYMENTS MUST PASS A PERSISTENT
+ * IMPLEMENTATION VIA `PayShDeps.replayCache`.
+ *
+ * The default `ReplayCache` lives in the process's heap. A facilitator
+ * restart (deploy, crash, scale-out, Fly machine cycle) wipes the
+ * (signature → paymentIdHash) bindings and re-opens a window where an
+ * attacker who recorded a confirmed settle proof can re-submit it under
+ * a fresh `paymentIdHash` and double-charge the agent's velocity ledger.
+ *
+ * Replace with a Redis-backed (or similar) adapter implementing the same
+ * `observe(signature, paymentIdHash) -> 'fresh' | 'replay' | 'collision'`
+ * contract before production rollout. The shim point is `PayShDeps.replayCache`
+ * — pass an instance that delegates to your persistent store; the adapter
+ * does not care which implementation it gets.
+ *
+ * The default `ReplayCache` is acceptable for: unit tests, local devnet
+ * demos, single-process hackathon runs where a restart is rare enough
+ * that the lost-state window is bounded by `paymentRequirements
+ * .maxTimeoutSeconds` (typically 60s — anything older is already
+ * unconfirmable on chain via Solana's `recent_blockhash` window).
+ *
+ * It is NOT acceptable for: any multi-machine deployment, any service
+ * that restarts mid-day, any deployment that lives beyond `maxTimeout
+ * Seconds` of restart.
  */
 export class ReplayCache {
   private readonly seen = new Map<string, Uint8Array>();
