@@ -35,12 +35,13 @@ describe("MCP protocol conformance", () => {
         "agenttrust_get_policy",
         "agenttrust_simulate_payment",
         "agenttrust_explain_decision",
+        "agenttrust_init_authority",
         "agenttrust_init_policy",
         "agenttrust_demo_state",
         "agenttrust_list_facilitators",
         "agenttrust_docs",
       ]);
-      expect(toolNames.length).to.equal(18);
+      expect(toolNames.length).to.equal(19);
 
       // tools/call → discovery (no chain)
       const callRes = await client.callTool({

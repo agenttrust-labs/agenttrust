@@ -16,6 +16,7 @@ import { getValidationAttestationTool } from "./read/get-validation-attestation"
 import { listFacilitatorsTool }       from "./read/list-facilitators";
 import { demoStateTool }              from "./read/demo-state";
 
+import { initAuthorityTool }          from "./write/init-authority";
 import { initPolicyTool }             from "./write/init-policy";
 import { setKillswitchTool }          from "./write/set-killswitch";
 import { requestValidationTool }      from "./write/request-validation";
@@ -40,6 +41,7 @@ export const READ_TOOLS: ReadonlyArray<AnyTool> = [
 ];
 
 export const WRITE_TOOLS: ReadonlyArray<AnyTool> = [
+  initAuthorityTool       as unknown as AnyTool,
   initPolicyTool          as unknown as AnyTool,
   setKillswitchTool       as unknown as AnyTool,
   requestValidationTool   as unknown as AnyTool,
