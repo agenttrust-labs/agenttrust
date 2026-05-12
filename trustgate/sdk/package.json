@@ -27,6 +27,42 @@
     "./client": {
       "types": "./dist/client.d.ts",
       "default": "./dist/client.js"
+    },
+    "./atomicity": {
+      "types": "./dist/atomicity.d.ts",
+      "default": "./dist/atomicity.js"
+    },
+    "./chain": {
+      "types": "./dist/chain.d.ts",
+      "default": "./dist/chain.js"
+    },
+    "./emit-feedback": {
+      "types": "./dist/emit-feedback.d.ts",
+      "default": "./dist/emit-feedback.js"
+    },
+    "./onchain-validator": {
+      "types": "./dist/onchain-validator.d.ts",
+      "default": "./dist/onchain-validator.js"
+    },
+    "./quantu": {
+      "types": "./dist/quantu.d.ts",
+      "default": "./dist/quantu.js"
+    },
+    "./spl": {
+      "types": "./dist/spl.d.ts",
+      "default": "./dist/spl.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    },
+    "./validation-registry": {
+      "types": "./dist/validation-registry.d.ts",
+      "default": "./dist/validation-registry.js"
+    },
+    "./x402": {
+      "types": "./dist/x402.d.ts",
+      "default": "./dist/x402.js"
     }
   },
   "files": [

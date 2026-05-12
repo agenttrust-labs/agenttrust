@@ -83,15 +83,60 @@ export function deriveTrustGateAuthorityPda(
 // Provider + program loaders
 // ---------------------------------------------------------------------------
 
+/**
+ * Wallet-like input accepted by `makeProvider`. Either:
+ *
+ *   - a full `Keypair` (signing paths: `settle`, future `dispute`), or
+ *   - a `{ publicKey: PublicKey }` (read-only paths: `gatePayment`,
+ *     `mountTrustGate` /verify).
+ *
+ * The latter avoids forcing SDK consumers to construct a `Keypair` (and
+ * therefore handle a secret key) when only the pubkey is load-bearing.
+ * Simulation paths build a `VersionedTransaction` with
+ * `sigVerify: false`, so no signing occurs.
+ */
+export type SignerLike = Keypair | { publicKey: PublicKey };
+
 export interface ProviderConfig {
   rpcUrl: string;
-  wallet: Keypair;
+  wallet: SignerLike;
 }
 
+/**
+ * Internal: detect whether `w` is a full `Keypair` (has a `secretKey`).
+ * Pubkey-only shapes flow through the read-only AnchorProvider path
+ * that no-ops on sign requests.
+ */
+function isKeypair(w: SignerLike): w is Keypair {
+  return (w as Keypair).secretKey !== undefined;
+}
+
+/**
+ * Build an `AnchorProvider`. If `cfg.wallet` is a full `Keypair`,
+ * delegate to the standard `anchor.Wallet`. If it's a pubkey-only shape,
+ * construct a read-only wallet whose sign methods no-op (the tx flows
+ * through `simulateTransaction` with `sigVerify: false`). Attempting to
+ * actually `send` a tx via a read-only provider will throw — by design.
+ */
 export function makeProvider(cfg: ProviderConfig): AnchorProvider {
-  const conn   = new Connection(cfg.rpcUrl, "confirmed");
-  const wallet = new anchor.Wallet(cfg.wallet);
-  return new AnchorProvider(conn, wallet, { commitment: "confirmed" });
+  const conn = new Connection(cfg.rpcUrl, "confirmed");
+  if (isKeypair(cfg.wallet)) {
+    const wallet = new anchor.Wallet(cfg.wallet);
+    return new AnchorProvider(conn, wallet, { commitment: "confirmed" });
+  }
+  const pubkey = cfg.wallet.publicKey;
+  const readOnlyWallet = {
+    publicKey: pubkey,
+    signTransaction: async <T>(_tx: T): Promise<T> => {
+      throw new Error(
+        "read-only provider cannot sign transactions. Pass a Keypair to makeProvider " +
+        "(or to gatePayment / mountTrustGate) if you need to submit a tx; the pubkey-only " +
+        "path is for simulation / read-only RPC paths.",
+      );
+    },
+    signAllTransactions: async <T>(txs: T[]): Promise<T[]> => txs,
+  };
+  return new AnchorProvider(conn, readOnlyWallet as anchor.Wallet, { commitment: "confirmed" });
 }
 
 /**
@@ -111,7 +156,13 @@ export async function loadPolicyVault(
 ): Promise<Program> {
   if (idl) return new Program(idl, provider);
   const fetched = await Program.fetchIdl(programId, provider);
-  if (!fetched) throw new Error(`policy_vault IDL not on-chain at ${programId.toBase58()}`);
+  if (!fetched) {
+    throw new Error(
+      `policy_vault IDL not on-chain at ${programId.toBase58()}. ` +
+      `Run \`anchor idl init ${programId.toBase58()}\` to publish the IDL, ` +
+      `or pass an explicit \`idl\` arg to loadPolicyVault.`,
+    );
+  }
   return new Program(fetched, provider);
 }
 
@@ -123,7 +174,13 @@ export async function loadTrustGate(
 ): Promise<Program> {
   if (idl) return new Program(idl, provider);
   const fetched = await Program.fetchIdl(programId, provider);
-  if (!fetched) throw new Error(`trustgate IDL not on-chain at ${programId.toBase58()}`);
+  if (!fetched) {
+    throw new Error(
+      `trustgate IDL not on-chain at ${programId.toBase58()}. ` +
+      `Run \`anchor idl init ${programId.toBase58()}\` to publish the IDL, ` +
+      `or pass an explicit \`idl\` arg to loadTrustGate.`,
+    );
+  }
   return new Program(fetched, provider);
 }
 
