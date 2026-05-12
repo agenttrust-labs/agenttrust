@@ -105,13 +105,33 @@ The script edits the Claude Desktop config in place. It backs up the
 prior config to `claude_desktop_config.json.bak.<timestamp>` so you can
 revert if needed.
 
-For write tools, add `KEYPAIR_B58` to the `env` block:
+For write tools, supply a signer via any one of the four steps in the
+resolution chain (first match wins):
+
+1. `KEYPAIR_B58` — base58-encoded 64-byte secret key
+2. `KEYPAIR_PATH` — absolute path to a JSON-array secret-key file (Solana CLI native format)
+3. `~/.config/solana/id.json` — Solana CLI's default keypair location, picked up automatically
+4. `SOLANA_KEYPAIR_PATH` — alt path env some tooling sets
+
+If you already use `solana-keygen` locally, no env is needed — the
+default `~/.config/solana/id.json` is detected automatically. To set an
+explicit signer in the Claude Desktop config block:
 
 ```json
 "env": {
   "RPC_URL":     "https://api.devnet.solana.com",
   "NETWORK":     "solana-devnet",
   "KEYPAIR_B58": "<base58-encoded 64-byte secret key>"
+}
+```
+
+Or point at a file instead of inlining the secret:
+
+```json
+"env": {
+  "RPC_URL":      "https://api.devnet.solana.com",
+  "NETWORK":      "solana-devnet",
+  "KEYPAIR_PATH": "/Users/you/.config/solana/id.json"
 }
 ```
 
@@ -176,7 +196,9 @@ The server listens on `http://0.0.0.0:8765`. Behind any reverse proxy
 |--|--|--|
 | `RPC_URL` | devnet RPC | Solana RPC endpoint. |
 | `NETWORK` | `solana-devnet` | `solana-devnet` or `solana-mainnet`. Drives Quantu program IDs. |
-| `KEYPAIR_B58` | unset | Base58-encoded 64-byte secret key. Required for write tools. |
+| `KEYPAIR_B58` | unset | Base58-encoded 64-byte secret key. First step in the signer-resolution chain. |
+| `KEYPAIR_PATH` | unset | Path to a JSON-array secret-key file (Solana CLI native format). Second step in the signer-resolution chain. |
+| `SOLANA_KEYPAIR_PATH` | unset | Alt path env some tooling sets. Fourth step in the signer-resolution chain. |
 | `MCP_TRANSPORT` | `stdio` | `stdio` or `http`. |
 | `MCP_HTTP_PORT` | `8765` | Port for HTTP transport. |
 | `POLICY_VAULT_PROGRAM_ID` | devnet ID | Override the policy_vault program ID. |
