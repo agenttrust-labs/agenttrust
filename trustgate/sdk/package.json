@@ -1,6 +1,6 @@
 {
   "name": "@agenttrust-sdk/trustgate",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "TrustGate SDK for Solana x402 facilitators — atomic gate_payment + emit_feedback Express middleware",
   "author": "AgentTrust Labs (https://agenttrust.tech)",
   "license": "MIT",
@@ -95,7 +95,7 @@
     "lint": "tsc --noEmit",
     "test": "ts-mocha -p ./tsconfig.json -t 30000 test/**/*.test.ts",
     "test:integration": "INTEGRATION=1 ts-mocha -p ./tsconfig.json -t 60000 test/devnet.test.ts",
-    "prepublishOnly": "pnpm run lint && pnpm run build && pnpm run test",
+    "prepublishOnly": "node scripts/check-no-workspace-spec.cjs && pnpm run lint && pnpm run build && pnpm run test",
     "publish:dry": "npm publish --dry-run"
   },
   "peerDependencies": {

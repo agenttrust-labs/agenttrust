@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.2] — 2026-05-13
+
+Tag: `sdk-v0.3.2` · Pipeline-only release pairing the mcp 0.3.5
+polish wave.
+
+### Added
+
+- `prepublishOnly` guard: a small Node script
+  `scripts/check-no-workspace-spec.cjs` hard-fails any publish that
+  would ship a `workspace:` specifier. The sdk has no workspace
+  deps today but the guard is in place against future additions.
+  Same shape as the matching guard in `@agenttrust-sdk/mcp`.
+
+No runtime changes.
+
 ## [0.3.1] — 2026-05-12
 
 Tag: `sdk-v0.3.1` · Developer-experience polish wave covering the

@@ -140,6 +140,21 @@ function isAnchorError(err: unknown, name: string, message: string): boolean {
   if (/InstructionError/.test(message)) return true;
   if (/"Custom":\s*\d+/.test(message)) return true;
   if (/\bCustom:\s*\d+\b/.test(message)) return true;
+  // web3.js `SendTransactionError` — thrown by `Connection.simulateTransaction`
+  // and `Connection.sendRawTransaction` when the runtime rejects a tx for a
+  // reason that isn't an Anchor-decoded `Custom NNN`. The error class name
+  // appears in the auto-appended guide text ("Catch the
+  // `SendTransactionError` and call `getLogs()` on it for full details.").
+  // The constructor itself starts the message with "Simulation failed." or
+  // "Transaction ... resulted in an error." — match both shapes so the
+  // envelope lands as `chain_error` not `internal`. See the gate E2E rerun
+  // Beat F polish note for the originating transcript shape (downstream CPI
+  // hits "An account required by the instruction is missing").
+  if (name === "SendTransactionError") return true;
+  if (/SendTransactionError/.test(message)) return true;
+  if (/Simulation failed\.\s*\nMessage:/i.test(message)) return true;
+  if (/^Transaction \w+ resulted in an error/i.test(message)) return true;
+  if (/Transaction simulation failed:/i.test(message)) return true;
   return false;
 }
 
@@ -178,6 +193,36 @@ function formatInstructionErrorHint(message: string): string {
   const label = ANCHOR_ERROR_CODES[code];
   const suffix = label ? ` (${label})` : "";
   return `On-chain program returned Custom ${code}${suffix}. Inspect the transaction logs on the explorer; the failing constraint or seed mismatch is named in the program's error.rs.`;
+}
+
+/**
+ * Build a hint for a `SendTransactionError` text-shape failure — the
+ * web3.js error class thrown by `Connection.simulateTransaction` and
+ * `Connection.sendRawTransaction` when the runtime rejects a tx for a
+ * reason that didn't come back as an Anchor `Custom NNN` code.
+ *
+ * The most common diagnostic embedded in the message is "An account
+ * required by the instruction is missing" — this is what a CPI-deep
+ * call into an unseeded counterparty (e.g. emit_feedback against an
+ * agent_asset whose Quantu `agent_account` PDA hasn't been registered)
+ * surfaces in practice. Capture that shape with a remediation-specific
+ * hint so the LLM doesn't fall back to a generic "check the logs"
+ * blurb. See the gate E2E rerun Beat F transcript for the originating
+ * sample.
+ */
+function formatSendTransactionErrorHint(message: string): string {
+  if (/An account required by the instruction is missing/i.test(message)) {
+    return (
+      "Transaction failed because a required account was not in the instruction's account list. " +
+      "This usually means a downstream CPI target (e.g. a Quantu agent_account PDA or facilitator authority PDA) " +
+      "has not been seeded for this signer / counterparty. Inspect the embedded logs in the cause to identify the " +
+      "missing account, then run the matching init / register tool before retrying."
+    );
+  }
+  return (
+    "Transaction was rejected by the Solana runtime. Inspect the embedded logs in the cause for the failing " +
+    "program invoke + the precise runtime error; in a SendTransactionError handler, call `getLogs()` for the full set."
+  );
 }
 
 function isConfigError(err: unknown, name: string): boolean {
@@ -278,10 +323,21 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
   //    submission/e2e-claude-code-2026-05-13/README.md.
   if (isAnchorError(err, name, message)) {
     const anchorHint = formatAnchorHint(err);
-    const fallbackHint = /InstructionError/.test(message) || /\bCustom\b/.test(message)
-      ? formatInstructionErrorHint(message)
-      : "Inspect the transaction logs on the explorer; the failing constraint or " +
+    let fallbackHint: string;
+    if (/InstructionError/.test(message) || /\bCustom\b/.test(message)) {
+      fallbackHint = formatInstructionErrorHint(message);
+    } else if (
+      name === "SendTransactionError" ||
+      /SendTransactionError/.test(message) ||
+      /Simulation failed\.\s*\nMessage:/i.test(message) ||
+      /Transaction simulation failed:/i.test(message)
+    ) {
+      fallbackHint = formatSendTransactionErrorHint(message);
+    } else {
+      fallbackHint =
+        "Inspect the transaction logs on the explorer; the failing constraint or " +
         "custom error code is included in the cause.";
+    }
     return {
       errorCode: "chain_error",
       message:   "On-chain transaction failed.",

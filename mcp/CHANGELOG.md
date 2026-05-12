@@ -14,6 +14,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the tx's inner instructions. Useful when an integrator has the settle
   signature but not the digest.
 
+## [0.3.5] — 2026-05-13
+
+Tag: `mcp-v0.3.5` · Polish wave from the gate E2E rerun that confirmed
+0.3.4 closed the four hot-fix items. This release adds defensive
+guards plus one classifier extension surfaced by the rerun.
+
+### Added
+
+- `prepublishOnly` guard: a small Node script
+  `scripts/check-no-workspace-spec.cjs` runs before every publish
+  and hard-fails if invoked by anything other than pnpm while the
+  package.json still carries `workspace:` specifiers. Forces the
+  use of `pnpm publish` (which rewrites `workspace:^` to the
+  concrete semver range at pack time). Prevents another 0.3.2-style
+  `EUNSUPPORTEDPROTOCOL` shipping accident at the pipeline level.
+
+### Changed
+
+- `classifyError` in `mcp/src/errors.ts` now lands
+  `SendTransactionError` text shapes as `chain_error` with a
+  remediation-specific hint instead of the generic `internal`
+  fallback. Covers four variants: `err.name === "SendTransactionError"`,
+  the literal substring `SendTransactionError` in the message,
+  the `"Simulation failed.\nMessage:"` simulate-action prefix, and
+  the `"Transaction X resulted in an error"` send-action prefix.
+  Surfaced by Beat F of the 2026-05-13 gate rerun whose downstream
+  CPI failure was previously misclassified as `internal`.
+
+### Tests
+
+- `mcp/test/publish-guard.test.ts` (new). Spawns the guard script
+  as a subprocess with three `npm_execpath` values and asserts the
+  exit code plus stderr branch for each (npm path -> fail, pnpm
+  path -> pass, unset -> fail).
+- `mcp/test/errors.test.ts` extended with four new cases covering
+  the SendTransactionError classification paths.
+
+Suite size: 117 passing (was 110), conformance 22/22.
+
 ## [0.3.4] — 2026-05-13
 
 Tag: `mcp-v0.3.4` · Hot-fix release for the four regressions surfaced by

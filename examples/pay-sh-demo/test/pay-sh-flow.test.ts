@@ -69,6 +69,19 @@ describe("pay-sh-demo flow", () => {
     expect(tiers).to.deep.equal([0, 1, 3]);
   });
 
+  it("GET / returns 200 with a friendly service pointer (not Express's Cannot GET /)", async () => {
+    // Defends against the demo's bare-domain UX regression — visitors
+    // landing on https://demo.agenttrust.tech/ from a browser used to
+    // see "Cannot GET /" 404 boilerplate. The friendly handler now
+    // hands them a JSON pointer at the docs and the working endpoints.
+    const { app } = createDemoApp();
+    const res = await request(app).get("/");
+    expect(res.status).to.equal(200);
+    expect(res.body.service).to.equal("agenttrust-demo");
+    expect(res.body.docs).to.equal("https://docs.agenttrust.tech");
+    expect(res.body.endpoints).to.deep.equal(["/protected", "/health"]);
+  });
+
   it("tier 3 counterparty → Allow → 200 with X-Payment-Receipt", async () => {
     const { app } = createDemoApp();
     const health = await request(app).get("/health");

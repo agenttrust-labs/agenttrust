@@ -139,6 +139,18 @@ export async function startServer(cfg: ServerConfig): Promise<{
   const policyVault = await loadPolicyVault(provider, cfg.policyVaultIdl);
   const trustgate   = await loadTrustGate(provider, cfg.trustgateIdl);
 
+  // Friendly root handler. The reference server's bare `/` used to
+  // return Express's "Cannot GET /" 404 — fine for an internal probe,
+  // unhelpful for a browser landing on the host. Mounted before the
+  // facilitator routes so an adapter dispatch failure cannot mask it.
+  app.get("/", (_req: Request, res: Response) => {
+    res.status(200).json({
+      service:   "agenttrust-api",
+      docs:      "https://docs.agenttrust.tech",
+      endpoints: ["/verify", "/settle", "/receipt", "/healthz"],
+    });
+  });
+
   app.get("/health", (_req: Request, res: Response) => {
     res.status(200).json({
       status:      "ok",

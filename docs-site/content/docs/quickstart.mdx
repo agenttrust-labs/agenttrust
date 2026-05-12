@@ -46,6 +46,17 @@ Output:
 
 Open the `explorerTxUrl` to see the on-chain transaction. The `policyPda` is the `PolicyAccount` PDA the gate evaluates against on every payment.
 
+### Before you simulate: seed a counterparty
+
+`agenttrust_simulate_payment` runs `gate_payment` against a payee agent that must already exist on Quantu's `agent_registry`. A brand-new agent_asset that has never been registered will surface an `AccountNotInitialized` error (now correctly classified as `chain_error` in the envelope), not a clean gate decision.
+
+Two ways to get a counterparty the simulator can reach:
+
+1. Use a bundled demo counterparty. The repo ships three pre-seeded agents at `examples/pay-sh-demo/devnet-counterparties.json` (tier 0, tier 1, tier 3). The pubkey `BTcgiDauqVHoGMiXujytE5wycfncDEmNnXJiUZ4s4oWL` is one of them and is safe to drop into the prompt below as the `payee_agent`.
+2. Register your own. Run the Quantu `register_agent` flow (see the Quantu reference at `/quantu` for the full instruction set, or call `agenttrust_register_agent` via the MCP server) and use the new agent_asset.
+
+If neither is set up, the simulator still returns a structured envelope. The hint inside it names the missing on-chain account so you know exactly which step to run next.
+
 ## 3. Run a gate-decision simulation
 
 Now ask:
