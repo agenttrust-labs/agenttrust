@@ -1,7 +1,9 @@
 import { expect } from "chai";
-import { Keypair } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
 
 import { emitFeedbackTool } from "../../../src/tools/write/emit-feedback";
+import { buildTestConfig } from "../../helpers";
 
 describe("agenttrust_emit_feedback (schema)", () => {
   const validInput = () => ({
@@ -35,5 +37,153 @@ describe("agenttrust_emit_feedback (schema)", () => {
       feedback_uri: "x".repeat(257),
     });
     expect(r.success).to.equal(false);
+  });
+});
+
+/**
+ * Defends against the gate E2E Regression 2 — the published 0.3.3
+ * handler call to `trustgate.methods.emitFeedback(...)` exploded into
+ * 40+ args because the on-chain Rust signature was updated to add
+ * `value: u64, value_decimals: u8` between `score` and `tag1` but the
+ * bundled IDL at `mcp/src/idl/trustgate.json` was not regenerated. Anchor
+ * 0.31's `splitArgsAndCtx` compares args.length to `idlIx.args.length`
+ * and rejects the call.
+ *
+ * The fix updates the IDL to 10 args and keeps the handler call as
+ * `Array.from(paymentIdHash)` (a single first positional arg). This test
+ * mocks the Anchor `program.methods.emitFeedback(...)` chain and asserts
+ * the handler:
+ *   1. Passes exactly 10 positional args (matching the on-chain Rust
+ *      signature, NOT the stale 8-arg IDL).
+ *   2. Passes `payment_id_hash` as a single array of length 32 (NOT 32
+ *      separate u8 args spread into the call).
+ *   3. Threads the canonical remaining_accounts in the right order.
+ */
+describe("agenttrust_emit_feedback (handler argument marshalling)", () => {
+  it("calls .methods.emitFeedback with exactly 10 args and payment_id_hash as a single 32-element array", async () => {
+    const signer       = Keypair.generate();
+    const payeeAsset   = Keypair.generate().publicKey;
+    const baseColl     = Keypair.generate().publicKey;
+    const cfg          = buildTestConfig({ signer });
+
+    // Capture the args / accounts / remainingAccounts the handler passes.
+    let capturedArgs: unknown[] | undefined;
+    const fakeMethods = {
+      emitFeedback: (...args: unknown[]) => {
+        capturedArgs = args;
+        return {
+          accounts: (_: unknown) => ({
+            remainingAccounts: (_remaining: unknown) => ({
+              rpc: async () => "fake-signature",
+            }),
+          }),
+        };
+      },
+    };
+    const fakeTrustgate = { methods: fakeMethods } as unknown;
+
+    // Minimal ChainClient stand-in: only the surfaces the handler reaches
+    // for. Cast through `unknown` because we're stubbing private fields.
+    const fakeChain = {
+      cfg,
+      requireSigner: () => signer,
+      trustgate: async () => fakeTrustgate,
+    };
+
+    const out = await emitFeedbackTool.handler(
+      {
+        payment_id_hash_hex: "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+        payee_asset:         payeeAsset.toBase58(),
+        base_collection:     baseColl.toBase58(),
+        score:               80,
+        value:               "1000000",
+        value_decimals:      6,
+        tag1:                "demo",
+        tag2:                "",
+        endpoint:            "",
+        feedback_uri:        "",
+        atom_enabled:        true,
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { chain: fakeChain as any },
+    );
+
+    expect(out.txSignature, "tx signature surfaced").to.equal("fake-signature");
+    expect(capturedArgs, "emitFeedback called").to.exist;
+    expect(capturedArgs!.length, "10 positional args (matches on-chain Rust signature)").to.equal(10);
+
+    const [
+      paymentIdHashArg,
+      facilitatorArg,
+      payeeAssetArg,
+      scoreArg,
+      valueArg,
+      valueDecimalsArg,
+      tag1Arg,
+      tag2Arg,
+      endpointArg,
+      feedbackUriArg,
+    ] = capturedArgs!;
+
+    expect(Array.isArray(paymentIdHashArg), "payment_id_hash is a single Array").to.equal(true);
+    expect((paymentIdHashArg as number[]).length, "payment_id_hash has length 32").to.equal(32);
+    expect((paymentIdHashArg as number[])[0], "first byte is 0x01 from the hex input").to.equal(1);
+    expect((paymentIdHashArg as number[])[31], "last byte is 0x20 from the hex input").to.equal(0x20);
+
+    expect((facilitatorArg as PublicKey).toBase58(), "facilitator pubkey").to.equal(signer.publicKey.toBase58());
+    expect((payeeAssetArg as PublicKey).toBase58(), "payee_asset pubkey").to.equal(payeeAsset.toBase58());
+    expect(scoreArg, "score").to.equal(80);
+    expect((valueArg as BN).toString(), "value (BN) stringified").to.equal("1000000");
+    expect(valueDecimalsArg, "value_decimals").to.equal(6);
+    expect(tag1Arg, "tag1").to.equal("demo");
+    expect(tag2Arg, "tag2").to.equal("");
+    expect(endpointArg, "endpoint").to.equal("");
+    expect(feedbackUriArg, "feedback_uri").to.equal("");
+  });
+
+  it("first arg is NOT a 33+ length array (would mean payment_id_hash got prepended)", async () => {
+    // Sanity guard against accidental future regressions where a wrapper
+    // concatenates instead of passing the array directly.
+    const signer  = Keypair.generate();
+    const cfg     = buildTestConfig({ signer });
+
+    let capturedArgs: unknown[] | undefined;
+    const fakeMethods = {
+      emitFeedback: (...args: unknown[]) => {
+        capturedArgs = args;
+        return {
+          accounts: () => ({
+            remainingAccounts: () => ({ rpc: async () => "sig" }),
+          }),
+        };
+      },
+    };
+    const fakeChain = {
+      cfg,
+      requireSigner: () => signer,
+      trustgate: async () => ({ methods: fakeMethods }) as unknown,
+    };
+
+    await emitFeedbackTool.handler(
+      {
+        payment_id_hash_hex: "f".repeat(64),
+        payee_asset:         Keypair.generate().publicKey.toBase58(),
+        base_collection:     Keypair.generate().publicKey.toBase58(),
+        score:               50,
+        value:               "1",
+        value_decimals:      0,
+        tag1:                "",
+        tag2:                "",
+        endpoint:            "",
+        feedback_uri:        "",
+        atom_enabled:        false,
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { chain: fakeChain as any },
+    );
+
+    const first = capturedArgs![0] as number[];
+    expect(Array.isArray(first)).to.equal(true);
+    expect(first.length, "payment_id_hash byte array is exactly 32 elements").to.equal(32);
   });
 });

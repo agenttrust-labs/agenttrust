@@ -236,6 +236,14 @@
           "type": "u8"
         },
         {
+          "name": "value",
+          "type": "u64"
+        },
+        {
+          "name": "value_decimals",
+          "type": "u8"
+        },
+        {
           "name": "tag1",
           "type": "string"
         },

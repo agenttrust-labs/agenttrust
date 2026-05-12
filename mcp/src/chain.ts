@@ -47,7 +47,7 @@ import {
   QuantuProgramIds,
 } from "@agenttrust-sdk/trustgate";
 
-import { AgentTrustConfig } from "./config";
+import { AgentTrustConfig, isMainnetUndeployedSentinel } from "./config";
 
 // ---------------------------------------------------------------------------
 // Re-exports — every SDK helper the tools/* files need flows through here.
@@ -150,6 +150,7 @@ export class ChainClient {
   }
 
   async policyVault(): Promise<Program> {
+    guardATProgramId("policy_vault", "POLICY_VAULT_PROGRAM_ID", this.cfg.programs.policyVault);
     if (!this._policyVault) {
       this._policyVault = await loadPolicyVault(
         this.provider, this.cfg.programs.policyVault, BUNDLED_IDLS.policyVault,
@@ -159,6 +160,7 @@ export class ChainClient {
   }
 
   async trustgate(): Promise<Program> {
+    guardATProgramId("trustgate", "TRUSTGATE_PROGRAM_ID", this.cfg.programs.trustGate);
     if (!this._trustgate) {
       this._trustgate = await loadTrustGate(
         this.provider, this.cfg.programs.trustGate, BUNDLED_IDLS.trustgate,
@@ -168,6 +170,9 @@ export class ChainClient {
   }
 
   async validationRegistry(): Promise<Program> {
+    guardATProgramId(
+      "validation_registry", "VALIDATION_REGISTRY_PROGRAM_ID", this.cfg.programs.validationRegistry,
+    );
     if (!this._validationRegistry) {
       this._validationRegistry = await loadValidationRegistry(
         this.provider, this.cfg.programs.validationRegistry, BUNDLED_IDLS.validationRegistry,
@@ -175,6 +180,29 @@ export class ChainClient {
     }
     return this._validationRegistry;
   }
+}
+
+/**
+ * If `pubkey` is the mainnet-undeployed sentinel (System Program), throw
+ * a structured `config_error` so the MCP `tools/call` envelope surfaces
+ * a clean remediation instead of an opaque "account does not exist"
+ * Anchor failure that the classifier might miscategorise.
+ *
+ * The thrown `Error` carries `name = "ConfigError"` so
+ * `errors.ts:classifyError` can route it to `errorCode: "config_error"`
+ * without ad-hoc string matching.
+ */
+function guardATProgramId(programLabel: string, envVar: string, pubkey: PublicKey): void {
+  if (!isMainnetUndeployedSentinel(pubkey)) return;
+  const err = new Error(
+    `AgentTrust ${programLabel} program is not deployed on mainnet yet. ` +
+    `Set ${envVar} to an explicit base58 program ID, or use NETWORK=solana-devnet ` +
+    `where AgentTrust programs are already deployed. Quantu reads ` +
+    `(get_quantu_reputation, agent_account lookups) are unaffected and work on ` +
+    `mainnet without any AgentTrust program ID override.`,
+  );
+  err.name = "ConfigError";
+  throw err;
 }
 
 // ---------------------------------------------------------------------------

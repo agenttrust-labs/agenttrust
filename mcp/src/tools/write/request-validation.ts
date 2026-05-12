@@ -26,7 +26,11 @@ const InputSchema = z.object({
   capability_hash_hex:  HexHashSchema.optional()
                           .describe("Direct 32-byte capability hash (hex); use only if you already have the digest"),
   claim_uri_hash_hex:   HexHashSchema.describe("32-byte hash of the off-chain claim URI"),
-  deadline_slot:        z.union([z.number().int().positive(), z.string().regex(/^\d+$/)])
+  // Use `.min(1)` rather than `.positive()` so `zodToJsonSchema(..., { target: "openApi3" })`
+  // emits `{ "minimum": 1 }` (JSON Schema draft 2020-12 compatible) rather than the
+  // draft-04 boolean form `{ "exclusiveMinimum": true, "minimum": 0 }`, which the
+  // Anthropic /v1/messages tool validator rejects with HTTP 400.
+  deadline_slot:        z.union([z.number().int().min(1), z.string().regex(/^\d+$/)])
                           .describe(
                             "Slot by which an attestor must respond. Must be greater than the " +
                             "current Solana slot. Devnet slots advance roughly every 400ms " +

@@ -60,6 +60,29 @@ export interface AgentTrustConfig {
 const DEVNET_RPC  = "https://api.devnet.solana.com";
 const MAINNET_RPC = "https://api.mainnet-beta.solana.com";
 
+/**
+ * Sentinel pubkey for AgentTrust programs on mainnet when the operator
+ * hasn't supplied explicit overrides via env. We use the System Program
+ * (`11111111111111111111111111111111`) because:
+ *   - It's a valid PublicKey (passes `new PublicKey(...)`), so the rest
+ *     of the config pipeline works unchanged.
+ *   - It's never a real AgentTrust program ID, so chain.ts can detect
+ *     the sentinel cheaply with `.equals(MAINNET_UNDEPLOYED_SENTINEL)`.
+ *   - Booting against it would fail loudly the moment any AT-touching
+ *     tool tries to `loadPolicyVault` / `loadTrustGate` etc., which is
+ *     exactly the call-time error we want (`config_error` envelope).
+ *
+ * Quantu programs always have real IDs (see `MAINNET_QUANTU_IDS` in
+ * `@agenttrust-sdk/trustgate`) so `get_quantu_reputation` and the
+ * agent-account lookup path are unaffected.
+ */
+export const MAINNET_UNDEPLOYED_SENTINEL = new PublicKey("11111111111111111111111111111111");
+
+/** True iff `pubkey` is the mainnet-undeployed sentinel. */
+export function isMainnetUndeployedSentinel(pubkey: PublicKey): boolean {
+  return pubkey.equals(MAINNET_UNDEPLOYED_SENTINEL);
+}
+
 function readNetwork(): Network {
   const raw = (process.env.NETWORK ?? "solana-devnet").trim().toLowerCase();
   if (raw === "solana-mainnet" || raw === "mainnet" || raw === "mainnet-beta") {
@@ -216,26 +239,40 @@ export function loadConfig(): AgentTrustConfig {
   const { transport, httpPort, httpHost } = readTransport();
 
   // AgentTrust programs ship on devnet. Quantu ships on both devnet and
-  // mainnet. When mainnet is selected the AgentTrust program IDs must be
-  // overridden via env — otherwise we'd silently point at devnet pubkeys
-  // on a mainnet RPC (every read returns `exists: false`, every write
-  // throws cryptic Anchor errors).
+  // mainnet. When mainnet is selected without explicit AgentTrust program
+  // IDs we fall back to a sentinel pubkey (System Program 11..1) so the
+  // server still boots and Quantu-only reads keep working. AT-touching
+  // tools detect the sentinel at call time and throw a structured
+  // `config_error` envelope. See `chain.ts:requireProgramId` and the gate
+  // E2E report (Polish item 2 in
+  // submission/e2e-claude-code-2026-05-13/README.md).
   const policyVaultEnv        = process.env.POLICY_VAULT_PROGRAM_ID?.trim();
   const trustGateEnv          = process.env.TRUSTGATE_PROGRAM_ID?.trim();
   const validationRegistryEnv = process.env.VALIDATION_REGISTRY_PROGRAM_ID?.trim();
   if (network === "solana-mainnet" && !policyVaultEnv && !trustGateEnv && !validationRegistryEnv) {
-    throw new Error(
-      "AgentTrust programs are not yet deployed on mainnet. " +
-      "Set explicit POLICY_VAULT_PROGRAM_ID, TRUSTGATE_PROGRAM_ID, and " +
-      "VALIDATION_REGISTRY_PROGRAM_ID env vars, or use NETWORK=solana-devnet (default).",
+    process.stderr.write(
+      "[agenttrust] WARN mainnet selected but AgentTrust programs are not " +
+      "deployed to mainnet yet. Read tools that touch policy_vault / trustgate " +
+      "/ validation_registry will fail with errorCode: \"config_error\". Quantu " +
+      "reads (get_quantu_reputation, agent_account lookups) are unaffected. " +
+      "To override, set POLICY_VAULT_PROGRAM_ID / TRUSTGATE_PROGRAM_ID / " +
+      "VALIDATION_REGISTRY_PROGRAM_ID.\n",
     );
   }
 
-  const programs: ProgramIds = {
-    policyVault:        parsePubkeyEnv("POLICY_VAULT_PROGRAM_ID",         DEFAULT_DEVNET_PROGRAM_IDS.policyVault),
-    trustGate:          parsePubkeyEnv("TRUSTGATE_PROGRAM_ID",            DEFAULT_DEVNET_PROGRAM_IDS.trustGate),
-    validationRegistry: parsePubkeyEnv("VALIDATION_REGISTRY_PROGRAM_ID",  VALIDATION_REGISTRY_DEVNET_ID),
-  };
+  const onMainnetWithoutOverrides =
+    network === "solana-mainnet" && !policyVaultEnv && !trustGateEnv && !validationRegistryEnv;
+  const programs: ProgramIds = onMainnetWithoutOverrides
+    ? {
+        policyVault:        MAINNET_UNDEPLOYED_SENTINEL,
+        trustGate:          MAINNET_UNDEPLOYED_SENTINEL,
+        validationRegistry: MAINNET_UNDEPLOYED_SENTINEL,
+      }
+    : {
+        policyVault:        parsePubkeyEnv("POLICY_VAULT_PROGRAM_ID",         DEFAULT_DEVNET_PROGRAM_IDS.policyVault),
+        trustGate:          parsePubkeyEnv("TRUSTGATE_PROGRAM_ID",            DEFAULT_DEVNET_PROGRAM_IDS.trustGate),
+        validationRegistry: parsePubkeyEnv("VALIDATION_REGISTRY_PROGRAM_ID",  VALIDATION_REGISTRY_DEVNET_ID),
+      };
   const quantu: QuantuProgramIds = network === "solana-mainnet"
     ? MAINNET_QUANTU_IDS
     : DEFAULT_DEVNET_QUANTU_IDS;
