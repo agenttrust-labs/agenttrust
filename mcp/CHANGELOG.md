@@ -14,7 +14,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the tx's inner instructions. Useful when an integrator has the settle
   signature but not the digest.
 
-## [0.3.2] — 2026-05-12
+## [0.3.3] — 2026-05-13
+
+Tag: `mcp-v0.3.3` · Republish of 0.3.2 to fix a packaging bug.
+
+### Fixed
+
+- `@agenttrust-sdk/trustgate` dep in the published `package.json` is
+  now a concrete semver range (`^0.3.1`) instead of the pnpm
+  workspace specifier (`workspace:^`). 0.3.2 was published via plain
+  `npm publish` which does not rewrite `workspace:` specs — npm
+  consumers hit `EUNSUPPORTEDPROTOCOL` on install. 0.3.3 is published
+  via `pnpm publish`, which performs the rewrite. 0.3.2 has been
+  deprecated on the registry with a pointer to 0.3.3.
+
+No source changes vs 0.3.2 — every Added / Changed / Fixed item
+below also applies to this release.
+
+## [0.3.2] — 2026-05-12  [deprecated]
+
+Note: 0.3.2 is deprecated on npm because the published manifest
+carries `"@agenttrust-sdk/trustgate": "workspace:^"`, which npm
+rejects with `EUNSUPPORTEDPROTOCOL`. Use 0.3.3.
 
 Tag: `mcp-v0.3.2` · Developer-experience polish wave covering every
 post-submission audit P0 and P1 finding plus the three ergonomics
