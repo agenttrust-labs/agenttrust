@@ -1,0 +1,17 @@
+CONTEXT: Sanity check against hosted MCP after Step 1 (npx install) failed.
+The hosted MCP server itself is healthy; the bug is purely in the npm publish artifact.
+
+REQUEST:
+POST https://mcp.agenttrust.tech/mcp
+content-type: application/json
+accept: application/json, text/event-stream
+
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"e2e-2026-05-13-curl","version":"1.0"}}}
+
+RESPONSE:
+event: message
+data: {"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{},"resources":{},"prompts":{}},"serverInfo":{"name":"agenttrust","version":"0.3.2"},"instructions":"AgentTrust MCP server. Read tools work without auth (devnet by default). Write tools require a signer (KEYPAIR_B58 / KEYPAIR_PATH / Solana CLI default ~/.config/solana/id.json; full chain documented in the MCP README). Resources expose the AgentTrust docs corpus, deployed program manifest, and example demo source. Prompts ship three guided workflows: audit_payment, setup_agent, explain_failure."},"jsonrpc":"2.0","id":1}
+
+VERDICT: Hosted server reports serverInfo.version = "0.3.2". Server side is fine.
+Step 2 (tools/list against npx-installed local server) cannot be executed because
+the local install fails. See 01-npx-help.txt for the root cause.

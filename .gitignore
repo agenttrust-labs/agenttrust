@@ -72,7 +72,10 @@ docs/video-scripts/
 x_posts_agenttrust/
 
 # Submission artifacts (local-only per submission/README.md)
-submission/
+submission/*
+# Whitelist post-merge e2e verification artifacts so they ship as proof
+!submission/e2e-verification-*/
+!submission/e2e-verification-*/**
 
 # Marketing video Remotion project (brand-locked, renders are heavy, private)
 marketing-video/
