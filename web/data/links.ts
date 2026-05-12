@@ -32,8 +32,6 @@ export const PUBLIC_LINKS = {
 } as const;
 
 export const SOCIAL_LINKS = {
-  discord: "#footer",
-  linkedin: "#footer",
-  x: "#footer",
-  youtube: "#footer",
+  discord: "https://discord.com/users/1185234614386700431",
+  x: "https://x.com/agenttrustlabs",
 } as const;

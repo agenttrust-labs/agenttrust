@@ -13,7 +13,7 @@ export interface FooterLinkGroup {
 export type FooterUtilityLink = FooterLink;
 
 export interface FooterSocialLink extends FooterLink {
-  readonly icon: "discord" | "linkedin" | "x" | "youtube";
+  readonly icon: "discord" | "x";
 }
 
 export const NEWSLETTER_CONTENT = {
@@ -68,6 +68,4 @@ export const FOOTER_UTILITY_LINKS: readonly FooterUtilityLink[] = [
 export const FOOTER_SOCIAL_LINKS: readonly FooterSocialLink[] = [
   { href: SOCIAL_LINKS.x, icon: "x", label: "X" },
   { href: SOCIAL_LINKS.discord, icon: "discord", label: "Discord" },
-  { href: SOCIAL_LINKS.youtube, icon: "youtube", label: "YouTube" },
-  { href: SOCIAL_LINKS.linkedin, icon: "linkedin", label: "LinkedIn" },
 ];
