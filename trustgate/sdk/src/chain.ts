@@ -244,9 +244,30 @@ export async function simulateGatePayment(
   }
   const returnData = sim.value.returnData;
   if (!returnData || !returnData.data || !returnData.data[0]) {
-    throw new Error("simulation produced no return_data");
+    // Pass the sim logs into parseGateDecision so the "empty return data"
+    // error message includes upstream context (e.g. a constraint failure
+    // that reverted the gate logic before set_return_data could fire).
+    return parseGateDecision(Buffer.alloc(0), sim.value.logs ?? undefined);
   }
-  return parseGateDecision(Buffer.from(returnData.data[0], "base64"));
+  return parseGateDecision(Buffer.from(returnData.data[0], "base64"), sim.value.logs ?? undefined);
+}
+
+/**
+ * Truncate a logs array into a single short string suitable for embedding
+ * in an error message. Caps at ~400 chars total so the error stays
+ * single-line-friendly. Used by `parseGateDecision`'s empty-return-data
+ * branch to surface upstream simulation context (F-039).
+ */
+function summariseSimLogs(logs: readonly string[] | undefined, maxLen = 400): string {
+  if (!logs || logs.length === 0) return "";
+  let acc = "";
+  for (const line of logs) {
+    if (acc.length + line.length + 1 > maxLen) {
+      acc += "..."; break;
+    }
+    acc += (acc ? "\n" : "") + line;
+  }
+  return acc;
 }
 
 /**
@@ -254,9 +275,20 @@ export async function simulateGatePayment(
  *   variant 0: Allow                      (no payload)
  *   variant 1: Deny(DenyReason)           (1-byte: variant index 0..14 → code 1..15)
  *   variant 2: RequireValidation([u8;32])
+ *
+ * Optional `simLogs` is appended to the "empty return data" error (F-039)
+ * so callers can see what the gate logic did before failing to emit a
+ * decision (e.g. a constraint failure that reverted before set_return_data).
+ * Truncated to ~400 chars to keep the error single-line-friendly.
  */
-export function parseGateDecision(buf: Buffer): GateDecision {
-  if (buf.length === 0) throw new Error("empty GateDecision return data");
+export function parseGateDecision(buf: Buffer, simLogs?: readonly string[]): GateDecision {
+  if (buf.length === 0) {
+    const logsCtx = summariseSimLogs(simLogs);
+    throw new Error(
+      `empty GateDecision return data` +
+      (logsCtx ? ` (upstream sim logs: ${logsCtx})` : ""),
+    );
+  }
   const variant = buf[0];
 
   if (variant === 0) return { kind: "Allow" };
