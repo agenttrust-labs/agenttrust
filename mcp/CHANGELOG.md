@@ -12,7 +12,108 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `agenttrust_lookup_feedback_by_tx({ tx_signature })` — resolve a Solana
   transaction signature to its `emit_feedback` payment_id_hash by parsing
   the tx's inner instructions. Useful when an integrator has the settle
-  signature but not the digest. Targeted for v0.3.0.
+  signature but not the digest.
+
+## [0.3.2] — 2026-05-12
+
+Tag: `mcp-v0.3.2` · Developer-experience polish wave covering every
+post-submission audit P0 and P1 finding plus the three ergonomics
+items called out in `submission/post-submission-todos.md`. The goal:
+a stranger clones a fresh agent host, runs the published install
+snippet, and the gate works first try with no pre-flight ritual.
+
+### Added
+
+- `agenttrust_init_authority` write tool. Creates the `PolicyAuthority`
+  PDA for an agent. Idempotent — existing authorities surface their
+  on-chain `members` and `threshold` instead of failing. Defaults:
+  `members = [signer]`, `threshold = 1`.
+- Layered signer detection. `KEYPAIR_B58` → `KEYPAIR_PATH` →
+  `~/.config/solana/id.json` → `SOLANA_KEYPAIR_PATH`. The Solana CLI
+  default keypair is picked up automatically. A developer who already
+  ran `solana-keygen new` no longer needs to set any env var. Solves
+  the root cause of the `patch-claude.sh` pre-flight script.
+- `MCP_HTTP_HOST` env (default `127.0.0.1`). `MCP_TRANSPORT=http` no
+  longer exposes the server on the LAN by accident. Hosted deploys
+  set `MCP_HTTP_HOST=0.0.0.0` explicitly.
+- Structured `tools/call` error envelopes. Failures now carry an
+  `errorCode` (`auth_required` / `input_invalid` / `rpc_failure` /
+  `chain_error` / `not_found` / `internal`), `message`, optional
+  `hint`, and a truncated `cause`. Encoded as JSON-in-text for
+  backward compat plus a spec-compliant `structuredContent` field.
+  LLMs can react without grepping prose.
+- `errorCode` fields on `agenttrust_get_quantu_reputation` (one of
+  `wrong_owner` / `size_mismatch` / `schema_mismatch`),
+  `agenttrust_docs` (`docs_corpus_not_found`), and
+  `agenttrust_facilitator_walkthrough` (`walkthrough_not_bundled`).
+  Additive — existing `error` prose strings preserved.
+- `readKeypairFile(path)` helper exported from `mcp/src/config.ts`
+  for direct testing of the JSON-array keypair format.
+
+### Changed
+
+- `agenttrust_init_policy`, `agenttrust_set_killswitch`, and the
+  underlying `init_killswitch` instruction self-heal. When a
+  prerequisite PDA (`PolicyAuthority`, `KillSwitchState`) is missing,
+  the matching init instruction is prepended into the same atomic
+  transaction. Existing accounts remain the source of truth — never
+  silently overwritten. Returns `selfHealed: true` with `healedSteps`
+  so the caller surfaces the bootstrap to the user.
+- `agenttrust_init_policy` defaults unspecified spending caps to the
+  MAX of specified caps, not 0. Because v1 policies are immutable
+  post-init, the previous 0 default was hostile (always-deny). Velocity
+  caps are left untouched — window-seconds and max-in-window aren't
+  peer caps in the same dimension.
+- `agenttrust_simulate_payment` drops the preemptive funded-fee-payer
+  throw. The underlying simulator uses `replaceRecentBlockhash: true`
+  and `sigVerify: false` so an unfunded ephemeral fee-payer is fine.
+- `agenttrust_emit_feedback` `value` and `value_decimals` stay optional
+  but write a one-time stderr warn when both are omitted. Preserves
+  the USDC default for compat while making the magnitude trap visible
+  to non-USDC integrators.
+- `requireSigner()` error message, MCP server `instructions` string,
+  the three signer-required write-tool descriptions, README, and the
+  three docs-site pages (`install`, `tools`, `hosted-endpoint`) all
+  reference the full four-source signer chain instead of `KEYPAIR_B58`
+  alone.
+- `agenttrust_set_killswitch` threshold>1 error message now points at
+  the multi-sig walkthrough doc and the SDK composer path instead of
+  stopping at "cosigner support is roadmap."
+- `agenttrust_init_policy.velocity.tier0_decay_factor` and
+  `agenttrust_request_validation.deadline_slot` Zod fields gain
+  `.describe()` copy that explains basis-points semantics and the
+  current-slot-plus-buffer expectation. `emit_feedback.base_collection`
+  description spells out the three real discovery paths (demo state,
+  on-chain `agent_account.collection`, the registration call).
+
+### Fixed
+
+- `NETWORK=solana-mainnet` hard-throws at boot when no explicit
+  `POLICY_VAULT_PROGRAM_ID` / `TRUSTGATE_PROGRAM_ID` /
+  `VALIDATION_REGISTRY_PROGRAM_ID` is set. AgentTrust programs aren't
+  deployed to mainnet yet; the previous silent fall-through to devnet
+  IDs produced wrong gate decisions on a mainnet RPC. (F-002)
+- HELP_TEXT corrections. Default port now `8765` (advertised 8080).
+  Docs URL now `https://docs.agenttrust.tech/mcp` (was the github.io
+  mirror). Dropped the stray backslash that leaked `\$MCP_HTTP_PORT`.
+  Boot banner prints `http://localhost:PORT` for the click-through URL.
+- `RPC_URL` is validated with `new URL(rpcUrl)` at boot. A typo'd URL
+  throws naming the env var instead of a low-level fetch error on the
+  first chain call.
+- `KEYPAIR_B58` length errors say what length was received vs the
+  expected 64 bytes, and call out that a 32-byte value is the public
+  key half only.
+- `agenttrust_respond_to_validation` no longer references a
+  non-existent `register_attestor` MCP tool — points at the demo
+  script and the SDK helpers instead.
+- Protocol-conformance test asserts 19 tools (was 18) and includes
+  `agenttrust_init_authority` in the expected-name list.
+
+### Deploy notes (hosted-mcp)
+
+- `mcp/fly.toml` adds `MCP_HTTP_HOST=0.0.0.0` to the `[env]` block.
+  Without it the container binds 127.0.0.1 inside the Fly machine
+  and the platform health check fails.
 
 ## [0.2.6] — 2026-05-08
 
