@@ -58,9 +58,7 @@ use anchor_lang::prelude::*;
 use crate::constants::{ATOM_ENGINE_ID, MPL_CORE_PROGRAM_ID};
 use crate::errors::TrustGateError;
 use crate::events::AgentRegisteredViaCpi;
-use crate::ext::agent_registry::{
-    invoke_register_agent, RegisterAgentAccounts, RegisterAgentArgs,
-};
+use crate::ext::agent_registry::{invoke_register_agent, RegisterAgentAccounts, RegisterAgentArgs};
 use crate::ext::atom_engine::{
     invoke_initialize_stats, InitializeStatsAccounts, InitializeStatsArgs,
 };
@@ -177,11 +175,7 @@ pub fn handler<'info>(
     // Reused across both CPIs so the MCP always threads identical seeds
     // through every TrustGate CPI.
     let payer_key = ctx.accounts.payer.key();
-    let signer_seeds: &[&[u8]] = &[
-        TrustGateAuthority::SEED_PREFIX,
-        payer_key.as_ref(),
-        &[bump],
-    ];
+    let signer_seeds: &[&[u8]] = &[TrustGateAuthority::SEED_PREFIX, payer_key.as_ref(), &[bump]];
 
     // ---- CPI #1: register_with_options ----
     // AgentTrust 0.4.0 assumes atom-enabled agents end-to-end
