@@ -17,6 +17,12 @@
 //! Chaining both CPIs here makes TrustGate the single orchestrator surface
 //! AgentTrust users learn.
 //!
+//! Authority PDA — `init_if_needed`: a fresh facilitator wallet has no
+//! `TrustGateAuthority` yet. To keep the bootstrap UX at one MCP call →
+//! one signed transaction, the `authority` slot uses `init_if_needed`. The
+//! handler populates the fields on first call (matching `init_authority`)
+//! and re-validates `facilitator == payer` on subsequent calls.
+//!
 //! Idempotency:
 //! - `register_with_options`: if Quantu's `agent_account` PDA at
 //!   `[b"agent", asset]` already exists, the CPI fails at the `init`
@@ -82,10 +88,20 @@ pub struct RegisterAgentViaCpi<'info> {
     /// does not require. Kept here so the MCP threads exactly the same
     /// authority through every TrustGate CPI and so future Quantu
     /// instructions can hook the same PDA.
+    ///
+    /// `init_if_needed`: a fresh facilitator wallet has no
+    /// `TrustGateAuthority` yet, so the prepended MCP self-heal must be
+    /// able to create it inline. On first call this allocates + zeroes the
+    /// account; the handler then populates the same fields as
+    /// `init_authority`. On subsequent calls Anchor reads the existing
+    /// account and the handler re-validates the facilitator binding (the
+    /// `constraint = authority.facilitator == payer.key()` we dropped here).
     #[account(
+        init_if_needed,
+        payer = payer,
+        space = 8 + TrustGateAuthority::INIT_SPACE,
         seeds = [TrustGateAuthority::SEED_PREFIX, payer.key().as_ref()],
-        bump = authority.bump,
-        constraint = authority.facilitator == payer.key(),
+        bump,
     )]
     pub authority: Account<'info, TrustGateAuthority>,
 
@@ -117,7 +133,36 @@ pub fn handler<'info>(
         TrustGateError::MetadataUriTooLong,
     );
 
-    let now_ts = Clock::get()?.unix_timestamp;
+    let clock = Clock::get()?;
+    let now_slot = clock.slot;
+    let now_ts = clock.unix_timestamp;
+    let bump = ctx.bumps.authority;
+
+    // init_if_needed semantics: if the account was just created, fields are
+    // zeroed; if it pre-existed, we re-validate the facilitator binding here
+    // since the Anchor `constraint` was dropped in favour of init-if-needed.
+    {
+        let auth = &mut ctx.accounts.authority;
+        if auth.facilitator == Pubkey::default() {
+            // Fresh init — populate fields the same way init_authority does.
+            auth.facilitator = ctx.accounts.payer.key();
+            auth.bump = bump;
+            auth._pad0 = [0u8; 7];
+            auth.feedback_count = 0;
+            auth.dispute_count = 0;
+            auth.created_at_slot = now_slot;
+            auth._reserved = [0u8; 32];
+        } else {
+            // Pre-existing — replace the Anchor `constraint = authority.facilitator == payer.key()`
+            // we dropped. A different facilitator's PDA at this seed would be
+            // a key collision attack; defend explicitly.
+            require_keys_eq!(
+                auth.facilitator,
+                ctx.accounts.payer.key(),
+                TrustGateError::FacilitatorSignerMismatch,
+            );
+        }
+    }
 
     // Unpack remaining_accounts → typed CPI account bundles in the declared
     // positional order. The MCP / SDK owns the ordering per the doc above.
@@ -131,7 +176,6 @@ pub fn handler<'info>(
     // PDA-sign with TrustGate's authority seeds — same shape as emit_feedback.
     // Reused across both CPIs so the MCP always threads identical seeds
     // through every TrustGate CPI.
-    let bump = ctx.accounts.authority.bump;
     let payer_key = ctx.accounts.payer.key();
     let signer_seeds: &[&[u8]] = &[
         TrustGateAuthority::SEED_PREFIX,
