@@ -83,6 +83,13 @@ export async function buildRegisterAgentViaCpiIx(
       { pubkey: remaining.atomConfig,        isWritable: false, isSigner: false },
       { pubkey: remaining.atomStats,         isWritable: true,  isSigner: false },
       { pubkey: remaining.atomEngineProgram, isWritable: false, isSigner: false },
+      // The on-chain handler invokes agent_registry_8004 via invoke_signed.
+      // Solana's runtime needs the target program's AccountInfo present in
+      // the tx's account list to resolve that CPI. The on-chain
+      // `unpack_cpi_accounts` uses `>= 8` so this 9th slot sits unread by
+      // the handler but available for the loader. Mirrors the same trailing
+      // append in `makeEmitFeedbackCpi` (src/emit-feedback.ts).
+      { pubkey: args.quantuPrograms.agentRegistry, isWritable: false, isSigner: false },
     ])
     .instruction();
 }
