@@ -1,9 +1,9 @@
 ---
 title: MCP server
-description: Drop @agenttrust-sdk/mcp into Claude Desktop or Cursor and query the deployed AgentTrust programs in natural language. Eighteen tools, four resources, three prompts.
+description: Drop @agenttrust-sdk/mcp into Claude Desktop or Cursor and query the deployed AgentTrust programs in natural language. Twenty-one tools, four resources, three prompts.
 ---
 
-`@agenttrust-sdk/mcp@0.2.6` is the Model Context Protocol server for AgentTrust. Stdio binary published on npm; hosted HTTP transport at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech). Eighteen tools split into ten read-only, five write (require a signing keypair), and three discovery / docs-search.
+`@agenttrust-sdk/mcp@0.4.0` is the Model Context Protocol server for AgentTrust. Stdio binary published on npm; hosted HTTP transport at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech). Twenty-one tools split into ten read-only, eight write (require a signing keypair), and three discovery / docs-search.
 
 The MCP server is a thin façade over [`@agenttrust-sdk/trustgate`](/sdk). PDA derivation, IDL loading, and `gate_payment` simulation live in the SDK; the MCP server exposes them with stable Zod schemas to LLM clients.
 
@@ -13,7 +13,7 @@ Source: [`mcp/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp). L
 
 | | Count | Where |
 |---|---:|---|
-| Tools | 18 | 10 read · 5 write · 3 discovery |
+| Tools | 21 | 10 read · 8 write · 3 discovery |
 | Resources | 4 | devnet program manifest, docs corpus, demo source files |
 | Prompts | 3 | `agenttrust_audit_payment`, `agenttrust_setup_agent`, `agenttrust_explain_failure` |
 | Transports | 2 | stdio (default) · streamable HTTP |
@@ -36,7 +36,7 @@ Source: [`mcp/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp). L
 }
 ```
 
-Drop into `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Restart Claude Desktop. Eighteen tools become available in chat. Full setup including write-tool keypair, Cursor config, and HTTP transport: [Install](/mcp/install).
+Drop into `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Restart Claude Desktop. Twenty-one tools become available in chat. Full setup including write-tool keypair, Cursor config, and HTTP transport: [Install](/mcp/install).
 
 ## What it looks like in use
 
@@ -62,7 +62,7 @@ Health check the hosted endpoint:
 
 ```bash
 curl https://mcp.agenttrust.tech/healthz
-# → {"ok":true,"service":"agenttrust-mcp","version":"0.2.6","network":"solana-devnet","toolCount":18,…}
+# → {"ok":true,"service":"agenttrust-mcp","version":"0.4.0","network":"solana-devnet","toolCount":21,…}
 ```
 
 Full hosted-endpoint reference: [Hosted endpoint](/mcp/hosted-endpoint).
@@ -77,7 +77,7 @@ mcp/src/
 ├── chain.ts        — thin façade over @agenttrust-sdk/trustgate
 ├── tools/
 │   ├── read/        — 10 read tools
-│   ├── write/       — 5 write tools
+│   ├── write/       — 8 write tools
 │   └── discovery/   — 3 discovery tools
 ├── resources/
 │   ├── docs.ts      — MDX corpus indexer (path-traversal-safe)
@@ -97,7 +97,7 @@ Chain logic — PDA derivation, IDL loading, `gate_payment` simulation — lives
     Claude Desktop, Cursor, hosted HTTP, env vars, write-tool keypair.
   </Card>
   <Card title="Tools" href="/mcp/tools">
-    All 18 tools — 10 read, 5 write, 3 discovery — with input/output shape.
+    All 21 tools — 10 read, 8 write, 3 discovery — with input/output shape.
   </Card>
   <Card title="Resources" href="/mcp/resources">
     Four MCP resource URIs — devnet program manifest, docs corpus mirror.

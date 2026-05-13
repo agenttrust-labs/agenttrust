@@ -1,6 +1,6 @@
 ---
 title: Tools
-description: All 18 MCP tools — 10 read, 5 write, 3 discovery — with input/output shape and live devnet examples.
+description: All 21 MCP tools — 10 read, 8 write, 3 discovery — with input/output shape and live devnet examples.
 ---
 
 Each tool has a stable Zod schema. Input arguments are documented per tool below. Every write tool surfaces the resulting `txSignature` plus a Solana Explorer URL in its response.
@@ -90,23 +90,40 @@ Returns the three pre-warmed devnet counterparties used by `examples/pay-sh-demo
 
 The demo state is bundled in the tarball as of 0.2.3 — the published package doesn't need a separate state file.
 
-## Write (5 tools — require a signer: `KEYPAIR_B58` / `KEYPAIR_PATH` / Solana CLI default)
+## Write (8 tools — require a signer: `KEYPAIR_B58` / `KEYPAIR_PATH` / Solana CLI default)
 
 | Tool | Effect |
 |---|---|
-| [`agenttrust_init_policy`](#agenttrust_init_policy) | Create `PolicyAccount` + `VelocityLedger` for the signer's agent |
+| [`agenttrust_init_authority`](#agenttrust_init_authority) | Create the agent's `PolicyAuthority` PDA explicitly (rarely needed — `init_policy` self-heals this) |
+| [`agenttrust_init_policy`](#agenttrust_init_policy) | Single-bootstrap call: self-heals missing Quantu `agent_account` + `atom_stats` and missing `PolicyAuthority`, then creates `PolicyAccount` + `VelocityLedger` in one tx |
 | [`agenttrust_set_killswitch`](#agenttrust_set_killswitch) | Pause / unpause the agent's `KillSwitchState` (lead-only multisig in v1) |
+| [`agenttrust_register_namespace`](#agenttrust_register_namespace) | Register a `CapabilityNamespace` PDA on the ValidationRegistry |
+| [`agenttrust_register_attestor`](#agenttrust_register_attestor) | Register an `AttestorProfile` PDA (must be done before `respond_to_validation`) |
 | [`agenttrust_request_validation`](#agenttrust_request_validation) | Open a `ValidationRequest` PDA |
 | [`agenttrust_respond_to_validation`](#agenttrust_respond_to_validation) | Attestor writes a `ValidationAttestation` PDA |
 | [`agenttrust_emit_feedback`](#agenttrust_emit_feedback) | Facilitator-only `emit_feedback` CPI (signer must equal facilitator) |
 
+### `agenttrust_init_authority`
+
+Required args: `agent_asset`, `members` (1–5 base58 pubkeys), `threshold`. Creates the `PolicyAuthority` PDA at `["policy_authority", agent_asset]`. You rarely call this directly in 0.4.0 — `init_policy` prepends it transparently when the PDA is missing. Use this tool when you need a non-trivial multisig (members > 1) before any policy is created.
+
 ### `agenttrust_init_policy`
 
-Required args: `agent_asset`, `policy_id`, `enabled_kinds_bitmask` (e.g., `0b11111` = all five kinds). Optional: every `PolicyAccount` field — defaults are documented in [`programs/policy-vault/src/instructions/init_policy.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs).
+Required args: `agent_asset`, `policy_id`, `enabled_kinds_bitmask` (e.g., `0b11111` = all five kinds). Optional: `metadata_uri` (used when self-healing Quantu registration; max 256 bytes), and every `PolicyAccount` field — defaults are documented in [`programs/policy-vault/src/instructions/init_policy.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs).
+
+AgentTrust 0.4.0 single-bootstrap behavior: when the signer wallet equals `agent_asset` and the Quantu `agent_account` PDA does not exist, the tool prepends TrustGate's `register_agent_via_cpi` into the same atomic transaction. That instruction CPIs into `agent_registry_8004::register_with_options` and `atom_engine::initialize_stats`, so the user's wallet ends up with a Quantu agent profile, an `atom_stats` PDA, an AgentTrust `PolicyAuthority`, and the new policy — all in one signed tx. Successful self-heal returns `healedSteps: ["register_agent_via_cpi", "init_authority"]`.
 
 ### `agenttrust_set_killswitch`
 
 Required args: `agent_asset`, `paused`. Multisig-gated against `PolicyAuthority` per [KillSwitch policy](/programs/policy-vault/kill-switch-policy). v1 uses single-signer (lead-only) for hackathon-velocity reasons; v1.1+ exercises the full Kani-proven multi-signer path.
+
+### `agenttrust_register_namespace`
+
+Required args: `name` (UTF-8 capability name, e.g. `"web/scrape"`), `schema_uri` (max 256 bytes, off-chain JSON schema describing the claim payload). Derives `CapabilityNamespace` PDA at `["capability", sha256(name)]` on the ValidationRegistry program. The on-chain `name_hash` is `sha256(name_utf8)` so the schema URI can rotate independently. Same signer must own the namespace for later `register_attestor` calls under it.
+
+### `agenttrust_register_attestor`
+
+Required args: `namespace_name` OR `namespace_hash_hex`, plus optional `attestor` (defaults to the signer pubkey). Creates the `AttestorProfile` PDA at `["attestor", attestor]` on the ValidationRegistry. Must succeed before the attestor calls `respond_to_validation` for any request under this namespace.
 
 ### `agenttrust_request_validation`
 

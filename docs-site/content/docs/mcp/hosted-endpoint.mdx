@@ -19,12 +19,12 @@ Returns:
 {
   "ok":             true,
   "service":        "agenttrust-mcp",
-  "version":        "0.2.6",
+  "version":        "0.4.0",
   "network":        "solana-devnet",
   "rpcUrl":         "https://api.devnet.solana.com",
   "uptimeSeconds":  60978,
   "activeSessions": 0,
-  "toolCount":      18
+  "toolCount":      21
 }
 ```
 
@@ -66,7 +66,7 @@ Mcp-Session-Id: 9f3a…
   "result": {
     "protocolVersion": "2025-03-26",
     "capabilities":    { "tools": {}, "resources": {}, "prompts": {} },
-    "serverInfo":      { "name": "agenttrust", "version": "0.2.6" }
+    "serverInfo":      { "name": "agenttrust", "version": "0.4.0" }
   }
 }
 ```
@@ -114,7 +114,7 @@ Response (truncated):
 }
 ```
 
-Same wire shape as the stdio transport. Same 18 tools, same Zod schemas, same response format.
+Same wire shape as the stdio transport. Same 21 tools, same Zod schemas, same response format.
 
 ## Session model — current quirk
 
@@ -181,9 +181,9 @@ Phase M end-to-end test against the hosted endpoint:
 
 | Check | Result |
 |---|---|
-| `GET /healthz` | 200, returns `version: "0.2.6"`, `toolCount: 18` |
+| `GET /healthz` | 200, returns `version: "0.4.0"`, `toolCount: 21` |
 | `POST /` initialize | 200, returns matching `serverInfo`, `Mcp-Session-Id` header set |
-| `tools/list` | 18 tools, exact match with stdio |
+| `tools/list` | 21 tools, exact match with stdio |
 | `tools/call agenttrust_simulate_payment` | `{ kind: "Allow" }` for the tier-3 demo agent |
 | `tools/call agenttrust_get_policy` | matching PDA `975DgYCY…` between stdio and HTTP |
 
