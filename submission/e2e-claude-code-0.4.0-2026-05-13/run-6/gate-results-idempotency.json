@@ -1,0 +1,25 @@
+{
+  "isError": false,
+  "rawText": "{\n  \"txSignature\": \"57g8iwBnmraM9Zdx4tfb8Jhun8gegCAt5Z7TkuuP5Ww7tVaf1AKFzur3cpJVYZtzjPAj63XvJe56DShmSr77heS5\",\n  \"explorerTxUrl\": \"https://explorer.solana.com/tx/57g8iwBnmraM9Zdx4tfb8Jhun8gegCAt5Z7TkuuP5Ww7tVaf1AKFzur3cpJVYZtzjPAj63XvJe56DShmSr77heS5?cluster=devnet\",\n  \"agentAsset\": \"4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S\",\n  \"agentAssetExplorer\": \"https://explorer.solana.com/address/4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S?cluster=devnet\",\n  \"policyPda\": \"BPNcSouiuzA92YL1T2YFkwNMhhSaLfE4W9t6pcB2Jqy3\",\n  \"policyExplorer\": \"https://explorer.solana.com/address/BPNcSouiuzA92YL1T2YFkwNMhhSaLfE4W9t6pcB2Jqy3?cluster=devnet\",\n  \"velocityPda\": \"57fajQ7xP57P3JzWj2qfqbEGNdf3vTa3vKBt8ckcxgq8\",\n  \"velocityExplorer\": \"https://explorer.solana.com/address/57fajQ7xP57P3JzWj2qfqbEGNdf3vTa3vKBt8ckcxgq8?cluster=devnet\",\n  \"effectiveSpending\": {\n    \"perTxMax\": \"500000\",\n    \"dailyMax\": \"500000\",\n    \"weeklyMax\": \"500000\"\n  },\n  \"selfHealed\": false,\n  \"healedSteps\": []\n}",
+  "parsed": {
+    "txSignature": "57g8iwBnmraM9Zdx4tfb8Jhun8gegCAt5Z7TkuuP5Ww7tVaf1AKFzur3cpJVYZtzjPAj63XvJe56DShmSr77heS5",
+    "explorerTxUrl": "https://explorer.solana.com/tx/57g8iwBnmraM9Zdx4tfb8Jhun8gegCAt5Z7TkuuP5Ww7tVaf1AKFzur3cpJVYZtzjPAj63XvJe56DShmSr77heS5?cluster=devnet",
+    "agentAsset": "4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S",
+    "agentAssetExplorer": "https://explorer.solana.com/address/4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S?cluster=devnet",
+    "policyPda": "BPNcSouiuzA92YL1T2YFkwNMhhSaLfE4W9t6pcB2Jqy3",
+    "policyExplorer": "https://explorer.solana.com/address/BPNcSouiuzA92YL1T2YFkwNMhhSaLfE4W9t6pcB2Jqy3?cluster=devnet",
+    "velocityPda": "57fajQ7xP57P3JzWj2qfqbEGNdf3vTa3vKBt8ckcxgq8",
+    "velocityExplorer": "https://explorer.solana.com/address/57fajQ7xP57P3JzWj2qfqbEGNdf3vTa3vKBt8ckcxgq8?cluster=devnet",
+    "effectiveSpending": {
+      "perTxMax": "500000",
+      "dailyMax": "500000",
+      "weeklyMax": "500000"
+    },
+    "selfHealed": false,
+    "healedSteps": []
+  },
+  "txSignature": "57g8iwBnmraM9Zdx4tfb8Jhun8gegCAt5Z7TkuuP5Ww7tVaf1AKFzur3cpJVYZtzjPAj63XvJe56DShmSr77heS5",
+  "selfHealed": false,
+  "healedSteps": [],
+  "policyPda": "BPNcSouiuzA92YL1T2YFkwNMhhSaLfE4W9t6pcB2Jqy3"
+}

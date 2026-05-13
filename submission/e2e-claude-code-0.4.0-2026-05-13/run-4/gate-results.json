@@ -1,0 +1,19 @@
+{
+  "isError": true,
+  "rawText": "{\n  \"errorCode\": \"chain_error\",\n  \"message\": \"On-chain transaction failed.\",\n  \"hint\": \"Transaction was rejected by the Solana runtime. Inspect the embedded logs in the cause for the failing program invoke + the precise runtime error; in a SendTransactionError handler, call `getLogs()` for the full set.\",\n  \"cause\": \"Simulation failed. \\nMessage: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x0. \\nLogs: \\n[\\n  \\\"Program log: Instruction: CreateV2\\\",\\n  \\\"Program 11111111111111111111111111111111 invoke [4]\\\",\\n  \\\"Create Account: account Address { address: GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o, base: None } already in use\\\",\\n  \\\"Program 11111111111111111111111111111111 failed: custom program error: 0x0\\\",\\n  \\\"Program CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d ... [truncated]\"\n}",
+  "parsed": {
+    "errorCode": "chain_error",
+    "message": "On-chain transaction failed.",
+    "hint": "Transaction was rejected by the Solana runtime. Inspect the embedded logs in the cause for the failing program invoke + the precise runtime error; in a SendTransactionError handler, call `getLogs()` for the full set.",
+    "cause": "Simulation failed. \nMessage: Transaction simulation failed: Error processing Instruction 0: custom program error: 0x0. \nLogs: \n[\n  \"Program log: Instruction: CreateV2\",\n  \"Program 11111111111111111111111111111111 invoke [4]\",\n  \"Create Account: account Address { address: GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o, base: None } already in use\",\n  \"Program 11111111111111111111111111111111 failed: custom program error: 0x0\",\n  \"Program CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d ... [truncated]"
+  },
+  "txSignature": null,
+  "selfHealed": null,
+  "healedSteps": null,
+  "policyPda": null,
+  "velocityPda": null,
+  "initRes": {
+    "protocolVersion": "2025-03-26"
+  },
+  "toolCount": 21
+}

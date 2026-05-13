@@ -1,0 +1,37 @@
+{
+  "trustgate_authority": {
+    "pda": "9zBq9vRYLMnrAnicRHvCJGNKVL9NwKeWr7zPAKmz2Ljw",
+    "exists": false,
+    "owner": null,
+    "lamports": null,
+    "dataLen": null
+  },
+  "policy_authority": {
+    "pda": "uw7fAJpXdw3jfXuzEnEyi9MT4ubu1ZXyevFYjcw6By9",
+    "exists": false,
+    "owner": null,
+    "lamports": null,
+    "dataLen": null
+  },
+  "agent_account": {
+    "pda": "EQuMn7Gm8YaqN7TKLXjV2ckaiN5g7ABUqeJj43qDN4gD",
+    "exists": false,
+    "owner": null,
+    "lamports": null,
+    "dataLen": null
+  },
+  "atom_stats": {
+    "pda": "9PRUVPNs4wboNK85b3TemzbEXbetCdAX4LRJe7uvbx9f",
+    "exists": false,
+    "owner": null,
+    "lamports": null,
+    "dataLen": null
+  },
+  "policy_account[1]": {
+    "pda": "61c3HpaxJVniyfRdtp2JeuzhciQY6A6KcVxbgjrPuege",
+    "exists": false,
+    "owner": null,
+    "lamports": null,
+    "dataLen": null
+  }
+}

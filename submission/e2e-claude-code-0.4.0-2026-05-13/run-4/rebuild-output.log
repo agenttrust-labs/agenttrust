@@ -1,0 +1,98 @@
+=== built ix ===
+programId: HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N
+keys count: 13
+  [0] GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o writable=true signer=true
+  [1] GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o writable=true signer=true
+  [2] 7Zgw7mfL7NjzZd4iNgVn7Eydi4FX5uAJLzCyZc43cJmn writable=true signer=false
+  [3] 11111111111111111111111111111111 writable=false signer=false
+  [4] GGQfKNpXq8HchNxecLfXi8D7xz9PDppdPAPgr5Fx4Nvd writable=false signer=false
+  [5] Djy4TKPvFyEumcVTDCqJUHWErKqcaeRj4ULWwaPkedor writable=false signer=false
+  [6] EQuMn7Gm8YaqN7TKLXjV2ckaiN5g7ABUqeJj43qDN4gD writable=true signer=false
+  [7] 6CTyGPcn8dMwKEqgtvx2XCpkGUd7uqCVK6937RSM5bhA writable=true signer=false
+  [8] CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d writable=false signer=false
+  [9] 4XeDhpmZ5GbfSbqgTcD3t6FKRXpMg8jixbqWDbthDSrk writable=false signer=false
+  [10] 4TW3upJrNvF6T8R7J5n7ryRF3owbA7kizFZFJs6MxaJb writable=true signer=false
+  [11] AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF writable=false signer=false
+  [12] 8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C writable=false signer=false
+
+=== raw tx b64 len: 880 ===
+
+=== simulateTransaction result ===
+{
+  "accounts": null,
+  "err": {
+    "InstructionError": [
+      1,
+      {
+        "Custom": 0
+      }
+    ]
+  },
+  "fee": 5000,
+  "innerInstructions": null,
+  "loadedAccountsDataSize": 2139837,
+  "loadedAddresses": {
+    "readonly": [],
+    "writable": []
+  },
+  "logs": [
+    "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+    "Program ComputeBudget111111111111111111111111111111 success",
+    "Program HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N invoke [1]",
+    "Program log: Instruction: RegisterAgentViaCpi",
+    "Program 11111111111111111111111111111111 invoke [2]",
+    "Program 11111111111111111111111111111111 success",
+    "Program 8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C invoke [2]",
+    "Program log: Instruction: RegisterWithOptions",
+    "Program 11111111111111111111111111111111 invoke [3]",
+    "Program 11111111111111111111111111111111 success",
+    "Program CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d invoke [3]",
+    "Program log: Instruction: CreateV2",
+    "Program 11111111111111111111111111111111 invoke [4]",
+    "Create Account: account Address { address: GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o, base: None } already in use",
+    "Program 11111111111111111111111111111111 failed: custom program error: 0x0",
+    "Program CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d consumed 6977 of 560317 compute units",
+    "Program CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d failed: custom program error: 0x0",
+    "Program 8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C consumed 31439 of 584779 compute units",
+    "Program 8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C failed: custom program error: 0x0",
+    "Program HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N consumed 46510 of 599850 compute units",
+    "Program HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N failed: custom program error: 0x0"
+  ],
+  "postBalances": [
+    499995000,
+    0,
+    1364160,
+    0,
+    0,
+    1,
+    1941840,
+    1141440,
+    1141440,
+    1,
+    10001141440,
+    1398960,
+    1398960,
+    1141440
+  ],
+  "postTokenBalances": [],
+  "preBalances": [
+    500000000,
+    0,
+    1364160,
+    0,
+    0,
+    1,
+    1941840,
+    1141440,
+    1141440,
+    1,
+    10001141440,
+    1398960,
+    1398960,
+    1141440
+  ],
+  "preTokenBalances": [],
+  "replacementBlockhash": null,
+  "returnData": null,
+  "unitsConsumed": 46660
+}

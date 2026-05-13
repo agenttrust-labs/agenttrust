@@ -1,0 +1,90 @@
+[gate] TEST_PUBKEY=Geiw7eFRS43wmG3HHWmZ3BZTdKsKgSzuxnXdxQ4iqWLf
+[gate] spawning npx -y @agenttrust-sdk/mcp@0.4.4 ...
+[gate] -> initialize
+[mcp-stderr] npm warn deprecated uuid@8.3.2: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+[gate] <- initialize: protocolVersion=2025-03-26
+[gate] -> tools/list
+[gate] <- tools/list count=21
+[gate] -> tools/call agenttrust_init_policy args={"policy_id":1,"enabled_kinds_bitmask":2,"spending":{"per_tx_max":"1000000"}}
+[gate] init_policy result:
+{
+  "isError": false,
+  "rawText": "{\n  \"txSignature\": \"2zxucf9DjPYrqSMBhzL9SXmw6ZEBx8ut8KdjuCp6SEwwCmmEUbgFUCvF89ZLWUi73aqsBi2nTpouDM9YBcQbp8La\",\n  \"explorerTxUrl\": \"https://explorer.solana.com/tx/2zxucf9DjPYrqSMBhzL9SXmw6ZEBx8ut8KdjuCp6SEwwCmmEUbgFUCvF89ZLWUi73aqsBi2nTpouDM9YBcQbp8La?cluster=devnet\",\n  \"agentAsset\": \"4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S\",\n  \"agentAssetExplorer\": \"https://explorer.solana.com/address/4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S?cluster=devnet\",\n  \"policyPda\": \"AgUaWXrCh6EXHokCzfYyScBmAZmktKFq8tq82GNXpJSQ\",\n  \"policyExplorer\": \"https://explorer.solana.com/address/AgUaWXrCh6EXHokCzfYyScBmAZmktKFq8tq82GNXpJSQ?cluster=devnet\",\n  \"velocityPda\": \"HsDqwCC4f1hg6HUUDqQPWW1XiyaVMKxvxYgg4BHBhZGc\",\n  \"velocityExplorer\": \"https://explorer.solana.com/address/HsDqwCC4f1hg6HUUDqQPWW1XiyaVMKxvxYgg4BHBhZGc?cluster=devnet\",\n  \"effectiveSpending\": {\n    \"perTxMax\": \"1000000\",\n    \"dailyMax\": \"1000000\",\n    \"weeklyMax\": \"1000000\"\n  },\n  \"selfHealed\": true,\n  \"healedSteps\": [\n    \"register_agent_via_cpi\",\n    \"init_authority\",\n    \"init_killswitch\"\n  ]\n}",
+  "parsed": {
+    "txSignature": "2zxucf9DjPYrqSMBhzL9SXmw6ZEBx8ut8KdjuCp6SEwwCmmEUbgFUCvF89ZLWUi73aqsBi2nTpouDM9YBcQbp8La",
+    "explorerTxUrl": "https://explorer.solana.com/tx/2zxucf9DjPYrqSMBhzL9SXmw6ZEBx8ut8KdjuCp6SEwwCmmEUbgFUCvF89ZLWUi73aqsBi2nTpouDM9YBcQbp8La?cluster=devnet",
+    "agentAsset": "4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S",
+    "agentAssetExplorer": "https://explorer.solana.com/address/4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S?cluster=devnet",
+    "policyPda": "AgUaWXrCh6EXHokCzfYyScBmAZmktKFq8tq82GNXpJSQ",
+    "policyExplorer": "https://explorer.solana.com/address/AgUaWXrCh6EXHokCzfYyScBmAZmktKFq8tq82GNXpJSQ?cluster=devnet",
+    "velocityPda": "HsDqwCC4f1hg6HUUDqQPWW1XiyaVMKxvxYgg4BHBhZGc",
+    "velocityExplorer": "https://explorer.solana.com/address/HsDqwCC4f1hg6HUUDqQPWW1XiyaVMKxvxYgg4BHBhZGc?cluster=devnet",
+    "effectiveSpending": {
+      "perTxMax": "1000000",
+      "dailyMax": "1000000",
+      "weeklyMax": "1000000"
+    },
+    "selfHealed": true,
+    "healedSteps": [
+      "register_agent_via_cpi",
+      "init_authority",
+      "init_killswitch"
+    ]
+  },
+  "txSignature": "2zxucf9DjPYrqSMBhzL9SXmw6ZEBx8ut8KdjuCp6SEwwCmmEUbgFUCvF89ZLWUi73aqsBi2nTpouDM9YBcQbp8La",
+  "agentAsset": "4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S",
+  "selfHealed": true,
+  "healedSteps": [
+    "register_agent_via_cpi",
+    "init_authority",
+    "init_killswitch"
+  ],
+  "policyPda": "AgUaWXrCh6EXHokCzfYyScBmAZmktKFq8tq82GNXpJSQ",
+  "velocityPda": "HsDqwCC4f1hg6HUUDqQPWW1XiyaVMKxvxYgg4BHBhZGc",
+  "initRes": {
+    "protocolVersion": "2025-03-26"
+  },
+  "toolCount": 21
+}
+[gate] -> tools/call agenttrust_init_policy (idempotency, policy_id=2)
+[gate] idempotency result:
+{
+  "isError": false,
+  "rawText": "{\n  \"txSignature\": \"57g8iwBnmraM9Zdx4tfb8Jhun8gegCAt5Z7TkuuP5Ww7tVaf1AKFzur3cpJVYZtzjPAj63XvJe56DShmSr77heS5\",\n  \"explorerTxUrl\": \"https://explorer.solana.com/tx/57g8iwBnmraM9Zdx4tfb8Jhun8gegCAt5Z7TkuuP5Ww7tVaf1AKFzur3cpJVYZtzjPAj63XvJe56DShmSr77heS5?cluster=devnet\",\n  \"agentAsset\": \"4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S\",\n  \"agentAssetExplorer\": \"https://explorer.solana.com/address/4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S?cluster=devnet\",\n  \"policyPda\": \"BPNcSouiuzA92YL1T2YFkwNMhhSaLfE4W9t6pcB2Jqy3\",\n  \"policyExplorer\": \"https://explorer.solana.com/address/BPNcSouiuzA92YL1T2YFkwNMhhSaLfE4W9t6pcB2Jqy3?cluster=devnet\",\n  \"velocityPda\": \"57fajQ7xP57P3JzWj2qfqbEGNdf3vTa3vKBt8ckcxgq8\",\n  \"velocityExplorer\": \"https://explorer.solana.com/address/57fajQ7xP57P3JzWj2qfqbEGNdf3vTa3vKBt8ckcxgq8?cluster=devnet\",\n  \"effectiveSpending\": {\n    \"perTxMax\": \"500000\",\n    \"dailyMax\": \"500000\",\n    \"weeklyMax\": \"500000\"\n  },\n  \"selfHealed\": false,\n  \"healedSteps\": []\n}",
+  "parsed": {
+    "txSignature": "57g8iwBnmraM9Zdx4tfb8Jhun8gegCAt5Z7TkuuP5Ww7tVaf1AKFzur3cpJVYZtzjPAj63XvJe56DShmSr77heS5",
+    "explorerTxUrl": "https://explorer.solana.com/tx/57g8iwBnmraM9Zdx4tfb8Jhun8gegCAt5Z7TkuuP5Ww7tVaf1AKFzur3cpJVYZtzjPAj63XvJe56DShmSr77heS5?cluster=devnet",
+    "agentAsset": "4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S",
+    "agentAssetExplorer": "https://explorer.solana.com/address/4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S?cluster=devnet",
+    "policyPda": "BPNcSouiuzA92YL1T2YFkwNMhhSaLfE4W9t6pcB2Jqy3",
+    "policyExplorer": "https://explorer.solana.com/address/BPNcSouiuzA92YL1T2YFkwNMhhSaLfE4W9t6pcB2Jqy3?cluster=devnet",
+    "velocityPda": "57fajQ7xP57P3JzWj2qfqbEGNdf3vTa3vKBt8ckcxgq8",
+    "velocityExplorer": "https://explorer.solana.com/address/57fajQ7xP57P3JzWj2qfqbEGNdf3vTa3vKBt8ckcxgq8?cluster=devnet",
+    "effectiveSpending": {
+      "perTxMax": "500000",
+      "dailyMax": "500000",
+      "weeklyMax": "500000"
+    },
+    "selfHealed": false,
+    "healedSteps": []
+  },
+  "txSignature": "57g8iwBnmraM9Zdx4tfb8Jhun8gegCAt5Z7TkuuP5Ww7tVaf1AKFzur3cpJVYZtzjPAj63XvJe56DShmSr77heS5",
+  "selfHealed": false,
+  "healedSteps": [],
+  "policyPda": "BPNcSouiuzA92YL1T2YFkwNMhhSaLfE4W9t6pcB2Jqy3"
+}
+[gate] -> tools/call agenttrust_demo_state
+[gate] -> tools/call agenttrust_simulate_payment args={"caller":"Geiw7eFRS43wmG3HHWmZ3BZTdKsKgSzuxnXdxQ4iqWLf","payer_agent":"4HMMXggYZruH7iFK2jqf799FQGQ2t5dFQmGsk5jUrN1S","payee_agent":"BTcgiDauqVHoGMiXujytE5wycfncDEmNnXJiUZ4s4oWL","amount":"5000000","mint":"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v","policy_id":1}
+[gate] simulate result:
+{
+  "isError": false,
+  "rawText": "{\n  \"kind\": \"Deny\",\n  \"reasonCode\": 2,\n  \"reasonName\": \"SpendingPerTxExceeded\"\n}",
+  "parsed": {
+    "kind": "Deny",
+    "reasonCode": 2,
+    "reasonName": "SpendingPerTxExceeded"
+  },
+  "kind": "Deny",
+  "reasonName": "SpendingPerTxExceeded"
+}
+[gate] mcp child exited code=0 signal=null

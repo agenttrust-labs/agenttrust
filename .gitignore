@@ -76,6 +76,14 @@ submission/*
 # Whitelist post-merge e2e verification artifacts so they ship as proof
 !submission/e2e-verification-*/
 !submission/e2e-verification-*/**
+# Whitelist Claude-Code-as-client gate E2E artifacts (0.4.x onward).
+# Earlier-wave dirs without the version prefix stay ignored on purpose.
+!submission/e2e-claude-code-0.4.*/
+!submission/e2e-claude-code-0.4.*/**
+# But never commit wallet secrets even from devnet gate runs.
+# Pubkeys (test-wallet.pubkey.txt) are kept for verification.
+submission/e2e-claude-code-0.4.*/**/test-wallet.json
+submission/e2e-claude-code-0.4.*/**/test-wallet.b58
 
 # Marketing video Remotion project (brand-locked, renders are heavy, private)
 marketing-video/
