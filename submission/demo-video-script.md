@@ -172,7 +172,7 @@ The model should name the 10 read tools, 8 write tools, and 3 discovery tools wi
 
 **Prompt to type into Claude Code (literal):**
 
-> Use agenttrust_emit_feedback to write a positive feedback log against the tier-3 demo counterparty from agenttrust_demo_state, on behalf of our facilitator. Score 80, tag1 "demo", endpoint "demo.agenttrust.tech", feedback_uri "https://demo.agenttrust.tech/feedback/sample". Use any 32-byte hex string as the payment_id_hash. Show me the FeedbackEmissionLog PDA and its on-chain owner.
+> Use agenttrust_emit_feedback to write a positive feedback log against the tier-3 demo counterparty from agenttrust_demo_state, on behalf of our facilitator. Score 80, tag1 "demo", endpoint "demo.agenttrust.tech", feedback_uri "https://demo.agenttrust.tech". Use any 32-byte hex string as the payment_id_hash. Show me the FeedbackEmissionLog PDA and its on-chain owner.
 
 **Expected output (structured):**
 
