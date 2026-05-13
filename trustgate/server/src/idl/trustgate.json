@@ -236,6 +236,14 @@
           "type": "u8"
         },
         {
+          "name": "value",
+          "type": "u64"
+        },
+        {
+          "name": "value_decimals",
+          "type": "u8"
+        },
+        {
           "name": "tag1",
           "type": "string"
         },
@@ -317,6 +325,103 @@
           "type": "pubkey"
         }
       ]
+    },
+    {
+      "name": "register_agent_via_cpi",
+      "docs": [
+        "PDA-signed CPI chain into `agent_registry_8004::register_with_options`",
+        "followed by `atom_engine::initialize_stats`. One TrustGate instruction",
+        "lands a fully atom-functional Quantu agent (agent_account + atom_stats),",
+        "hiding Quantu's two-instruction onboarding pair from MCP / SDK callers.",
+        "Idempotency is enforced upstream by Quantu's own `init` constraints on",
+        "`agent_account` and `atom_stats`; a second call for the same",
+        "`asset_seed` fails at the first CPI boundary."
+      ],
+      "discriminator": [
+        39,
+        134,
+        166,
+        245,
+        218,
+        200,
+        44,
+        40
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "asset",
+          "docs": [
+            "The new agent's asset Keypair must sign — Quantu's",
+            "`register_with_options` requires `asset` as a signer because it mints",
+            "the corresponding MPL Core asset under the same key."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "TrustGate authority PDA — used as the `invoke_signed` seed-signer for",
+            "parity with `emit_feedback` / `dispute_payment`. Quantu's",
+            "`register_with_options` and `initialize_stats` do not include this",
+            "PDA in their account lists, so the seeds sign for an account Quantu",
+            "does not require. Kept here so the MCP threads exactly the same",
+            "authority through every TrustGate CPI and so future Quantu",
+            "instructions can hook the same PDA."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  117,
+                  115,
+                  116,
+                  103,
+                  97,
+                  116,
+                  101,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "asset_seed",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "metadata_uri",
+          "type": "string"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -348,6 +453,19 @@
     }
   ],
   "events": [
+    {
+      "name": "AgentRegisteredViaCpi",
+      "discriminator": [
+        30,
+        177,
+        156,
+        67,
+        58,
+        142,
+        100,
+        221
+      ]
+    },
     {
       "name": "AuthorityInitialized",
       "discriminator": [
@@ -420,6 +538,11 @@
       "msg": "atom_engine program ID mismatch"
     },
     {
+      "code": 13012,
+      "name": "MplCoreProgramMismatch",
+      "msg": "mpl_core program ID mismatch"
+    },
+    {
       "code": 13020,
       "name": "DisputeReasonRequired",
       "msg": "Dispute reason hash must be non-zero"
@@ -428,9 +551,44 @@
       "code": 13030,
       "name": "FacilitatorSignerMismatch",
       "msg": "Caller (payer) must equal facilitator for emit_feedback / dispute_payment"
+    },
+    {
+      "code": 13040,
+      "name": "AssetSeedMismatch",
+      "msg": "Provided asset_seed does not match the asset account key"
+    },
+    {
+      "code": 13041,
+      "name": "MetadataUriTooLong",
+      "msg": "metadata_uri length exceeds 256 bytes"
+    },
+    {
+      "code": 13042,
+      "name": "InsufficientCpiAccounts",
+      "msg": "Insufficient CPI accounts in remaining_accounts"
     }
   ],
   "types": [
+    {
+      "name": "AgentRegisteredViaCpi",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent_asset",
+            "type": "pubkey"
+          },
+          {
+            "name": "payer",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
     {
       "name": "AuthorityInitialized",
       "type": {
