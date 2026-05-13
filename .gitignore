@@ -79,6 +79,8 @@ submission/*
 # Whitelist Claude-Code-as-client gate E2E artifacts so they ship as proof.
 !submission/e2e-claude-code-*/
 !submission/e2e-claude-code-*/**
+# Canonical recording directive for the demo video — not a run artifact.
+!submission/demo-video-script.md
 # But never commit wallet secrets even from devnet gate runs.
 # Pubkeys (test-wallet.pubkey.txt) are kept for verification.
 submission/e2e-claude-code-*/**/test-wallet.json

@@ -12,7 +12,7 @@ Source: [`mcp/src/prompts/`](https://github.com/agenttrust-labs/agenttrust/tree/
 | Name | What it walks the user through |
 |---|---|
 | [`agenttrust_audit_payment`](#agenttrust_audit_payment) | Simulate a payment, read the policy, read the payee's reputation, surface the decision |
-| [`agenttrust_setup_agent`](#agenttrust_setup_agent) | Bootstrap an agent's `PolicyAuthority` → `KillSwitchState` → first `PolicyAccount` |
+| [`agenttrust_setup_agent`](#agenttrust_setup_agent) | Bootstrap a fresh agent identity + first `PolicyAccount` in one atomic `init_policy` self-heal |
 | [`agenttrust_explain_failure`](#agenttrust_explain_failure) | Given a failed payment's reason code, explain root cause + remediation |
 
 ## `agenttrust_audit_payment`
@@ -30,16 +30,14 @@ Use case: "Audit this payment before I send it." The model produces a structured
 
 ## `agenttrust_setup_agent`
 
-Required args: `agent_asset`, `use_case`. The `use_case` is free-text — the prompt uses it to suggest reasonable defaults for the policy fields (per-tx cap, velocity window, counterparty tier minimum).
+Required args: `use_case`. The `use_case` is free-text — the prompt uses it to suggest reasonable defaults for the policy fields (per-tx cap, velocity window, counterparty tier minimum).
 
 The prompt walks the model through:
 
-1. `agenttrust_get_killswitch({ agent_asset })` — check whether `PolicyAuthority` and `KillSwitchState` exist.
-2. If absent, instruct the model to call `init_authority` (off-band, since v1 doesn't expose this as an MCP write tool).
-3. `agenttrust_init_policy({ agent_asset, policy_id: 1, enabled_kinds_bitmask: 0b11111, … })` — initialise the first policy with use-case-tailored defaults.
-4. Confirm the result by calling `agenttrust_get_policy`.
+1. Use `agenttrust_init_policy` to bootstrap a brand-new agent + policy in one atomic tx. Omit `agent_asset` to let the tool generate one. The output's `agentAsset` field is the agent's canonical pubkey for downstream calls. The same call self-heals `agent_account` + `atom_stats` (Quantu), `PolicyAuthority` + `KillSwitchState` (AgentTrust), and lands the `PolicyAccount` + `VelocityLedger` — all under one signature, with `healedSteps: ["register_agent_via_cpi", "init_authority", "init_killswitch"]` returned in the structured envelope.
+2. Confirm the result by calling `agenttrust_get_policy({ agent_asset: <agentAsset from step 1>, policy_id: 1 })`.
 
-Use case: "I just got my Quantu agent identity. Set up a basic AgentTrust policy." The prompt + the write tools land a working policy in three or four turns.
+Use case: "Set up a basic AgentTrust policy for a new agent." The prompt + `init_policy`'s self-heal land a working agent identity plus policy in one or two turns.
 
 ## `agenttrust_explain_failure`
 

@@ -146,6 +146,15 @@ export const emitFeedbackTool: Tool<Input, Output> = {
       );
     }
 
+    // The trustgate Rust handler invokes agent_registry via invoke_signed.
+    // Solana's runtime needs the target program's AccountInfo present in the
+    // tx's account list to resolve that CPI — the unpacker doesn't read this
+    // slot, but the runtime does. Append unconditionally. Mirrors
+    // trustgate/sdk/src/emit-feedback.ts:156-162.
+    remaining.push({
+      pubkey: ctx.chain.cfg.quantu.agentRegistry, isSigner: false, isWritable: false,
+    });
+
     // Forward `value` + `value_decimals` so Quantu's give_feedback can
     // accrue quality_score (drives tier_immediate promotion).
     //

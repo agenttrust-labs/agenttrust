@@ -170,7 +170,7 @@ export function createMcpServer(cfg: AgentTrustConfig): Server {
     try {
       parsed = tool.inputSchema.parse(req.params.arguments ?? {});
     } catch (err) {
-      return renderToolError(classifyError(err, toolName));
+      return renderToolError(classifyError(err, toolName, chain.cfg.transport));
     }
     try {
       const result = await tool.handler(parsed, { chain });
@@ -178,7 +178,7 @@ export function createMcpServer(cfg: AgentTrustConfig): Server {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
       };
     } catch (err) {
-      return renderToolError(classifyError(err, toolName));
+      return renderToolError(classifyError(err, toolName, chain.cfg.transport));
     }
   });
 
