@@ -1,54 +1,122 @@
 # AgentTrust
 
-> **AgentTrust completes the Solana Foundation's ERC-8004 trust stack.** Three Anchor programs that turn Quantu's IdentityRegistry + ReputationRegistry primitives into a full agent-payment trust system: programmable spending policies, x402 facilitator integration, and capability attestation. **Six formally-verified safety properties.** Drop-in TypeScript SDK. **Day-one Pay.sh integration** — Solana Foundation's first x402 facilitator, launched May 5 2026 with Google Cloud.
->
-> **Read first:** [`docs/COMPLETING-THE-TRUST-STACK.md`](./docs/COMPLETING-THE-TRUST-STACK.md) — the full v1 narrative (~2k words, Foundation-aligned).
+> The trust layer for AI-agent payments on Solana. A policy + reputation check that runs right before an agent's payment settles, completing the third leg of the ERC-8004 trust stack. **Six formally-verified safety properties.** Day-one Pay.sh integration (Solana Foundation's first x402 facilitator, launched May 5 2026 with Google Cloud).
 
 [![Web app](https://img.shields.io/badge/web-live-c2410c?style=flat-square)](https://www.agenttrust.tech)
 [![Docs](https://img.shields.io/badge/docs-live-c2410c?style=flat-square)](https://docs.agenttrust.tech)
+[![Hosted MCP](https://img.shields.io/badge/mcp-mcp.agenttrust.tech-c2410c?style=flat-square)](https://mcp.agenttrust.tech)
 [![SDK on npm](https://img.shields.io/npm/v/@agenttrust-sdk/trustgate?style=flat-square&color=c2410c&label=sdk)](https://www.npmjs.com/package/@agenttrust-sdk/trustgate)
 [![MCP on npm](https://img.shields.io/npm/v/@agenttrust-sdk/mcp?style=flat-square&color=c2410c&label=mcp)](https://www.npmjs.com/package/@agenttrust-sdk/mcp)
 [![Kani 6/6](https://img.shields.io/badge/kani-6%2F6_proven-c2410c?style=flat-square)](.github/workflows/kani-prove.yml)
-[![CI workflows](https://img.shields.io/badge/CI-15_workflows-c2410c?style=flat-square)](.github/workflows/)
+[![CI workflows](https://img.shields.io/badge/CI-16_workflows-c2410c?style=flat-square)](.github/workflows/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-c2410c?style=flat-square)](./LICENSE)
 
 Submitted to the **Solana Frontier 2026** hackathon by [@mohit-1710](https://github.com/mohit-1710).
 
+**Read first:** [`docs/COMPLETING-THE-TRUST-STACK.md`](./docs/COMPLETING-THE-TRUST-STACK.md) — the full v1 narrative (~2k words, Foundation-aligned).
+
 ---
 
-## Get started in 60 seconds
-
-Three live surfaces. No `git clone` required.
+## Try it in 60 seconds
 
 ```bash
-# 1. Install the SDK
-npm i @agenttrust-sdk/trustgate
+# Add the MCP to Claude Code / Claude Desktop / Cursor
+npx -y @agenttrust-sdk/mcp@latest
 
-# 2. Add the MCP server to Claude Desktop / Cursor
-npx -y @agenttrust-sdk/mcp
+# Or use the hosted MCP (no install)
+# → https://mcp.agenttrust.tech
 
-# 3. Hit the live demo (real devnet — no setup)
+# Or hit the live demo (real devnet, no setup)
 curl -i https://demo.agenttrust.tech/protected
 ```
+
+Full walkthrough at [docs.agenttrust.tech/quickstart](https://docs.agenttrust.tech/quickstart).
+
+### Live surfaces
+
+**Try it:**
 
 | Surface | URL |
 | --- | --- |
 | Demo (live `/protected` → `/settle` round-trip) | https://demo.agenttrust.tech |
-| Facilitator API (x402 `/verify` + `/settle`) | https://api.agenttrust.tech |
-| MCP HTTP endpoint (hosted) | https://mcp.agenttrust.tech |
-| MCP stdio package | `npx -y @agenttrust-sdk/mcp` (after operator publish) |
+| Hosted MCP (HTTP + stdio) | https://mcp.agenttrust.tech |
+| Facilitator API (`/verify` + `/settle` + `/receipt`) | https://api.agenttrust.tech |
 | SDK | `npm i @agenttrust-sdk/trustgate` |
-| Docs | https://docs.agenttrust.tech |
+| MCP package | `npx -y @agenttrust-sdk/mcp` |
 
-> All endpoints run on Solana devnet. The bare `agenttrust-*.fly.dev`
-> hostnames also resolve, but the `agenttrust.tech` URLs above are
-> canonical.
+**Inspect:**
+
+| Surface | URL |
+| --- | --- |
+| Marketing site | https://agenttrust.tech |
+| Docs | https://docs.agenttrust.tech |
+| Status page | https://status.agenttrust.tech |
+| Code | https://github.com/agenttrust-labs/agenttrust |
+
+> All endpoints run on Solana devnet. The bare `agenttrust-*.fly.dev` hostnames also resolve, but the `agenttrust.tech` URLs above are canonical.
 
 ---
 
-## The pitch in one paragraph
+## What AgentTrust is
 
-Quantu Labs shipped two of the three ERC-8004 legs on Solana — `agent-registry-8004` (IdentityRegistry + ReputationRegistry). The third leg, **ValidationRegistry**, was archived in v0.5.0 pending a redesign. AgentTrust productizes that third leg AND introduces a policy-as-code primitive (PolicyVault) plus an x402-native facilitator surface (TrustGate) that consume Quantu's existing primitives via byte-precise PDA reads. **Day-one integration with Pay.sh** — the Solana Foundation's first x402 facilitator, launched 2026-05-05 with Google Cloud — plus Dexter, atxp, and MCPay as drop-in adapters. Built on top of Foundation-aligned primitives, not parallel to them.
+A check that runs right before an AI agent's payment lands. It reads the counterparty's on-chain reputation, evaluates a programmable spending policy, and decides whether the payment should go through. If yes, it settles atomically and writes feedback back to the reputation registry. If no, it returns a typed Deny envelope an agent can act on.
+
+Quantu Labs shipped two of the three ERC-8004 legs on Solana: `agent-registry-8004` (Identity + Reputation). AgentTrust productizes the third leg (Validation) and introduces the policy + facilitator surfaces an AI-agent payment system actually needs. Built on top of Foundation-aligned primitives, not parallel to them.
+
+---
+
+## The trust stack
+
+```mermaid
+graph TD
+    subgraph Stack["ERC-8004 trust stack on Solana"]
+        I["<b>Identity</b><br/>agent_registry_8004<br/><i>Quantu Labs</i>"]
+        R["<b>Reputation</b><br/>atom_engine · AtomStats<br/><i>Quantu Labs</i>"]
+        V["<b>Validation</b><br/>ValidationRegistry<br/><b>AgentTrust</b>"]
+    end
+    subgraph Add["AgentTrust adds on top"]
+        P["<b>PolicyVault</b><br/>5 policy kinds<br/>6 Kani proofs"]
+        T["<b>TrustGate</b><br/>x402 facilitator<br/>orchestrator"]
+    end
+    T --> I
+    T --> R
+    T --> V
+    P --> R
+    P --> V
+    style V fill:#c2410c,color:#fff
+    style P fill:#c2410c,color:#fff
+    style T fill:#c2410c,color:#fff
+```
+
+TrustGate is the orchestrator — a user calls AgentTrust and never has to learn Quantu's surface directly. Cross-program CPIs happen inside TrustGate.
+
+---
+
+## At payment time
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Agent as AI Agent
+    participant F as x402 Facilitator
+    participant TG as TrustGate
+    participant PV as PolicyVault
+    participant Q as Quantu
+
+    Agent->>F: HTTP 402 → present payment
+    F->>TG: POST /verify
+    TG->>PV: gate_payment(payer, payee, amount)
+    PV->>Q: read AtomStats.trust_tier
+    Q-->>PV: tier (byte 551)
+    PV-->>TG: Allow | Deny | RequireValidation
+    Note over TG: One atomic tx →
+    TG->>TG: SPL transfer + emit_feedback
+    TG->>Q: CPI give_feedback
+    TG-->>F: settled + receipt
+    F-->>Agent: 200 OK
+```
+
+The gate is fail-fast across five policy kinds. The settle is one atomic Solana transaction (splitting it opens a real footgun on Token-2022 mints with `TransferHook`).
 
 ---
 
@@ -56,7 +124,7 @@ Quantu Labs shipped two of the three ERC-8004 legs on Solana — `agent-registry
 
 ### 1 · PolicyVault — programmable spending policies
 
-The policy-as-code engine. Five orthogonal policy kinds composed under one `gate_payment` instruction with **fail-fast semantics**:
+Five orthogonal policy kinds composed under one `gate_payment` instruction with fail-fast semantics:
 
 | # | Policy kind | What it does |
 |---|-------------|--------------|
@@ -64,9 +132,9 @@ The policy-as-code engine. Five orthogonal policy kinds composed under one `gate
 | 2 | `Spending` | Per-tx + daily (UTC midnight) + weekly (ISO Monday) limits |
 | 3 | `Velocity` | Sliding-window cumulative spend, tier-decay (¼, ½, ¾, 1×, 5⁄4×) |
 | 4 | `CounterpartyTier` | Reads Quantu `AtomStats.trust_tier` (byte 551) — the wedge |
-| 5 | `RequireValidation` | Gates against ValidationAttestation PDA (capability proof) |
+| 5 | `RequireValidation` | Gates against `ValidationAttestation` PDA (capability proof) |
 
-Manual byte-offset deserialization of Quantu PDAs (Pattern B per playbook §02-A) — **zero Cargo dep on Quantu's crate**. Schema-version canary at byte 560 catches breaking changes early.
+Manual byte-offset deserialization of Quantu PDAs (Pattern B per playbook §02-A): **zero Cargo dep on Quantu's crate**. Schema-version canary at byte 560 catches breaking changes early.
 
 **Six Kani-proven invariants** (machine-checked via [model-checking/kani](https://github.com/model-checking/kani)):
 
@@ -79,13 +147,13 @@ Manual byte-offset deserialization of Quantu PDAs (Pattern B per playbook §02-A
 | 5 | `multisig_threshold_enforced` — distinct signer count ≥ threshold | 149 | 62.55s |
 | 6 | `gate_payment_strict_correctness` — strict Ok ⇔ Allow + 3 disjoint variants | 258 | 0.9s |
 
-**Total: 635 sub-checks, 6/6 proven, ~64s.** CI ([`.github/workflows/kani-prove.yml`](.github/workflows/kani-prove.yml)) runs all six on every PR.
+**Total: 635 sub-checks, 6/6 proven, ~64s.** CI ([`kani-prove.yml`](.github/workflows/kani-prove.yml)) runs all six on every PR.
 
 **Devnet:** [`8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR`](https://explorer.solana.com/address/8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR?cluster=devnet)
 
-### 2 · TrustGate — x402 facilitator integration
+### 2 · TrustGate — x402 facilitator + orchestrator
 
-Anchor program (`emit_feedback` PDA-signed CPI to `give_feedback` + `dispute_payment`) **plus** a TypeScript SDK published on npm. Drop-in middleware for any x402 facilitator's Express app:
+Anchor program plus a TypeScript SDK on npm. Owns the cross-program CPIs (Quantu `register_agent`, `give_feedback`, `dispute_payment`) so callers stay inside AgentTrust's surface. Drop-in middleware for any x402 facilitator's Express app:
 
 ```ts
 import express from "express";
@@ -105,167 +173,78 @@ await mountTrustGate(app, {
 app.listen(3000);
 ```
 
-You now have `POST /verify`, `POST /settle`, `POST /dispute`, and `GET /receipt/:hash` on your facilitator. x402-spec headers automatic.
+You now have `POST /verify`, `POST /settle`, `POST /dispute`, and `GET /receipt/:hash`. x402-spec headers automatic.
 
-**Atomic-tx invariant:** `gate_payment + transfer + emit_feedback` MUST execute as ONE Solana transaction. Splitting opens a real footgun on Token-2022 mints with `TransferHook` (per `docs/plan/research/02-anchor-token2022-cpi-class.md §A.2`). The SDK enforces atomicity at **two layers** — compile-time literal-type guard `{ atomicityEnforced: true }` + runtime `assertAtomicityEnforced` throw. Skipping either layer re-opens the corruption vector.
+**Atomic-tx invariant:** `gate_payment + transfer + emit_feedback` must execute as ONE Solana transaction. The SDK enforces atomicity at two layers (compile-time literal-type guard `{ atomicityEnforced: true }` + runtime `assertAtomicityEnforced` throw). Skipping either layer re-opens the corruption vector.
 
 **Devnet:** [`HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N`](https://explorer.solana.com/address/HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N?cluster=devnet) · **npm:** [`@agenttrust-sdk/trustgate`](https://www.npmjs.com/package/@agenttrust-sdk/trustgate)
 
 ### 3 · ValidationRegistry — capability attestation
 
-The third ERC-8004 leg Quantu archived in v0.5.0, productized. Permissionless namespace + attestor self-registration; downstream-consumer-filtering is the v1 sybil-resistance model (PolicyVault stores `accepted_attestors[]` per-policy). Audit-trail-preserving revocation per ERC-8004 spec.
+The third ERC-8004 leg Quantu archived in v0.5.0 pending redesign, productized. Permissionless namespace + attestor self-registration. Downstream-consumer-filtering is the v1 model (PolicyVault stores `accepted_attestors[]` per-policy). Audit-trail-preserving revocation per ERC-8004 spec.
 
 | Surface | Detail |
 |---------|--------|
 | PDAs | `CapabilityNamespace`, `AttestorProfile`, `ValidationRequest`, `ValidationAttestation` |
 | Instructions | `register_namespace`, `register_attestor`, `request_validation`, `respond_to_validation`, `revoke_validation` |
 | v1 capability namespaces | KYC tier-1/2/3 · audit (Halborn, OtterSec) · model-card (Anthropic, OpenAI) · jurisdiction · compliance.payments · agent-source |
-| Ed25519 sysvar verify | v1.1+ deliverable per playbook §A.4 (v1 attestor signs via tx signature; non-repudiation against future key compromise needs sysvar pattern) |
+| Ed25519 sysvar verify | v1.1+ deliverable (v1 attestor signs via tx signature; non-repudiation against future key compromise needs sysvar pattern) |
 
 **Devnet:** [`Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv`](https://explorer.solana.com/address/Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv?cluster=devnet)
 
 ---
 
-## Architecture at a glance
+## Single-tool bootstrap (0.4.0)
 
-```
-┌───────────────────────────────────────────────────────────────────────┐
-│  x402 Facilitator (Pay.sh ★ default · Dexter · atxp · MCPay)          │
-│                                                                       │
-│   import { mountTrustGate } from "@agenttrust-sdk/trustgate/express"  │
-│   await mountTrustGate(app, { atomicityEnforced: true, … })           │
-│                                                                       │
-│  ★ Pay.sh = Solana Foundation's first x402 facilitator (May 5, 2026)  │
-└───────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼  POST /verify | /settle | /dispute
-       ┌──────────────────────────────────────────────────────────┐
-       │  TrustGate (Anchor program)                              │
-       │  ├─ init_authority (per-facilitator PDA)                 │
-       │  ├─ emit_feedback  ── PDA-signed CPI ──┐                 │
-       │  └─ dispute_payment                    │                 │
-       └─────────────────┬──────────────────────┼─────────────────┘
-                         │                      │
-                         │ CPI                  │ CPI
-                         ▼                      ▼
-       ┌─────────────────────────────┐  ┌──────────────────────────────┐
-       │  PolicyVault                │  │  Quantu agent-registry-8004  │
-       │  ├─ gate_payment composer   │  │  ├─ give_feedback            │
-       │  │   (fail-fast 5 policies) │  │  └─ atom-engine::AtomStats   │
-       │  ├─ KillSwitch • Spending   │  │     (tier @ byte 551)        │
-       │  ├─ Velocity • Counterparty │  │                              │
-       │  └─ RequireValidation       │  │  Pinned commit: bfb09ad      │
-       │                             │  │  Read via byte-offset parser │
-       │  Reads → ValidationAttestation │     (zero Cargo dep)         │
-       └─────────────────┬───────────┘  └──────────────────────────────┘
-                         │
-                         ▼
-       ┌──────────────────────────────────────────┐
-       │  ValidationRegistry                      │
-       │  ├─ register_namespace / _attestor       │
-       │  ├─ request / respond / revoke           │
-       │  └─ ValidationAttestation PDA            │
-       │     (read by PolicyVault parser)         │
-       └──────────────────────────────────────────┘
-```
-
----
-
-## Quick start
-
-### Install the SDK
-
-```bash
-pnpm add @agenttrust-sdk/trustgate
-# or: npm install @agenttrust-sdk/trustgate
-```
-
-### Verify a payment (read-only)
+A brand-new wallet with only `~/.config/solana/id.json` goes from zero to "I can simulate payments and emit feedback" in **one tool call**. No precondition steps, no spoon-feeding.
 
 ```ts
-import { Keypair, PublicKey } from "@solana/web3.js";
-import { gatePayment } from "@agenttrust-sdk/trustgate/client";
-
-const decision = await gatePayment({
-  rpcUrl:          "https://api.devnet.solana.com",
-  caller:          facilitatorKeypair,
-  payerAgentAsset: new PublicKey("…"),
-  payeeAgentAsset: new PublicKey("…"),
-  amount:          1_000_000n,                     // 1 USDC (6 decimals)
-  mint:            new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
-  policyId:        1,
+// Via the MCP (Claude Code / Desktop / Cursor):
+await agenttrust_init_policy({
+  policy_id: 1,
+  enabled_kinds_bitmask: 0b00011,         // KillSwitch + Spending
+  spending: { per_tx_max: 1_000_000n },   // 1 USDC
 });
 
-switch (decision.kind) {
-  case "Allow":             /* proceed with payment */ break;
-  case "Deny":              console.log(decision.reasonName); break;
-  case "RequireValidation": /* route to validation flow with capabilityHash */ break;
-}
+// → PolicyAuthority + KillSwitchState + TrustGateAuthority + Quantu agent_account
+//   + Policy, all initialized in one atomic devnet tx.
+// → selfHealed: true, healedSteps: ["register_agent_via_cpi", "init_authority", "init_killswitch"]
 ```
 
-### Mount the middleware
-
-See the snippet in [Component 2 — TrustGate](#2--trustgate--x402-facilitator-integration) above.
+The 21-tool MCP surface and the SDK both ride the same atomic-bootstrap. Receipts (tx signatures + PDA addresses) come back in the tool envelope. Re-running is idempotent — the self-heal checks `fetchNullable` upstream of every prepend.
 
 ---
 
 ## Live devnet trace
 
-**Two complete end-to-end flows live on Solana devnet — both captured 2026-05-06.**
+Three complete end-to-end flows captured on devnet. Click any signature.
 
-### Pay.sh + AgentTrust atomic settlement
+| Flow | Headline tx | What it proves |
+|---|---|---|
+| **Single-tool bootstrap** (0.4.0) | [`2zxucf9DjPYrqSMBhzL9SXmw6ZEBx8ut8KdjuCp6SEwwCmmEUbgFUCvF89ZLWUi73aqsBi2nTpouDM9YBcQbp8La`](https://explorer.solana.com/tx/2zxucf9DjPYrqSMBhzL9SXmw6ZEBx8ut8KdjuCp6SEwwCmmEUbgFUCvF89ZLWUi73aqsBi2nTpouDM9YBcQbp8La?cluster=devnet) | 6 PDAs initialized in one atomic tx |
+| **Pay.sh + AgentTrust atomic settlement** | [`jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag`](https://explorer.solana.com/tx/jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag?cluster=devnet) | `emit_feedback` PDA-signed CPI → `give_feedback` → `update_stats` |
+| **ValidationRegistry full lifecycle** | [`5B3PfDGYhzhusJwjXURnhpkZ2umipdegfNREtJbcgZySR7nr976CcSJXqYSzB8eSYT14W3yrzGuks75S7pdZD3WK`](https://explorer.solana.com/tx/5B3PfDGYhzhusJwjXURnhpkZ2umipdegfNREtJbcgZySR7nr976CcSJXqYSzB8eSYT14W3yrzGuks75S7pdZD3WK?cluster=devnet) | All 5 instructions exercised end-to-end |
 
-A real signed SPL transfer flowed through the demo's `/protected` endpoint, completed gate_payment + transfer + emit_feedback, and wrote a `FeedbackEmissionLog` PDA on chain.
+**Verifiable artifacts** (click to inspect):
 
-| step | tx signature |
-|---|---|
-| **emit_feedback** (PDA-signed CPI to `agent_registry::give_feedback` → `atom_engine::update_stats`) | [`jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag`](https://explorer.solana.com/tx/jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag?cluster=devnet) |
-| **signed SPL transferChecked** (the payment proof Pay.sh's CLI would produce) | [`5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD`](https://explorer.solana.com/tx/5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD?cluster=devnet) |
+- `FeedbackEmissionLog` PDA → [`HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3`](https://explorer.solana.com/address/HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3?cluster=devnet) (owned by trustgate, score=100)
+- Tier-3 `agent_account` → [`5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y`](https://explorer.solana.com/address/5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y?cluster=devnet)
+- `ValidationAttestation` PDA → [`C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY`](https://explorer.solana.com/address/C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY?cluster=devnet)
 
-**On-chain artifacts** (click to inspect):
-
-- `FeedbackEmissionLog` PDA: [`HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3`](https://explorer.solana.com/address/HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3?cluster=devnet) — owned by trustgate, score=100, slot 460466788
-- Tier-3 `agent_account`: [`5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y`](https://explorer.solana.com/address/5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y?cluster=devnet)
-- Tier-3 `atom_stats`: [`4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv`](https://explorer.solana.com/address/4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv?cluster=devnet)
-- Asset (Metaplex Core): [`C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B`](https://explorer.solana.com/address/C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B?cluster=devnet)
-- Facilitator authority PDA: [`4TWqmxoMQRSJTmH879TDWqvqgiEwr9akWnpPVg51Z5Bg`](https://explorer.solana.com/address/4TWqmxoMQRSJTmH879TDWqvqgiEwr9akWnpPVg51Z5Bg?cluster=devnet)
-
-Reproduce locally:
+Reproduce locally with the bundled smoke scripts:
 
 ```bash
-# 1. publish IDLs (one-time, ~0.03 SOL)
-anchor idl init --provider.cluster devnet --filepath target/idl/trustgate.json HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N
-anchor idl init --provider.cluster devnet --filepath target/idl/policy_vault.json 8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR
-anchor idl init --provider.cluster devnet --filepath target/idl/validation_registry.json Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv
+# Single-tool bootstrap (0.4.0) — one call, no pre-warm
+npx -y @agenttrust-sdk/mcp@latest    # then call agenttrust_init_policy
 
-# 2. pre-warm 3 Quantu agents (one-time, ~0.04 SOL)
-pnpm --filter ./examples/pay-sh-demo exec ts-node scripts/prewarm-devnet.ts
-
-# 3. run the smoke (~0.03 SOL)
+# Pay.sh atomic settlement (~0.03 SOL)
 pnpm --filter ./examples/pay-sh-demo exec ts-node scripts/devnet-smoke.ts
+
+# Validation lifecycle (~0.012 SOL)
+pnpm --filter ./examples/attestor-demo run smoke
 ```
 
-The full trace (signatures, PDAs, slot numbers) lands in `examples/pay-sh-demo/devnet-smoke.json`. Re-running is idempotent — TrustGateAuthority, test mint, payer keypair, and ATAs are reused if present.
-
-### ValidationRegistry — the third ERC-8004 leg, full lifecycle
-
-All 5 ValidationRegistry instructions exercised end-to-end against the
-deployed devnet program. Subject = the same Quantu tier-3 agent the Pay.sh
-trace used; capability = `usdc-payment-policy.v1`.
-
-| step | tx |
-|---|---|
-| **register_namespace** | [`5B3PfDGYhzhusJwj…`](https://explorer.solana.com/tx/5B3PfDGYhzhusJwjXURnhpkZ2umipdegfNREtJbcgZySR7nr976CcSJXqYSzB8eSYT14W3yrzGuks75S7pdZD3WK?cluster=devnet) |
-| **register_attestor** | [`Ct3SQ4CR9bu6oijR…`](https://explorer.solana.com/tx/Ct3SQ4CR9bu6oijRELe7pnjj8KfMRVDiQ3AkytNQtYfF2yZBsThMJNoCDADnwWp37PYcsFJSEkBjXmaLY9a9eQD?cluster=devnet) |
-| **request_validation** | [`qBQzSTCWfkE9Xw1E…`](https://explorer.solana.com/tx/qBQzSTCWfkE9Xw1EZ2qRwo3Hv451cbVaTRKSa32KHpnL7sfCSVBEhjGinm5qod6W6LtCgAj7xvbhydHf1wjoKq9?cluster=devnet) |
-| **respond_to_validation** | [`CCxKvvQ9ZdboukcX…`](https://explorer.solana.com/tx/CCxKvvQ9ZdboukcXPp9jj1a3o53grGR9VjZux7kS1AAWqaVnRXVqhJjphsM1QYjny5oaVP4oRGThBLUQ41DyzwC?cluster=devnet) |
-
-**`ValidationAttestation` PDA** — the artifact PolicyVault's
-`RequireValidation` policy reads to flip a Deny back to Allow:
-[`C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY`](https://explorer.solana.com/address/C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY?cluster=devnet)
-
-Reproduce: `pnpm --filter ./examples/attestor-demo run smoke` (~0.012 SOL
-total). Full trace in `examples/attestor-demo/devnet-attestor-trace.json`.
+Full traces land in `submission/e2e-claude-code-0.4.0-2026-05-13/` (gate run + side-by-sides against 0.3.5).
 
 ---
 
@@ -274,24 +253,27 @@ total). Full trace in `examples/attestor-demo/devnet-attestor-trace.json`.
 Every claim on this page is independently checkable. From your terminal:
 
 ```bash
-# verify all 3 programs are executable on devnet
+# 1. Verify all 3 programs are executable on devnet
 for p in 8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR \
          HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N \
          Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv; do
   solana program show "$p" --url devnet | grep Executable
 done
 
-# install + test the SDK
-pnpm add @agenttrust-sdk/trustgate
+# 2. Install + inspect the SDK and MCP
+pnpm add @agenttrust-sdk/trustgate @agenttrust-sdk/mcp
 cat node_modules/@agenttrust-sdk/trustgate/package.json | jq '{ name, version, exports }'
 
-# clone and run the Kani proofs
+# 3. Hit the hosted MCP for a live tool count + version
+curl -sf https://mcp.agenttrust.tech/ | jq '{ version, toolCount, network }'
+
+# 4. Clone and run the Kani proofs
 git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
 cargo install --locked kani-verifier
 cargo kani --manifest-path programs/policy-vault/Cargo.toml \
   --harness paused_killswitch_implies_no_allow
 
-# run the Anchor TS test suite
+# 5. Run the Anchor TS test suite
 anchor test --skip-deploy --provider.cluster devnet
 ```
 
@@ -302,65 +284,55 @@ anchor test --skip-deploy --provider.cluster devnet
 ```
 agenttrust/
 ├── programs/
-│   ├── policy-vault/           # 5 policy kinds + Kani proofs
-│   ├── trustgate/              # x402 facilitator + give_feedback CPI
+│   ├── policy-vault/           # 5 policy kinds + 6 Kani proofs
+│   ├── trustgate/              # x402 facilitator + orchestrator CPIs
 │   └── validation-registry/    # capability attestation
 ├── trustgate/
-│   ├── server/                 # FacilitatorAdapter dispatch (4 real adapters)
+│   ├── server/                 # FacilitatorAdapter dispatch (4 adapters)
 │   └── sdk/                    # @agenttrust-sdk/trustgate npm package
-├── mcp/                        # @agenttrust-sdk/mcp — 21 tools for Claude Desktop
+├── mcp/                        # @agenttrust-sdk/mcp — 21 tools for Claude Code/Desktop/Cursor
 ├── examples/
 │   ├── pay-sh-demo/            # hosted at demo.agenttrust.tech
 │   └── attestor-demo/          # ValidationRegistry lifecycle smoke
-├── status-page/                # status.agenttrust.tech (Vercel)
-├── web/                        # www.agenttrust.tech landing (Vercel)
+├── web/                        # agenttrust.tech (Vercel)
 ├── docs-site/                  # docs.agenttrust.tech (Fumadocs, Vercel)
+├── status-page/                # status.agenttrust.tech (Vercel)
 ├── tests/                      # Anchor TS integration tests + adversarial harness
-└── .github/workflows/          # 15 CI workflows
-    ├── anchor-test.yml         # full Anchor end-to-end with Quantu mainnet clones
-    ├── kani-prove.yml          # 6 Kani invariants on every PR
-    ├── ts-test.yml             # SDK + server + web + demo + MCP build/test
-    ├── adapter-contract-conformance.yml
-    ├── bundle-size.yml         # SDK npm pack size budget
-    ├── daily-devnet-smoke.yml  # cron: full devnet round-trip every 24h
-    ├── devnet-integration.yml  # gated on DEVNET_FACILITATOR_KEYPAIR secret
-    ├── idl-diff.yml            # ABI-stability gate vs deployed IDL
-    ├── kani-budget.yml         # Kani total runtime ceiling
-    ├── link-check.yml          # README + MDX dead-link sweep
-    ├── lint-and-format.yml     # tsc + cargo fmt + clippy
-    ├── lockfile-freshness.yml  # pnpm + Cargo.lock drift
-    ├── mcp-protocol-conformance.yml
-    ├── secret-scan.yml         # gitleaks against the diff
-    └── build.yml               # cargo + anchor build
+└── .github/workflows/          # 16 CI workflows: anchor-test · kani-prove · ts-test
+                                #   · adapter-contract-conformance · mcp-protocol-conformance
+                                #   · bundle-size · daily-devnet-smoke · devnet-integration
+                                #   · idl-diff · kani-budget · link-check · lint-and-format
+                                #   · lockfile-freshness · secret-scan · hosted-surface-check · build
 ```
 
 ---
 
 ## Test coverage
 
-| Layer | Count | Where |
-|-------|-------|-------|
-| Rust unit tests | 113 | `cargo test --workspace --lib` |
-| Kani formal proofs | 6 invariants, 635 sub-checks | `cargo kani` per `proofs/*` |
-| Anchor TS end-to-end | 50 | `anchor test --provider.cluster devnet` |
-| Adversarial harness | 14 hostile-scenario assertions | `tests/adversarial.spec.ts` |
-| SDK unit tests | 56 (+16 INTEGRATION-gated) | `cd trustgate/sdk && pnpm test` |
-| Server adapter tests | 146 | `cd trustgate/server && pnpm test` |
-| MCP unit tests | 76 (+3 INTEGRATION + 21 protocol conformance) | `cd mcp && pnpm test` |
-| pay-sh-demo flow | 7 (+1 INTEGRATION) | `cd examples/pay-sh-demo && pnpm test` |
-| attestor-demo lifecycle | 6 (INTEGRATION-gated) | `cd examples/attestor-demo && pnpm test` |
-| **Total** | **~360 tests + 6 formal proofs + 14 adversarial scenarios** | All green on `main` |
+| Layer | Where |
+|---|---|
+| Rust unit tests | `cargo test --workspace --lib` |
+| Kani formal proofs (6 invariants · 635 sub-checks) | `cargo kani` per `proofs/*` |
+| Anchor TS end-to-end | `anchor test --provider.cluster devnet` |
+| Adversarial harness | `tests/adversarial.spec.ts` |
+| SDK unit tests | `cd trustgate/sdk && pnpm test` |
+| Server adapter tests | `cd trustgate/server && pnpm test` |
+| MCP unit tests + protocol conformance | `cd mcp && pnpm test` |
+| pay-sh-demo flow | `cd examples/pay-sh-demo && pnpm test` |
+| attestor-demo lifecycle | `cd examples/attestor-demo && pnpm test` |
+
+300+ tests + 6 formal proofs + 14 adversarial scenarios. All green on `main` (see [Actions](https://github.com/agenttrust-labs/agenttrust/actions)).
 
 ---
 
 ## What's deferred to v1.1+
 
-- **Ed25519 sysvar verify in `respond_to_validation`** — v1 attestor signs the tx (sufficient for hackathon demo); v1.1 mirrors Quantu's `set_agent_wallet` pattern for non-repudiation against future key compromise.
-- **Stake-weighted attestor scoring + slashing** — v1 ships permissionless attestor + downstream-consumer-filtering. v1.1 adds `staked_amount` on `AttestorProfile`; v2 adds slashing arbitration.
-- **AgentAccount.owner cross-program check on `init_authority`** — v1 has a documented bootstrap-race (anyone can init_authority for any agent first). v1.1+ closes via reading byte 72 of Quantu's AgentAccount.
+- **Ed25519 sysvar verify in `respond_to_validation`** — v1 attestor signs the tx (sufficient for hackathon demo). v1.1 mirrors Quantu's `set_agent_wallet` pattern for non-repudiation against future key compromise.
+- **Stake-weighted attestor scoring + slashing** — v1 ships permissionless attestor + downstream-consumer-filtering. v1.1 adds `staked_amount` on `AttestorProfile`. v2 adds slashing arbitration.
+- **AgentAccount.owner cross-program check on `init_authority`** — v1 has a documented bootstrap-race (anyone can init_authority for any agent first). v1.1+ closes via reading byte 72 of Quantu's `AgentAccount`.
 - **Cross-chain attestation portability** — same `capability_hash` working across Base / Polygon / Arbitrum ERC-8004 implementations. Phase-3 deliverable (Day 60+).
 
-These are explicit, scoped, tracked. None are blocking the v1 demo or the Foundation-alignment narrative.
+These are explicit, scoped, tracked. None block the v1 demo or the Foundation-alignment narrative.
 
 ---
 
@@ -375,7 +347,7 @@ These are explicit, scoped, tracked. None are blocking the v1 demo or the Founda
 
 ## License
 
-MIT for everything in `programs/`, `trustgate/sdk/`, `trustgate/server/`, `tests/`, `scripts/`, and `web/`. CC-BY-4.0 for documentation under `docs/` (kept local). See [LICENSE](./LICENSE).
+MIT for everything in `programs/`, `trustgate/sdk/`, `trustgate/server/`, `tests/`, `scripts/`, `mcp/`, and `web/`. CC-BY-4.0 for documentation under `docs/` (kept local). See [LICENSE](./LICENSE).
 
 ---
 
