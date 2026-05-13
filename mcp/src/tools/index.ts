@@ -19,6 +19,8 @@ import { demoStateTool }              from "./read/demo-state";
 import { initAuthorityTool }          from "./write/init-authority";
 import { initPolicyTool }             from "./write/init-policy";
 import { setKillswitchTool }          from "./write/set-killswitch";
+import { registerNamespaceTool }      from "./write/register-namespace";
+import { registerAttestorTool }       from "./write/register-attestor";
 import { requestValidationTool }      from "./write/request-validation";
 import { respondToValidationTool }    from "./write/respond-to-validation";
 import { emitFeedbackTool }           from "./write/emit-feedback";
@@ -44,6 +46,8 @@ export const WRITE_TOOLS: ReadonlyArray<AnyTool> = [
   initAuthorityTool       as unknown as AnyTool,
   initPolicyTool          as unknown as AnyTool,
   setKillswitchTool       as unknown as AnyTool,
+  registerNamespaceTool   as unknown as AnyTool,
+  registerAttestorTool    as unknown as AnyTool,
   requestValidationTool   as unknown as AnyTool,
   respondToValidationTool as unknown as AnyTool,
   emitFeedbackTool        as unknown as AnyTool,

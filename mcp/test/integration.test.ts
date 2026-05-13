@@ -40,8 +40,10 @@ describe("MCP protocol conformance", () => {
         "agenttrust_demo_state",
         "agenttrust_list_facilitators",
         "agenttrust_docs",
+        "agenttrust_register_namespace",
+        "agenttrust_register_attestor",
       ]);
-      expect(toolNames.length).to.equal(19);
+      expect(toolNames.length).to.equal(21);
 
       // tools/call → discovery (no chain)
       const callRes = await client.callTool({
