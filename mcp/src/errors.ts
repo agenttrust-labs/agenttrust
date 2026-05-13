@@ -43,14 +43,70 @@ export type ToolErrorCode =
   | "input_invalid"
   | "rpc_failure"
   | "chain_error"
+  | "counterparty_not_registered"
   | "not_found"
   | "internal";
+
+/**
+ * Optional structured details surfaced alongside the human-readable
+ * envelope. Tools attach this when the failure is uniquely attributable
+ * to a single counterparty (e.g. simulate_payment / emit_feedback hit a
+ * missing Quantu agent_account PDA — see `CounterpartyNotRegisteredError`).
+ *
+ * Keeping the shape open-ended (`Record<string, unknown>`) so future
+ * envelope contributors can attach extra fields without a churn on the
+ * type. The classifier-emitted shape is documented per-branch below.
+ */
+export type ToolErrorDetails = Record<string, unknown>;
 
 export interface ToolError {
   errorCode: ToolErrorCode;
   message:   string;
   hint?:     string;
   cause?:    string;
+  details?:  ToolErrorDetails;
+}
+
+/**
+ * Sentinel Error subclass thrown by tool handlers when a pre-flight probe
+ * confirms that a counterparty's Quantu `agent_account` PDA (or one of
+ * the related Quantu-side accounts) doesn't exist on-chain. The classifier
+ * recognises the `name = "CounterpartyNotRegisteredError"` and emits a
+ * `counterparty_not_registered` envelope with a `details` payload that
+ * names the missing counterparty pubkey + which PDA kind was missing.
+ *
+ * Tools throw this BEFORE bubbling the underlying chain failure so the
+ * envelope carries a precise remediation hint instead of an opaque
+ * `chain_error` blurb. See `tools/utils/quantu-probe.ts` for the probe
+ * call and the two tools (simulate-payment, emit-feedback) that gate
+ * their failure path on it.
+ *
+ * Constructor args:
+ *   - `counterpartyPubkey`: base58 string of the missing counterparty.
+ *   - `missingAccountKind`: one of `"quantu_agent_account"`,
+ *     `"quantu_atom_stats"`, `"counterparty_killswitch"` — see the spec
+ *     in mcp/test/errors.test.ts for the canonical kind set.
+ *   - `cause`: the original chain error message (the classifier clamps
+ *     it to <=500 chars so callers don't need to pre-truncate).
+ */
+export class CounterpartyNotRegisteredError extends Error {
+  readonly counterpartyPubkey: string;
+  readonly missingAccountKind: string;
+  readonly cause:              string | undefined;
+
+  constructor(args: {
+    counterpartyPubkey: string;
+    missingAccountKind: string;
+    cause?:             string;
+  }) {
+    super(
+      `Counterparty ${args.counterpartyPubkey} is not registered in the Quantu agent registry.`,
+    );
+    this.name               = "CounterpartyNotRegisteredError";
+    this.counterpartyPubkey = args.counterpartyPubkey;
+    this.missingAccountKind = args.missingAccountKind;
+    this.cause              = args.cause;
+  }
 }
 
 /** Cap raw error messages at this many characters to keep payloads sane. */
@@ -278,7 +334,32 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
   const name    = readName(err);
   const cause   = clamp(message);
 
-  // 1. Auth — caught first because the message is hardcoded and stable.
+  // 1. Counterparty pre-flight probe — caught before the Anchor branch
+  //    so a missing Quantu agent_account PDA gets a precise envelope
+  //    rather than the generic `chain_error` "Custom 3012" hint. Tool
+  //    handlers (simulate_payment, emit_feedback) wrap their chain calls
+  //    and re-throw this typed error when the probe says the counterparty
+  //    isn't registered. See `tools/utils/quantu-probe.ts`.
+  if (err instanceof CounterpartyNotRegisteredError || name === "CounterpartyNotRegisteredError") {
+    const cp   = (err as CounterpartyNotRegisteredError).counterpartyPubkey;
+    const kind = (err as CounterpartyNotRegisteredError).missingAccountKind;
+    const causeStr = (err as CounterpartyNotRegisteredError).cause;
+    const details: ToolErrorDetails = {};
+    if (cp)   details.counterparty_pubkey = cp;
+    if (kind) details.missing_account_kind = kind;
+    return {
+      errorCode: "counterparty_not_registered",
+      message:   `Counterparty ${cp} is not registered in the Quantu agent registry.`,
+      hint:
+        "Ask the counterparty to register via TrustGate (any tool that calls " +
+        "`init_policy` will do so as part of its bootstrap), or pick a counterparty " +
+        "from `agenttrust_demo_state.counterparties` for testing.",
+      cause:   causeStr ? clamp(causeStr) : cause,
+      details: Object.keys(details).length > 0 ? details : undefined,
+    };
+  }
+
+  // 2. Auth — caught next because the message is hardcoded and stable.
   if (isAuthRequired(message)) {
     const which = toolName ? ` (needed by \`${toolName}\`)` : "";
     return {
@@ -291,7 +372,7 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
     };
   }
 
-  // 2. Config errors — thrown from `chain.ts:guardATProgramId` when an
+  // 3. Config errors — thrown from `chain.ts:guardATProgramId` when an
   //    AT-touching tool runs on mainnet without explicit program IDs.
   //    Caught before the Anchor branch so the "ConfigError" name is
   //    picked up before the message hits any Anchor heuristics.
@@ -304,7 +385,7 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
     };
   }
 
-  // 3. Zod schema validation — `instanceof ZodError` works because the
+  // 4. Zod schema validation — `instanceof ZodError` works because the
   //    server passes the parse error through directly (no wrapping).
   if (err instanceof ZodError) {
     return {
@@ -315,7 +396,7 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
     };
   }
 
-  // 4. Anchor / on-chain program errors. Includes raw Solana
+  // 5. Anchor / on-chain program errors. Includes raw Solana
   //    `InstructionError` payloads (e.g. simulation hits an
   //    `AccountNotInitialized` Custom 3012 on an unseeded PDA) so the
   //    classifier lands them in `chain_error` rather than `internal`.
@@ -346,7 +427,7 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
     };
   }
 
-  // 4. RPC / connectivity issues.
+  // 6. RPC / connectivity issues.
   if (isRpcFailure(name, message)) {
     return {
       errorCode: "rpc_failure",
@@ -358,7 +439,7 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
     };
   }
 
-  // 5. Account / IDL / facilitator not found.
+  // 7. Account / IDL / facilitator not found.
   if (isNotFound(message)) {
     return {
       errorCode: "not_found",
@@ -370,7 +451,7 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
     };
   }
 
-  // 6. Fallback.
+  // 8. Fallback.
   return {
     errorCode: "internal",
     message:   "Tool handler threw an unexpected error.",
@@ -408,8 +489,9 @@ export function renderToolError(toolError: ToolError): {
     errorCode: toolError.errorCode,
     message:   toolError.message,
   };
-  if (toolError.hint  !== undefined) ordered.hint  = toolError.hint;
-  if (toolError.cause !== undefined) ordered.cause = toolError.cause;
+  if (toolError.hint    !== undefined) ordered.hint    = toolError.hint;
+  if (toolError.cause   !== undefined) ordered.cause   = toolError.cause;
+  if (toolError.details !== undefined) ordered.details = toolError.details;
 
   return {
     isError: true,

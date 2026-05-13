@@ -18,7 +18,7 @@
 import { expect } from "chai";
 import { ZodError } from "zod";
 
-import { classifyError } from "../src/errors";
+import { classifyError, CounterpartyNotRegisteredError, renderToolError } from "../src/errors";
 
 describe("classifyError", () => {
   describe("InstructionError -> chain_error", () => {
@@ -185,6 +185,68 @@ describe("classifyError", () => {
       const result = classifyError(zErr);
       expect(result.errorCode).to.equal("input_invalid");
       expect(result.hint).to.match(/score/);
+    });
+  });
+
+  describe("counterparty_not_registered", () => {
+    // Defends against the 0.3.5 gate rerun Beats C + F: when the PAYEE
+    // counterparty's Quantu agent_account PDA isn't seeded, the tool
+    // handler probes the PDA and rethrows a typed
+    // CounterpartyNotRegisteredError instead of bubbling a generic
+    // chain_error. The classifier renders the precise envelope with
+    // details.counterparty_pubkey + details.missing_account_kind.
+    it("renders a precise envelope when the typed error is thrown", () => {
+      const payeePubkey = "FakePayeeAgentAssetPubkeyForTestPurposes11111";
+      const err = new CounterpartyNotRegisteredError({
+        counterpartyPubkey: payeePubkey,
+        missingAccountKind: "quantu_agent_account",
+        cause:              "simulation failed: {\"InstructionError\":[0,{\"Custom\":3012}]}",
+      });
+      const result = classifyError(err);
+      expect(result.errorCode).to.equal("counterparty_not_registered");
+      expect(result.message).to.match(/FakePayeeAgentAssetPubkeyForTestPurposes11111/);
+      expect(result.message).to.match(/Quantu agent registry/);
+      expect(result.hint).to.match(/init_policy/);
+      expect(result.hint).to.match(/agenttrust_demo_state\.counterparties/);
+      expect(result.cause).to.match(/InstructionError/);
+      expect(result.details, "details payload present").to.exist;
+      expect(result.details!.counterparty_pubkey).to.equal(payeePubkey);
+      expect(result.details!.missing_account_kind).to.equal("quantu_agent_account");
+    });
+
+    it("round-trips through renderToolError into structuredContent.details", () => {
+      const err = new CounterpartyNotRegisteredError({
+        counterpartyPubkey: "AnotherPubkey22222222222222222222222222",
+        missingAccountKind: "quantu_agent_account",
+        cause:              "rpc failed",
+      });
+      const classified = classifyError(err);
+      const rendered   = renderToolError(classified);
+      expect(rendered.isError).to.equal(true);
+      expect(rendered.structuredContent.errorCode).to.equal("counterparty_not_registered");
+      expect(rendered.structuredContent.details, "details mirrored").to.deep.equal({
+        counterparty_pubkey: "AnotherPubkey22222222222222222222222222",
+        missing_account_kind: "quantu_agent_account",
+      });
+      // The text content payload should also encode the details object
+      // so transports that only surface text content still see them.
+      const parsed = JSON.parse(rendered.content[0].text);
+      expect(parsed.errorCode).to.equal("counterparty_not_registered");
+      expect(parsed.details.counterparty_pubkey).to.equal("AnotherPubkey22222222222222222222222222");
+    });
+
+    it("recognises the error by name (cross-realm-safe)", () => {
+      // Tools running in a different module realm may throw an Error with
+      // matching name but not be `instanceof` the local class. The
+      // classifier sniffs the `.name` property as a fallback.
+      const err = Object.assign(new Error("Counterparty FooBar is not registered."), {
+        name:               "CounterpartyNotRegisteredError",
+        counterpartyPubkey: "FooBarPubkey",
+        missingAccountKind: "quantu_agent_account",
+      });
+      const result = classifyError(err);
+      expect(result.errorCode).to.equal("counterparty_not_registered");
+      expect(result.details!.counterparty_pubkey).to.equal("FooBarPubkey");
     });
   });
 
