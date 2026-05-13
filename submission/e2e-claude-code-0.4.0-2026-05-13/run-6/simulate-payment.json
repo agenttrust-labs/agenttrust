@@ -1,0 +1,11 @@
+{
+  "isError": false,
+  "rawText": "{\n  \"kind\": \"Deny\",\n  \"reasonCode\": 2,\n  \"reasonName\": \"SpendingPerTxExceeded\"\n}",
+  "parsed": {
+    "kind": "Deny",
+    "reasonCode": 2,
+    "reasonName": "SpendingPerTxExceeded"
+  },
+  "kind": "Deny",
+  "reasonName": "SpendingPerTxExceeded"
+}

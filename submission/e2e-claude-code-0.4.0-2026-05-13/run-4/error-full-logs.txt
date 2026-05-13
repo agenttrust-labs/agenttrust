@@ -1,0 +1,78 @@
+{
+  "accounts": null,
+  "err": {
+    "InstructionError": [
+      1,
+      {
+        "Custom": 0
+      }
+    ]
+  },
+  "fee": 5000,
+  "innerInstructions": null,
+  "loadedAccountsDataSize": 2139837,
+  "loadedAddresses": {
+    "readonly": [],
+    "writable": []
+  },
+  "logs": [
+    "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+    "Program ComputeBudget111111111111111111111111111111 success",
+    "Program HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N invoke [1]",
+    "Program log: Instruction: RegisterAgentViaCpi",
+    "Program 11111111111111111111111111111111 invoke [2]",
+    "Program 11111111111111111111111111111111 success",
+    "Program 8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C invoke [2]",
+    "Program log: Instruction: RegisterWithOptions",
+    "Program 11111111111111111111111111111111 invoke [3]",
+    "Program 11111111111111111111111111111111 success",
+    "Program CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d invoke [3]",
+    "Program log: Instruction: CreateV2",
+    "Program 11111111111111111111111111111111 invoke [4]",
+    "Create Account: account Address { address: GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o, base: None } already in use",
+    "Program 11111111111111111111111111111111 failed: custom program error: 0x0",
+    "Program CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d consumed 6977 of 560317 compute units",
+    "Program CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d failed: custom program error: 0x0",
+    "Program 8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C consumed 31439 of 584779 compute units",
+    "Program 8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C failed: custom program error: 0x0",
+    "Program HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N consumed 46510 of 599850 compute units",
+    "Program HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N failed: custom program error: 0x0"
+  ],
+  "postBalances": [
+    499995000,
+    0,
+    1364160,
+    0,
+    0,
+    1,
+    1941840,
+    1141440,
+    1141440,
+    1,
+    10001141440,
+    1398960,
+    1398960,
+    1141440
+  ],
+  "postTokenBalances": [],
+  "preBalances": [
+    500000000,
+    0,
+    1364160,
+    0,
+    0,
+    1,
+    1941840,
+    1141440,
+    1141440,
+    1,
+    10001141440,
+    1398960,
+    1398960,
+    1141440
+  ],
+  "preTokenBalances": [],
+  "replacementBlockhash": null,
+  "returnData": null,
+  "unitsConsumed": 46660
+}

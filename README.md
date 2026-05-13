@@ -308,7 +308,7 @@ agenttrust/
 ├── trustgate/
 │   ├── server/                 # FacilitatorAdapter dispatch (4 real adapters)
 │   └── sdk/                    # @agenttrust-sdk/trustgate npm package
-├── mcp/                        # @agenttrust-sdk/mcp — 18 tools for Claude Desktop
+├── mcp/                        # @agenttrust-sdk/mcp — 21 tools for Claude Desktop
 ├── examples/
 │   ├── pay-sh-demo/            # hosted at demo.agenttrust.tech
 │   └── attestor-demo/          # ValidationRegistry lifecycle smoke

@@ -16,6 +16,8 @@ pub enum TrustGateError {
     AgentRegistryProgramMismatch = 7010,
     #[msg("atom_engine program ID mismatch")]
     AtomEngineProgramMismatch = 7011,
+    #[msg("mpl_core program ID mismatch")]
+    MplCoreProgramMismatch = 7012,
 
     // ---- dispute_payment ----
     #[msg("Dispute reason hash must be non-zero")]
@@ -24,4 +26,12 @@ pub enum TrustGateError {
     // ---- auth ----
     #[msg("Caller (payer) must equal facilitator for emit_feedback / dispute_payment")]
     FacilitatorSignerMismatch = 7030,
+
+    // ---- register_agent_via_cpi ----
+    #[msg("Provided asset_seed does not match the asset account key")]
+    AssetSeedMismatch = 7040,
+    #[msg("metadata_uri length exceeds 256 bytes")]
+    MetadataUriTooLong = 7041,
+    #[msg("Insufficient CPI accounts in remaining_accounts")]
+    InsufficientCpiAccounts = 7042,
 }

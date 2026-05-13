@@ -1,0 +1,12 @@
+{
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\n  \"kind\": \"Deny\",\n  \"reasonCode\": 2,\n  \"reasonName\": \"SpendingPerTxExceeded\"\n}"
+      }
+    ]
+  },
+  "jsonrpc": "2.0",
+  "id": 6
+}

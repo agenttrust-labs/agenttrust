@@ -22,7 +22,9 @@ use anchor_lang::solana_program::{
     program::invoke_signed,
 };
 
-use crate::constants::{AGENT_REGISTRY_ID, GIVE_FEEDBACK_DISCRIMINATOR};
+use crate::constants::{
+    AGENT_REGISTRY_ID, GIVE_FEEDBACK_DISCRIMINATOR, REGISTER_WITH_OPTIONS_DISCRIMINATOR,
+};
 
 /// Args bundle that mirrors `agent_registry_8004::give_feedback`'s signature.
 /// Field order is load-bearing — Borsh serialises in declaration order, and
@@ -111,6 +113,103 @@ pub fn invoke_give_feedback<'info>(
 }
 
 // ---------------------------------------------------------------------------
+// register_with_options — Quantu's agent-registration entrypoint.
+// ---------------------------------------------------------------------------
+//
+// TrustGate exposes this as `register_agent_via_cpi` so the MCP / SDK never
+// has to learn Quantu's surface. AgentTrust 0.4.0 prepends it into the same
+// atomic transaction as `init_policy`, giving fresh wallets one-signature
+// onboarding to both Quantu and TrustGate state.
+//
+// Account ordering matches the live devnet binary (verified via
+// `tests/trustgate.spec.ts:180-191` and `examples/pay-sh-demo/scripts/prewarm-devnet.ts:234-247`):
+//
+//   0  root_config           (read)               — `[b"root_config"]`
+//   1  registry_config       (read)               — `[b"registry_config", base_collection]`
+//   2  agent_account         (mut)                — `[b"agent", asset]`
+//   3  asset                 (signer, mut)        — caller-generated Keypair
+//   4  base_collection       (mut)                — Quantu's MPL Core collection
+//   5  payer                 (signer, mut)        — funds rent
+//   6  system_program        (executable)
+//   7  mpl_core_program      (executable)
+
+/// Args bundle that mirrors `agent_registry_8004::register_with_options`'s
+/// signature. Field order is load-bearing — Borsh serialises in declaration
+/// order, and the bytes must match Quantu's expected layout exactly.
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct RegisterAgentArgs {
+    pub metadata_uri: String,
+    pub atom_enabled: bool,
+}
+
+/// Bundle of CPI accounts the caller must pass through, in the order Quantu's
+/// `register_with_options` expects. All accounts required (no optional tail).
+pub struct RegisterAgentAccounts<'info> {
+    pub root_config: AccountInfo<'info>,
+    pub registry_config: AccountInfo<'info>,
+    pub agent_account: AccountInfo<'info>,
+    pub asset: AccountInfo<'info>, // signer
+    pub base_collection: AccountInfo<'info>,
+    pub payer: AccountInfo<'info>, // signer
+    pub system_program: AccountInfo<'info>,
+    pub mpl_core_program: AccountInfo<'info>,
+}
+
+/// Build the register_with_options instruction-data bytes
+/// (discriminator + Borsh args).
+fn build_register_instruction_data(args: &RegisterAgentArgs) -> Result<Vec<u8>> {
+    let mut data = Vec::with_capacity(8 + 64 + args.metadata_uri.len());
+    data.extend_from_slice(&REGISTER_WITH_OPTIONS_DISCRIMINATOR);
+    args.serialize(&mut data)?;
+    Ok(data)
+}
+
+/// PDA-signed CPI invocation. `signer_seeds` must be the trustgate_auth
+/// PDA seeds with the bump as the final element:
+/// `[b"trustgate_auth", facilitator.as_ref(), &[bump]]`.
+///
+/// Quantu's `register_with_options` does not include the TrustGate authority
+/// PDA in its account list, so the seeds here PDA-sign for an account that
+/// Quantu does not require — harmless, but kept for parity with
+/// `invoke_give_feedback` and so callers always pass the seeds the same way.
+/// The real signers Quantu enforces are `asset` and `payer`; both must sign
+/// the outer transaction.
+pub fn invoke_register_agent<'info>(
+    accounts: &RegisterAgentAccounts<'info>,
+    args: &RegisterAgentArgs,
+    signer_seeds: &[&[u8]],
+) -> Result<()> {
+    let metas = vec![
+        AccountMeta::new_readonly(*accounts.root_config.key, false),
+        AccountMeta::new_readonly(*accounts.registry_config.key, false),
+        AccountMeta::new(*accounts.agent_account.key, false),
+        AccountMeta::new(*accounts.asset.key, true), // asset = signer + mut
+        AccountMeta::new(*accounts.base_collection.key, false),
+        AccountMeta::new(*accounts.payer.key, true), // payer = signer + mut
+        AccountMeta::new_readonly(*accounts.system_program.key, false),
+        AccountMeta::new_readonly(*accounts.mpl_core_program.key, false),
+    ];
+    let infos = vec![
+        accounts.root_config.clone(),
+        accounts.registry_config.clone(),
+        accounts.agent_account.clone(),
+        accounts.asset.clone(),
+        accounts.base_collection.clone(),
+        accounts.payer.clone(),
+        accounts.system_program.clone(),
+        accounts.mpl_core_program.clone(),
+    ];
+
+    let ix = Instruction {
+        program_id: AGENT_REGISTRY_ID,
+        accounts: metas,
+        data: build_register_instruction_data(args)?,
+    };
+
+    invoke_signed(&ix, &infos, &[signer_seeds]).map_err(Into::into)
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 #[cfg(test)]
@@ -124,6 +223,39 @@ mod tests {
             GIVE_FEEDBACK_DISCRIMINATOR,
             [145, 136, 123, 3, 215, 165, 98, 41]
         );
+    }
+
+    #[test]
+    fn register_discriminator_constant_matches_test_harness() {
+        // Cross-checked against tests/trustgate.spec.ts:138 and
+        // examples/pay-sh-demo/scripts/prewarm-devnet.ts:60.
+        assert_eq!(
+            REGISTER_WITH_OPTIONS_DISCRIMINATOR,
+            [177, 175, 96, 41, 59, 166, 13, 6]
+        );
+    }
+
+    #[test]
+    fn register_instruction_data_starts_with_discriminator() {
+        let args = RegisterAgentArgs {
+            metadata_uri: String::from("https://agenttrust.test/agents/spec.json"),
+            atom_enabled: true,
+        };
+        let data = build_register_instruction_data(&args).unwrap();
+        assert_eq!(&data[..8], &REGISTER_WITH_OPTIONS_DISCRIMINATOR);
+    }
+
+    #[test]
+    fn register_args_round_trip_via_borsh() {
+        let original = RegisterAgentArgs {
+            metadata_uri: String::from("ipfs://QmAgent"),
+            atom_enabled: true,
+        };
+        let mut buf = Vec::new();
+        original.serialize(&mut buf).unwrap();
+        let decoded = RegisterAgentArgs::deserialize(&mut &buf[..]).unwrap();
+        assert_eq!(decoded.metadata_uri, original.metadata_uri);
+        assert_eq!(decoded.atom_enabled, original.atom_enabled);
     }
 
     #[test]

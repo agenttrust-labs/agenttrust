@@ -26,8 +26,10 @@ import {
 } from "@agenttrust-sdk/trustgate";
 
 import { explorerUrl } from "../../config";
+import { CounterpartyNotRegisteredError } from "../../errors";
 import { PubkeySchema, parsePubkey, HexHashSchema, hexToBytes } from "../common";
 import type { Tool, ToolContext } from "../types";
+import { quantuAgentAccountExists } from "../utils/quantu-probe";
 
 // Module-level guard so the warning fires once per process even if the
 // tool is invoked many times (matches the F-051-style warn pattern used
@@ -161,28 +163,56 @@ export const emitFeedbackTool: Tool<Input, Output> = {
       : (typeof input.value === "string" ? input.value : input.value.toString());
     const valueDecimals = input.value_decimals ?? DEFAULT_VALUE_DECIMALS;
     const valueBn       = new BN(valueStr);
-    const txSignature: string = await trustgate.methods
-      .emitFeedback(
-        Array.from(paymentIdHash),
-        facilitator.publicKey,
-        payeeAsset,
-        input.score,
-        valueBn,
-        valueDecimals,
-        input.tag1,
-        input.tag2,
-        input.endpoint,
-        input.feedback_uri,
-      )
-      .accounts({
-        payer:         facilitator.publicKey,
-        authority:     authorityPda,
-        emissionLog:   emissionLogPda,
-        systemProgram: SystemProgram.programId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-      .remainingAccounts(remaining)
-      .rpc();
+    // F-013-COUNTERPARTY: wrap the .rpc() call so a downstream
+    // `AccountNotInitialized` Custom 3012 / SendTransactionError "An
+    // account required by the instruction is missing" failure can be
+    // re-attributed to the payee. The probe is a single getAccountInfo
+    // against the Quantu agent_account PDA and only fires AFTER the chain
+    // call has already failed, so the happy path is unchanged. If the
+    // payee's account is missing we throw a `counterparty_not_registered`
+    // envelope; otherwise we rethrow and let the generic classifier
+    // produce a `chain_error` envelope. (`emit_feedback` only takes the
+    // payee as a Quantu agent — the facilitator is the signer and is not
+    // a Quantu-registered identity.)
+    let txSignature: string;
+    try {
+      txSignature = await trustgate.methods
+        .emitFeedback(
+          Array.from(paymentIdHash),
+          facilitator.publicKey,
+          payeeAsset,
+          input.score,
+          valueBn,
+          valueDecimals,
+          input.tag1,
+          input.tag2,
+          input.endpoint,
+          input.feedback_uri,
+        )
+        .accounts({
+          payer:         facilitator.publicKey,
+          authority:     authorityPda,
+          emissionLog:   emissionLogPda,
+          systemProgram: SystemProgram.programId,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+        .remainingAccounts(remaining)
+        .rpc();
+    } catch (chainErr) {
+      const causeMsg =
+        chainErr instanceof Error ? chainErr.message :
+        typeof chainErr === "string" ? chainErr :
+        undefined;
+      const payeeExists = await quantuAgentAccountExists(ctx.chain, payeeAsset);
+      if (!payeeExists) {
+        throw new CounterpartyNotRegisteredError({
+          counterpartyPubkey: payeeAsset.toBase58(),
+          missingAccountKind: "quantu_agent_account",
+          cause:              causeMsg,
+        });
+      }
+      throw chainErr;
+    }
 
     return {
       txSignature,

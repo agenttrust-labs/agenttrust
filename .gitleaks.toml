@@ -35,6 +35,14 @@ paths = [
   # but do NOT control deploy authority — that's a separate keypair
   # never in repo. Standard practice for public Anchor codebases.
   '''keys/.*-keypair\.json''',
+  # Gate-E2E submission artifacts: forensic JSON-RPC traces, on-chain
+  # state dumps, ephemeral debug scripts. Wallet secrets are kept out
+  # by .gitignore (test-wallet.json + test-wallet.b58); the remaining
+  # files contain only public on-chain data + `const secret = bs58
+  # .decode(KEYPAIR_B58)` variable-name patterns that the generic
+  # -api-key rule flags as false positives.
+  '''submission/e2e-claude-code-.*''',
+  '''submission/e2e-verification-.*''',
 ]
 
 # Suppress matches by content. Generic-api-key + high-entropy

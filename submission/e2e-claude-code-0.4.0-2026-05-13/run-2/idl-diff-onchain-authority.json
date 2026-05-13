@@ -1,0 +1,48 @@
+{
+  "name": "authority",
+  "docs": [
+    "TrustGate authority PDA — used as the `invoke_signed` seed-signer for",
+    "parity with `emit_feedback` / `dispute_payment`. Quantu's",
+    "`register_with_options` and `initialize_stats` do not include this",
+    "PDA in their account lists, so the seeds sign for an account Quantu",
+    "does not require. Kept here so the MCP threads exactly the same",
+    "authority through every TrustGate CPI and so future Quantu",
+    "instructions can hook the same PDA.",
+    "",
+    "`init_if_needed`: a fresh facilitator wallet has no",
+    "`TrustGateAuthority` yet, so the prepended MCP self-heal must be",
+    "able to create it inline. On first call this allocates + zeroes the",
+    "account; the handler then populates the same fields as",
+    "`init_authority`. On subsequent calls Anchor reads the existing",
+    "account and the handler re-validates the facilitator binding (the",
+    "`constraint = authority.facilitator == payer.key()` we dropped here)."
+  ],
+  "writable": true,
+  "pda": {
+    "seeds": [
+      {
+        "kind": "const",
+        "value": [
+          116,
+          114,
+          117,
+          115,
+          116,
+          103,
+          97,
+          116,
+          101,
+          95,
+          97,
+          117,
+          116,
+          104
+        ]
+      },
+      {
+        "kind": "account",
+        "path": "payer"
+      }
+    ]
+  }
+}

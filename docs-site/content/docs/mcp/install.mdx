@@ -24,7 +24,7 @@ Add to your config — `~/Library/Application Support/Claude/claude_desktop_conf
 }
 ```
 
-Restart Claude Desktop. Eighteen tools are now available in chat. No clone, no local build.
+Restart Claude Desktop. Twenty-one tools are now available in chat. No clone, no local build.
 
 ### Local clone (for development)
 
@@ -81,7 +81,7 @@ Health check:
 
 ```bash
 curl https://mcp.agenttrust.tech/healthz
-# → {"ok":true,"service":"agenttrust-mcp","version":"0.2.6","network":"solana-devnet","toolCount":18,…}
+# → {"ok":true,"service":"agenttrust-mcp","version":"0.4.0","network":"solana-devnet","toolCount":21,…}
 ```
 
 Hosted on Fly.io (Singapore region, shared-cpu-1x@256MB, always-on with auto-resume on idle). Use this URL in any MCP client that speaks `StreamableHTTPServerTransport` — no local install required. Full hosted-endpoint reference: [Hosted endpoint](/mcp/hosted-endpoint).
@@ -96,7 +96,7 @@ Behind any reverse proxy (Caddy, nginx, Vercel, Fly.io) this surfaces as a publi
 
 ## Write tools — adding a keypair
 
-The five write tools (`agenttrust_init_policy`, `agenttrust_set_killswitch`, `agenttrust_request_validation`, `agenttrust_respond_to_validation`, `agenttrust_emit_feedback`) require a signing keypair. The MCP server resolves a signer through a four-step chain (first match wins):
+The eight write tools (`agenttrust_init_authority`, `agenttrust_init_policy`, `agenttrust_set_killswitch`, `agenttrust_register_namespace`, `agenttrust_register_attestor`, `agenttrust_request_validation`, `agenttrust_respond_to_validation`, `agenttrust_emit_feedback`) require a signing keypair. The MCP server resolves a signer through a four-step chain (first match wins):
 
 1. `KEYPAIR_B58` — base58-encoded 64-byte secret key
 2. `KEYPAIR_PATH` — absolute path to a JSON-array secret-key file (Solana CLI native format)
@@ -181,7 +181,7 @@ The MCP server bundles snapshots at `mcp/src/idl/*.json` as a defensive fallback
 
 <Cards>
   <Card title="Tools" href="/mcp/tools">
-    Eighteen tools with input/output shape.
+    Twenty-one tools with input/output shape.
   </Card>
   <Card title="Hosted endpoint" href="/mcp/hosted-endpoint">
     HTTP transport semantics, sessions, healthz schema.

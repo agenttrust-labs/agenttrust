@@ -24,7 +24,12 @@ import {
   deriveAtomConfigPda,
   deriveAtomStatsPda,
   deriveAtomRegistryAuthorityPda,
+  deriveRootConfigPda,
+  deriveRegistryConfigPda,
   deriveQuantuFeedbackAccounts,
+  deriveQuantuRegisterAccounts,
+  MPL_CORE_PROGRAM_ID,
+  BASE_COLLECTION_DEVNET,
   loadPolicyVault,
   loadTrustGate,
   loadValidationRegistry,
@@ -41,6 +46,7 @@ import {
   deriveValidationRequestPda,
   buildRegisterAttestorIx,
   buildRegisterNamespaceIx,
+  buildRegisterAgentViaCpiIx,
   buildRequestValidationIx,
   buildRespondToValidationIx,
   buildRevokeValidationIx,
@@ -64,11 +70,18 @@ export {
   deriveAtomConfigPda,
   deriveAtomStatsPda,
   deriveAtomRegistryAuthorityPda,
+  deriveRootConfigPda,
+  deriveRegistryConfigPda,
   deriveQuantuFeedbackAccounts,
+  deriveQuantuRegisterAccounts,
   deriveAttestorProfilePda,
   deriveCapabilityNamespacePda,
   deriveValidationAttestationPda,
   deriveValidationRequestPda,
+
+  // Quantu constants
+  MPL_CORE_PROGRAM_ID,
+  BASE_COLLECTION_DEVNET,
 
   // Capability hash helpers
   computeCapabilityHash,
@@ -86,6 +99,9 @@ export {
   buildRequestValidationIx,
   buildRespondToValidationIx,
   buildRevokeValidationIx,
+
+  // TrustGate instruction builders
+  buildRegisterAgentViaCpiIx,
 
   // gate_payment simulation
   simulateGatePayment,

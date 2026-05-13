@@ -61,15 +61,26 @@ export {
 export {
   DEFAULT_DEVNET_QUANTU_IDS,
   MAINNET_QUANTU_IDS,
+  MPL_CORE_PROGRAM_ID,
+  BASE_COLLECTION_DEVNET,
   type QuantuProgramIds,
   type QuantuFeedbackAccounts,
   type QuantuFeedbackAccountsArgs,
+  type QuantuRegisterAccounts,
   deriveAgentAccountPda,
   deriveAtomConfigPda,
   deriveAtomStatsPda,
   deriveAtomRegistryAuthorityPda,
+  deriveRootConfigPda,
+  deriveRegistryConfigPda,
   deriveQuantuFeedbackAccounts,
+  deriveQuantuRegisterAccounts,
 } from "./quantu";
+
+export {
+  buildRegisterAgentViaCpiIx,
+  type BuildRegisterAgentViaCpiArgs,
+} from "./register-agent";
 
 export {
   makeEmitFeedbackCpi,

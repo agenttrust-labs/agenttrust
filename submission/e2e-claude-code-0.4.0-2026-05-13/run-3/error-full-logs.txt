@@ -1,0 +1,62 @@
+{
+  "accounts": null,
+  "err": {
+    "InstructionError": [
+      1,
+      "MissingAccount"
+    ]
+  },
+  "fee": 5000,
+  "innerInstructions": null,
+  "loadedAccountsDataSize": 1610140,
+  "loadedAddresses": {
+    "readonly": [],
+    "writable": []
+  },
+  "logs": [
+    "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+    "Program ComputeBudget111111111111111111111111111111 success",
+    "Program HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N invoke [1]",
+    "Program log: Instruction: RegisterAgentViaCpi",
+    "Program 11111111111111111111111111111111 invoke [2]",
+    "Program 11111111111111111111111111111111 success",
+    "Unknown program 8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C",
+    "Program HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N consumed 14796 of 599850 compute units",
+    "Program HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N failed: An account required by the instruction is missing"
+  ],
+  "postBalances": [
+    499995000,
+    0,
+    1364160,
+    0,
+    0,
+    1,
+    1941840,
+    1141440,
+    1,
+    10001141440,
+    1398960,
+    1398960,
+    1141440
+  ],
+  "postTokenBalances": [],
+  "preBalances": [
+    500000000,
+    0,
+    1364160,
+    0,
+    0,
+    1,
+    1941840,
+    1141440,
+    1,
+    10001141440,
+    1398960,
+    1398960,
+    1141440
+  ],
+  "preTokenBalances": [],
+  "replacementBlockhash": null,
+  "returnData": null,
+  "unitsConsumed": 14946
+}

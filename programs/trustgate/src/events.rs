@@ -24,3 +24,10 @@ pub struct PaymentDisputed {
     pub dispute_reason_hash: [u8; 32],
     pub slot: u64,
 }
+
+#[event]
+pub struct AgentRegisteredViaCpi {
+    pub agent_asset: Pubkey,
+    pub payer: Pubkey,
+    pub timestamp: i64,
+}

@@ -3,6 +3,7 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 
 import { emitFeedbackTool } from "../../../src/tools/write/emit-feedback";
+import { CounterpartyNotRegisteredError, classifyError } from "../../../src/errors";
 import { buildTestConfig } from "../../helpers";
 
 describe("agenttrust_emit_feedback (schema)", () => {
@@ -185,5 +186,157 @@ describe("agenttrust_emit_feedback (handler argument marshalling)", () => {
     const first = capturedArgs![0] as number[];
     expect(Array.isArray(first)).to.equal(true);
     expect(first.length, "payment_id_hash byte array is exactly 32 elements").to.equal(32);
+  });
+});
+
+/**
+ * Counterparty-probe handler tests. Defends against the 0.3.5 gate
+ * rerun Beat F failure: when the payee's Quantu agent_account PDA isn't
+ * seeded, the on-chain emit_feedback CPI fails with
+ * `AccountNotInitialized` (Custom 3012) or the equivalent
+ * SendTransactionError "An account required by the instruction is
+ * missing" text shape. 0.4.0 wraps the .rpc() call, probes the
+ * agent_account PDA on RPC, and throws a typed
+ * `CounterpartyNotRegisteredError` when the probe says the account is
+ * missing — the classifier then renders a `counterparty_not_registered`
+ * envelope with `details.counterparty_pubkey`.
+ */
+describe("agenttrust_emit_feedback (counterparty probe)", () => {
+  function buildFakeTrustgateThatThrows(chainErr: Error): unknown {
+    return {
+      methods: {
+        emitFeedback: () => ({
+          accounts: () => ({
+            remainingAccounts: () => ({
+              rpc: async () => { throw chainErr; },
+            }),
+          }),
+        }),
+      },
+    };
+  }
+
+  function buildFakeChain(
+    trustgate: unknown,
+    signer: Keypair,
+    getAccountInfoImpl: (pk: PublicKey) => Promise<unknown>,
+  ) {
+    const cfg = buildTestConfig({ signer });
+    return {
+      cfg,
+      requireSigner: () => signer,
+      trustgate:     async () => trustgate,
+      connection:    { getAccountInfo: getAccountInfoImpl },
+    };
+  }
+
+  function validInput(payeeAsset: PublicKey, baseColl: PublicKey) {
+    return {
+      payment_id_hash_hex: "a".repeat(64),
+      payee_asset:         payeeAsset.toBase58(),
+      base_collection:     baseColl.toBase58(),
+      score:               80,
+      value:               "1000000",
+      value_decimals:      6,
+      tag1:                "",
+      tag2:                "",
+      endpoint:            "",
+      feedback_uri:        "",
+      atom_enabled:        true,
+    };
+  }
+
+  it("throws CounterpartyNotRegisteredError when the payee's agent_account is missing", async () => {
+    const signer     = Keypair.generate();
+    const payeeAsset = Keypair.generate().publicKey;
+    const baseColl   = Keypair.generate().publicKey;
+
+    // SendTransactionError text shape — the same surface the 0.3.5 gate
+    // Beat F rerun captured when the payee wasn't Quantu-registered.
+    const chainErr = Object.assign(
+      new Error(
+        "Simulation failed. \nMessage: Transaction simulation failed: " +
+        "Error processing Instruction 0: An account required by the " +
+        "instruction is missing. ",
+      ),
+      { name: "SendTransactionError" },
+    );
+
+    const fakeTrustgate = buildFakeTrustgateThatThrows(chainErr);
+    const fakeChain = buildFakeChain(
+      fakeTrustgate,
+      signer,
+      // Probe returns null → payee is not registered.
+      async (_pk: PublicKey) => null,
+    );
+
+    let caught: unknown;
+    try {
+      await emitFeedbackTool.handler(
+        validInput(payeeAsset, baseColl),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { chain: fakeChain as any },
+      );
+    } catch (err) {
+      caught = err;
+    }
+
+    expect(caught, "handler threw").to.exist;
+    expect(caught).to.be.instanceOf(CounterpartyNotRegisteredError);
+    const err = caught as CounterpartyNotRegisteredError;
+    expect(err.counterpartyPubkey).to.equal(payeeAsset.toBase58());
+    expect(err.missingAccountKind).to.equal("quantu_agent_account");
+
+    // Round-trip through the classifier.
+    const envelope = classifyError(err);
+    expect(envelope.errorCode).to.equal("counterparty_not_registered");
+    expect(envelope.message).to.include(payeeAsset.toBase58());
+    expect(envelope.hint).to.match(/init_policy/);
+    expect(envelope.details!.counterparty_pubkey).to.equal(payeeAsset.toBase58());
+    expect(envelope.details!.missing_account_kind).to.equal("quantu_agent_account");
+  });
+
+  it("rethrows the original chain error when the payee's agent_account exists", async () => {
+    const signer     = Keypair.generate();
+    const payeeAsset = Keypair.generate().publicKey;
+    const baseColl   = Keypair.generate().publicKey;
+
+    const chainErr = new Error(
+      'simulation failed: {"InstructionError":[0,{"Custom":6000}]}',
+    );
+
+    const fakeTrustgate = buildFakeTrustgateThatThrows(chainErr);
+    const fakeChain = buildFakeChain(
+      fakeTrustgate,
+      signer,
+      // Probe returns a non-null account → payee IS registered; the
+      // failure is some other chain error. Classifier should land it as
+      // `chain_error`, NOT `counterparty_not_registered`.
+      async (_pk: PublicKey) => ({
+        data:       Buffer.alloc(64),
+        executable: false,
+        lamports:   1_000_000,
+        owner:      Keypair.generate().publicKey,
+        rentEpoch:  0,
+      }),
+    );
+
+    let caught: unknown;
+    try {
+      await emitFeedbackTool.handler(
+        validInput(payeeAsset, baseColl),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { chain: fakeChain as any },
+      );
+    } catch (err) {
+      caught = err;
+    }
+
+    expect(caught, "handler threw").to.exist;
+    expect(caught).to.not.be.instanceOf(CounterpartyNotRegisteredError);
+
+    // Generic classifier path should land it in `chain_error`.
+    const envelope = classifyError(caught);
+    expect(envelope.errorCode).to.equal("chain_error");
   });
 });

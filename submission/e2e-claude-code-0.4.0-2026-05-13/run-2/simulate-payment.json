@@ -1,0 +1,16 @@
+{
+  "isError": true,
+  "rawText": "{\n  \"errorCode\": \"counterparty_not_registered\",\n  \"message\": \"Counterparty GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o is not registered in the Quantu agent registry.\",\n  \"hint\": \"Ask the counterparty to register via TrustGate (any tool that calls `init_policy` will do so as part of its bootstrap), or pick a counterparty from `agenttrust_demo_state.counterparties` for testing.\",\n  \"cause\": \"simulation failed: {\\\"InstructionError\\\":[0,{\\\"Custom\\\":3012}]}\",\n  \"details\": {\n    \"counterparty_pubkey\": \"GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o\",\n    \"missing_account_kind\": \"quantu_agent_account\"\n  }\n}",
+  "parsed": {
+    "errorCode": "counterparty_not_registered",
+    "message": "Counterparty GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o is not registered in the Quantu agent registry.",
+    "hint": "Ask the counterparty to register via TrustGate (any tool that calls `init_policy` will do so as part of its bootstrap), or pick a counterparty from `agenttrust_demo_state.counterparties` for testing.",
+    "cause": "simulation failed: {\"InstructionError\":[0,{\"Custom\":3012}]}",
+    "details": {
+      "counterparty_pubkey": "GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o",
+      "missing_account_kind": "quantu_agent_account"
+    }
+  },
+  "kind": null,
+  "reasonName": null
+}

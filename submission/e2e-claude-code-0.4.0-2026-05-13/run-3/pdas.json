@@ -1,0 +1,33 @@
+{
+  "test_pubkey": "GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o",
+  "trustgate_program": "HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N",
+  "quantu_programs": {
+    "agentRegistry": "8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C",
+    "atomEngine": "AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF"
+  },
+  "base_collection": "6CTyGPcn8dMwKEqgtvx2XCpkGUd7uqCVK6937RSM5bhA",
+  "trustgate_authority": "7Zgw7mfL7NjzZd4iNgVn7Eydi4FX5uAJLzCyZc43cJmn",
+  "policy_authority": "53Jf1erFxnbUM4UH3vqL9azAh5acFh5gh1ht1yLhCm5v",
+  "quantu_register_accounts": {
+    "rootConfig": "GGQfKNpXq8HchNxecLfXi8D7xz9PDppdPAPgr5Fx4Nvd",
+    "registryConfig": "Djy4TKPvFyEumcVTDCqJUHWErKqcaeRj4ULWwaPkedor",
+    "agentAccount": "EQuMn7Gm8YaqN7TKLXjV2ckaiN5g7ABUqeJj43qDN4gD",
+    "baseCollection": "6CTyGPcn8dMwKEqgtvx2XCpkGUd7uqCVK6937RSM5bhA",
+    "mplCoreProgram": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d",
+    "atomConfig": "4XeDhpmZ5GbfSbqgTcD3t6FKRXpMg8jixbqWDbthDSrk",
+    "atomStats": "4TW3upJrNvF6T8R7J5n7ryRF3owbA7kizFZFJs6MxaJb",
+    "atomEngineProgram": "AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF"
+  },
+  "agent_account_quantu": "EQuMn7Gm8YaqN7TKLXjV2ckaiN5g7ABUqeJj43qDN4gD",
+  "atom_stats_quantu": "4TW3upJrNvF6T8R7J5n7ryRF3owbA7kizFZFJs6MxaJb",
+  "policy_account_policy1": "crkY53auKWAUt5TVPqpaM6cJUQvPZpaw6RDtGw5Shtn",
+  "policy_account_policy2": "5wtE3DiX4kDKTeA49Mu1S9JFpoUoJdpHC8du7JKz8aJ3",
+  "policy_vault_program": "8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR",
+  "post_call_state": {
+    "trustgate_authority": "NOT_FOUND",
+    "policy_authority": "NOT_FOUND",
+    "agent_account_quantu": "NOT_FOUND",
+    "atom_stats_quantu": "NOT_FOUND",
+    "policy_account_policy1": "NOT_FOUND"
+  }
+}

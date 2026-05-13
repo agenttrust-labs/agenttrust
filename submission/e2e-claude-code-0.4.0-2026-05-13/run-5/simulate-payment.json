@@ -1,0 +1,12 @@
+{
+  "isError": true,
+  "rawText": "{\n  \"errorCode\": \"chain_error\",\n  \"message\": \"On-chain transaction failed.\",\n  \"hint\": \"On-chain program returned Custom 3012 (AccountNotInitialized). Inspect the transaction logs on the explorer; the failing constraint or seed mismatch is named in the program's error.rs.\",\n  \"cause\": \"simulation failed: {\\\"InstructionError\\\":[0,{\\\"Custom\\\":3012}]}\"\n}",
+  "parsed": {
+    "errorCode": "chain_error",
+    "message": "On-chain transaction failed.",
+    "hint": "On-chain program returned Custom 3012 (AccountNotInitialized). Inspect the transaction logs on the explorer; the failing constraint or seed mismatch is named in the program's error.rs.",
+    "cause": "simulation failed: {\"InstructionError\":[0,{\"Custom\":3012}]}"
+  },
+  "kind": null,
+  "reasonName": null
+}
