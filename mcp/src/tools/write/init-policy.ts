@@ -2,11 +2,22 @@
  * `agenttrust_init_policy` — initialise a PolicyAccount + VelocityLedger
  * for the caller's `(agent_asset, policy_id)` pair.
  *
- * Self-healing: if the agent's `PolicyAuthority` PDA does not yet
- * exist, the tool transparently prepends an `init_authority` instruction
- * (single-member = signer, threshold = 1) and submits both in a single
- * atomic transaction. The user never has to learn about Anchor 3012
- * (AccountNotInitialized) or run a bootstrap script.
+ * Self-healing (in tx-prepend order, so a fresh wallet single-shots the
+ * full AgentTrust 0.4.0 onboarding):
+ *
+ *   1. Quantu `agent_account` + `atom_stats` (via TrustGate's
+ *      `register_agent_via_cpi`). Only prepended when the caller's signer
+ *      wallet IS the agent_asset — Quantu requires `asset` to sign the
+ *      outer tx, so the self-heal only fires when the wallet key signs as
+ *      both payer AND asset. Passing a different `agent_asset` is treated
+ *      as "operating on a pre-existing identity" and the prepend is
+ *      skipped (we never auto-create someone else's Quantu profile).
+ *
+ *   2. AgentTrust `PolicyAuthority` (via `init_authority`, single-member =
+ *      signer, threshold = 1). Prepended whenever the PDA is missing.
+ *
+ * All steps land in one signed transaction. The user never has to learn
+ * about Anchor 3012 (AccountNotInitialized) or run a bootstrap script.
  *
  * Cap defaults: when the caller specifies ANY spending cap, unspecified
  * peers default to the MAX of the specified caps rather than 0.
@@ -23,7 +34,13 @@ import { BN } from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { z } from "zod";
 
-import { derivePolicyPda, deriveVelocityPda } from "../../chain";
+import {
+  BASE_COLLECTION_DEVNET,
+  buildRegisterAgentViaCpiIx,
+  deriveAgentAccountPda,
+  derivePolicyPda,
+  deriveVelocityPda,
+} from "../../chain";
 import { explorerUrl } from "../../config";
 import { PubkeySchema, parsePubkey, HexHashSchema, hexToBytes } from "../common";
 import type { Tool, ToolContext } from "../types";
@@ -74,6 +91,10 @@ const InputSchema = z.object({
   velocity:              VelocitySchema,
   counterparty:          CounterpartySchema,
   validation:            ValidationSchema,
+  metadata_uri:          z.string().max(256).default("https://agenttrust.tech/agents/default.json").describe(
+    "Metadata URI used when the tool self-heals a missing Quantu agent_account in the same atomic tx. " +
+    "Only applied when the signer wallet equals agent_asset (self-registration). Max 256 bytes.",
+  ),
 });
 type Input = z.infer<typeof InputSchema>;
 
@@ -206,6 +227,31 @@ export const initPolicyTool: Tool<Input, Output> = {
 
     const healedSteps: string[] = [];
     const tx = new Transaction();
+
+    // Self-heal step #0: Quantu agent_account. Only safe when the user's
+    // signer wallet == agent_asset, because register_agent_via_cpi requires
+    // the asset to sign the outer tx. For a different agent_asset the user
+    // is operating on a pre-existing identity and we never auto-create
+    // someone else's Quantu profile.
+    const isSelfRegister = agent.equals(signer.publicKey);
+    if (isSelfRegister) {
+      const agentAccountPda = deriveAgentAccountPda(ctx.chain.cfg.quantu, agent);
+      const agentInfo       = await ctx.chain.connection.getAccountInfo(agentAccountPda, "confirmed");
+      if (!agentInfo) {
+        const registerIx = await buildRegisterAgentViaCpiIx({
+          provider:       ctx.chain.provider,
+          trustgateId:    ctx.chain.cfg.programs.trustGate,
+          quantuPrograms: ctx.chain.cfg.quantu,
+          baseCollection: BASE_COLLECTION_DEVNET,
+          payer:          signer.publicKey,
+          asset:          signer.publicKey,
+          metadataUri:    input.metadata_uri,
+          trustgate:      await ctx.chain.trustgate(),
+        });
+        tx.add(registerIx);
+        healedSteps.push("register_agent_via_cpi");
+      }
+    }
 
     if (!existingAuth) {
       const initAuthIx = await policyVault.methods

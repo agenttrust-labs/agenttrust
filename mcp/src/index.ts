@@ -139,7 +139,7 @@ async function main() {
           // an upstream regression dropped a tool, the status page
           // would show the count drop. Pinned expected so monitors
           // can alert on mismatch without parsing JSON-RPC.
-          toolCount:      18,
+          toolCount:      21,
         }) + "\n");
         return;
       }
