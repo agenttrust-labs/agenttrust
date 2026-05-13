@@ -1,0 +1,29 @@
+$ cd /tmp/agenttrust-claude-e2e
+$ claude -p "Call agenttrust_respond_to_validation with:
+ - subject_asset:         6JC9ezpopdR7UCUoDoBF4QV5rTh5b7d1VmkrwJSuMrWB
+ - capability_name:       pay-sh-demo.tier3
+ - claim_payload_hash_hex: 0000000000000000000000000000000000000000000000000000000000000000
+ - claim_uri_hash_hex:     0000000000000000000000000000000000000000000000000000000000000000
+ - expires_at_slot:        461999999
+Report the raw response." \
+    --strict-mcp-config --mcp-config mcp-config.json \
+    --permission-mode bypassPermissions \
+    --allowedTools 'mcp__agenttrust__*' \
+    --output-format json --model sonnet
+
+[MCP] starting stdio server: npx -y @agenttrust-sdk/mcp@latest
+[MCP] connected: agenttrust v0.3.3
+
+[Anthropic API] POST /v1/messages
+[Anthropic API] HTTP 400
+  Error: tools.11.custom.input_schema: JSON schema is invalid.
+         It must match JSON Schema draft 2020-12.
+
+[Claude] (turn 1 — no tool call attempted)
+API Error: 400 tools.11.custom.input_schema: JSON schema is invalid.
+
+[session ended — exit 1, duration 5s]
+
+# Same root cause as Beat D: expires_at_slot uses exclusiveMinimum: true (boolean).
+# Anthropic's draft 2020-12 validator rejects the tool list at request time;
+# the tool handler never runs.

@@ -1,9 +1,8 @@
+import AskAgentTrustSection from "@/components/AskAgentTrustSection";
 import BenchmarkSection from "@/components/BenchmarkSection";
-import EventsSection from "@/components/EventsSection";
 import ExploreSection from "@/components/ExploreSection";
 import FooterSection from "@/components/FooterSection";
 import Hero from "@/components/Hero";
-import MediaSection from "@/components/MediaSection";
 import NetworkSection from "@/components/NetworkSection";
 import PerformanceSection from "@/components/PerformanceSection";
 import PlugAndPlaySection from "@/components/PlugAndPlaySection";
@@ -26,8 +25,7 @@ export default function Home() {
         <NetworkSection />
         <TrilemmaSection />
         <ExploreSection />
-        <EventsSection />
-        <MediaSection />
+        <AskAgentTrustSection />
         <FooterSection />
       </main>
     </>

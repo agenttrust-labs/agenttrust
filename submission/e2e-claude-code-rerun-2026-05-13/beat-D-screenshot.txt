@@ -1,0 +1,63 @@
+$ cd /tmp/agenttrust-claude-e2e-rerun
+
+# Schema preflight - confirm the hot-fix applied:
+$ node probe-mcp.js | jq '.toolsList.result.tools[] | select(.name=="agenttrust_request_validation") | .inputSchema.properties.deadline_slot'
+{
+  "anyOf": [
+    { "type": "integer", "minimum": 1 },
+    { "type": "string", "pattern": "^\\d+$" }
+  ],
+  "description": "Slot by which an attestor must respond..."
+}
+# Was `{exclusiveMinimum: true, minimum: 0}` (draft-04 boolean form) in 0.3.3.
+# Now `{minimum: 1}` - draft 2020-12 compliant. Anthropic API accepts the tool list.
+
+$ claude -p "Call agenttrust_request_validation with:
+ - subject_asset:      EkJuNUCVPvqHqoiTcDfRS1JGV7ckEhRehgmEEffLWEVZ
+ - capability_name:    pay-sh-demo.tier3
+ - claim_uri_hash_hex: 0000000000000000000000000000000000000000000000000000000000000000
+ - deadline_slot:      461933335
+Report the full raw response verbatim." \
+    --strict-mcp-config --mcp-config mcp-config.json \
+    --permission-mode bypassPermissions \
+    --allowedTools 'mcp__agenttrust__*' \
+    --output-format json --model sonnet
+
+[MCP] starting stdio server: npx -y @agenttrust-sdk/mcp@latest
+[MCP] connected: agenttrust v0.3.4
+[MCP] tools/list returned 19 tools
+
+[Anthropic API] POST /v1/messages   <-- 200 OK (was 400 in 0.3.3)
+
+[Claude] (turn 1) Calling agenttrust_request_validation with the supplied arguments.
+
+[Tool call: mcp__agenttrust__agenttrust_request_validation]
+  input:  {
+            "subject_asset":      "EkJuNUCVPvqHqoiTcDfRS1JGV7ckEhRehgmEEffLWEVZ",
+            "capability_name":    "pay-sh-demo.tier3",
+            "claim_uri_hash_hex": "00...00",
+            "deadline_slot":      461933335
+          }
+  output: {
+            "errorCode": "chain_error",
+            "message":   "On-chain transaction failed.",
+            "hint":      "Inspect the transaction logs on the explorer; the failing constraint or custom error code is included in the explorer.",
+            "cause":     "Simulation failed. Message: Transaction simulation failed: Error processing Instruction 0: custom program error: 0xbc4.
+                          Logs: [
+                            \"Program Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv invoke [1]\",
+                            \"Program log: Instruction: RequestValidation\",
+                            \"Program log: AnchorError caused by account: capability_namespace.
+                              Error Code: AccountNotInitialized. Error Number: 3012.
+                              Error Message: The program expected this account to be already initialized.\",
+                            ...
+                          ]"
+          }
+
+[Claude] (turn 2 - final answer)
+The tool ran. The on-chain simulation failed with Anchor error 3012
+(AccountNotInitialized) on the capability_namespace account. The pay-sh-demo.tier3
+capability has not been registered on validation_registry for this devnet build -
+this is a seeded-state gap, not a code defect. The envelope captures it as a
+structured chain_error.
+
+[session ended - exit 0, duration 19s]

@@ -1,0 +1,89 @@
+$ rm -rf ~/.npm/_npx/c9410807c47a4c86 ~/.npm/_npx/141d9fb91f36d472 ~/.npm/_npx/61a309e434314af6 \
+        ~/.npm/_npx/3b563826b69edb09 ~/.npm/_npx/5cc900a4c752ce72
+# stale 0.2.x / 0.3.3 caches cleared so `npx -y @agenttrust-sdk/mcp@latest` pulls 0.3.4.
+
+$ npm view @agenttrust-sdk/mcp@latest version dependencies
+version = '0.3.4'
+dependencies = {
+  '@coral-xyz/anchor':            '^0.31.1',
+  '@modelcontextprotocol/sdk':    '^1.29.0',
+  '@solana/web3.js':              '^1.98.0',
+  bs58:                           '^6.0.0',
+  zod:                            '^3.25.76',
+  'zod-to-json-schema':           '^3.23.5',
+  '@agenttrust-sdk/trustgate':    '^0.3.1'
+}
+
+$ cd /tmp/agenttrust-claude-e2e-rerun
+$ node probe-mcp.js   # direct stdio: initialize + tools/list against npx -y --prefer-online @agenttrust-sdk/mcp@latest
+
+{
+  "initialize": {
+    "result": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": { "tools": {}, "resources": {}, "prompts": {} },
+      "serverInfo": { "name": "agenttrust", "version": "0.3.4" },
+      "instructions": "AgentTrust MCP server. ..."
+    },
+    "id": 1
+  },
+  "toolsList": {
+    "result": { "tools": [ ... 19 entries ... ] },
+    "id": 2
+  }
+}
+
+# Schema preflight (hot-fix item 1): request_validation.deadline_slot now draft 2020-12.
+$ node probe-mcp.js | jq '.toolsList.result.tools[] | select(.name=="agenttrust_request_validation") | .inputSchema.properties.deadline_slot'
+{
+  "anyOf": [
+    { "type": "integer", "minimum": 1 },
+    { "type": "string", "pattern": "^\\d+$" }
+  ],
+  "description": "Slot by which an attestor must respond..."
+}
+# was `{ "exclusiveMinimum": true, "minimum": 0 }` (draft-04 boolean) in 0.3.3. Now compliant.
+
+$ claude -p "Connect to the agenttrust MCP server. List all available tools (with their full names) and tell me how many there are..." \
+    --strict-mcp-config \
+    --mcp-config /tmp/agenttrust-claude-e2e-rerun/mcp-config.json \
+    --permission-mode bypassPermissions \
+    --allowedTools 'mcp__agenttrust__*' \
+    --output-format json \
+    --model sonnet
+
+[MCP] starting stdio server: npx -y @agenttrust-sdk/mcp@latest
+[MCP] connected: name="agenttrust" version="0.3.4"
+[MCP] tools/list returned 19 tools
+
+[Claude] (turn 1) Let me list every tool currently registered on the agenttrust MCP server.
+
+[Claude] (turn 2 - final answer)
+AgentTrust MCP Tools
+
+Total tool count: 19
+
+ 1. mcp__agenttrust__agenttrust_demo_state
+ 2. mcp__agenttrust__agenttrust_docs
+ 3. mcp__agenttrust__agenttrust_emit_feedback
+ 4. mcp__agenttrust__agenttrust_explain_decision
+ 5. mcp__agenttrust__agenttrust_facilitator_walkthrough
+ 6. mcp__agenttrust__agenttrust_get_feedback_log
+ 7. mcp__agenttrust__agenttrust_get_killswitch
+ 8. mcp__agenttrust__agenttrust_get_policy
+ 9. mcp__agenttrust__agenttrust_get_quantu_reputation
+10. mcp__agenttrust__agenttrust_get_validation_attestation
+11. mcp__agenttrust__agenttrust_get_velocity
+12. mcp__agenttrust__agenttrust_init_authority
+13. mcp__agenttrust__agenttrust_init_policy
+14. mcp__agenttrust__agenttrust_list_facilitators
+15. mcp__agenttrust__agenttrust_list_policies
+16. mcp__agenttrust__agenttrust_request_validation
+17. mcp__agenttrust__agenttrust_respond_to_validation
+18. mcp__agenttrust__agenttrust_set_killswitch
+19. mcp__agenttrust__agenttrust_simulate_payment
+
+agenttrust_init_authority present: YES
+Server version: 0.3.4 (from initialize response - independent stdio probe)
+
+[session ended - exit 0, duration 31s]

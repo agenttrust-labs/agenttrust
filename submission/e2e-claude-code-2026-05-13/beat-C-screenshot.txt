@@ -1,0 +1,51 @@
+$ cd /tmp/agenttrust-claude-e2e
+$ claude -p "You have access to the agenttrust MCP server. Call agenttrust_simulate_payment with these exact arguments:
+ - payer_agent: 6JC9ezpopdR7UCUoDoBF4QV5rTh5b7d1VmkrwJSuMrWB
+ - payee_agent: BTcgiDauqVHoGMiXujytE5wycfncDEmNnXJiUZ4s4oWL
+ - amount: \"5000000000\"
+ - mint: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+ - policy_id: 1
+Report the FULL raw response verbatim. ..." \
+    --strict-mcp-config --mcp-config mcp-config.json \
+    --permission-mode bypassPermissions \
+    --allowedTools 'mcp__agenttrust__*' \
+    --output-format json --model sonnet
+
+[MCP] starting stdio server: npx -y @agenttrust-sdk/mcp@latest
+[MCP] connected: agenttrust v0.3.3
+
+[Claude] (turn 1) Calling agenttrust_simulate_payment with the supplied arguments.
+
+[Tool call: mcp__agenttrust__agenttrust_simulate_payment]
+  input:  {
+            "payer_agent": "6JC9ezpopdR7UCUoDoBF4QV5rTh5b7d1VmkrwJSuMrWB",
+            "payee_agent": "BTcgiDauqVHoGMiXujytE5wycfncDEmNnXJiUZ4s4oWL",
+            "amount":      "5000000000",
+            "mint":        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "policy_id":   1
+          }
+  output: {
+            "errorCode": "internal",
+            "message":   "Tool handler threw an unexpected error.",
+            "hint":      "See `cause` for the original message and check the MCP server stderr for stack trace.",
+            "cause":     "simulation failed: {\"InstructionError\":[0,{\"Custom\":3012}]}"
+          }
+
+[Claude] (turn 2 — final answer)
+1. Envelope type: Error envelope.
+2. Fields:
+   - errorCode: "internal"
+   - message:   "Tool handler threw an unexpected error."
+   - hint:      "See `cause` for the original message and check the MCP server stderr for stack trace."
+   - cause:     "simulation failed: {\"InstructionError\":[0,{\"Custom\":3012}]}"
+3. GateDecision: N/A (the simulation never reached a gate decision — failed at
+   on-chain account loading).
+
+The Solana program returned custom error 3012 on instruction 0. In Anchor this
+maps to AccountNotInitialized — the most likely missing account for this fresh
+agent is the KillSwitchState PDA (or the Quantu atom_stats PDA), neither of
+which was seeded for the brand-new agent_asset. The structured envelope is
+intact and well-formed; the gap is purely the classifier mapping ("internal"
+should be "chain_error" when the cause matches InstructionError shape).
+
+[session ended — exit 0, duration 17s]

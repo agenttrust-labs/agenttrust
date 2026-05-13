@@ -12,6 +12,4 @@ export const SECTION_MARKERS: readonly SectionMarker[] = [
   { label: "The Network", href: "#network" },
   { label: "The Trilemma", href: "#trilemma" },
   { label: "Explore", href: "#explore" },
-  { label: "Events", href: "#events" },
-  { label: "Media", href: "#media" },
 ];
