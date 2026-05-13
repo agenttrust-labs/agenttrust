@@ -155,7 +155,7 @@ fn unpack_cpi_accounts<'info>(
 ) -> Result<GiveFeedbackAccounts<'info>> {
     require!(
         remaining.len() >= 4,
-        TrustGateError::AgentRegistryProgramMismatch
+        TrustGateError::InsufficientCpiAccounts
     );
 
     let agent_account = remaining[0].clone();
