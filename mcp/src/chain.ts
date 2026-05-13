@@ -156,10 +156,8 @@ export class ChainClient {
   requireSigner(): Keypair {
     if (!this.cfg.signer) {
       throw new Error(
-        "This tool requires a signer. Set one of: KEYPAIR_B58 (base58 of a " +
-        "64-byte secret key), KEYPAIR_PATH (absolute path to a Solana CLI " +
-        "keypair JSON), or run `solana-keygen new` so ~/.config/solana/id.json " +
-        "exists. Then restart the MCP server.",
+        "This tool requires a signer. Set one of: KEYPAIR_B58, KEYPAIR_PATH, " +
+        "or `solana config get`.",
       );
     }
     return this.cfg.signer;

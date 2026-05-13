@@ -324,12 +324,22 @@ function isAuthRequired(message: string): boolean {
 /**
  * Classify an unknown thrown value into a structured `ToolError`.
  *
- * @param err      The thrown value from a tool handler (or Zod parse).
- * @param toolName Optional — the MCP tool that was being invoked. When
- *                 supplied, surfaces in the `auth_required` hint so the
- *                 LLM agent knows which call to retry.
+ * @param err       The thrown value from a tool handler (or Zod parse).
+ * @param toolName  Optional — the MCP tool that was being invoked. When
+ *                  supplied, surfaces in the `auth_required` hint so the
+ *                  LLM agent knows which call to retry.
+ * @param transport Optional — the active MCP transport. When `"http"`
+ *                  (hosted, read-only by design) the `auth_required`
+ *                  hint copy is swapped for hosted-specific guidance
+ *                  pointing the caller at the local-install path
+ *                  (`npx -y @agenttrust-sdk/mcp@latest`). When omitted
+ *                  or `"stdio"` the local install hint is returned.
  */
-export function classifyError(err: unknown, toolName?: string): ToolError {
+export function classifyError(
+  err: unknown,
+  toolName?: string,
+  transport?: "stdio" | "http",
+): ToolError {
   const message = readMessage(err);
   const name    = readName(err);
   const cause   = clamp(message);
@@ -360,14 +370,24 @@ export function classifyError(err: unknown, toolName?: string): ToolError {
   }
 
   // 2. Auth — caught next because the message is hardcoded and stable.
+  //    AgentTrust ships two MCP surfaces: local install (full 21-tool
+  //    surface, user's keypair) and hosted (read-only by design, no
+  //    shared signer). Branch the hint copy by transport so remote
+  //    callers of the hosted MCP — who CAN'T "restart the server" — get
+  //    the correct remediation: install the local MCP and run write
+  //    tools against their own keypair.
   if (isAuthRequired(message)) {
     const which = toolName ? ` (needed by \`${toolName}\`)` : "";
+    const hint = transport === "http"
+      ? "This is the hosted read-only endpoint. To use write tools, install MCP locally: " +
+        "npx -y @agenttrust-sdk/mcp@latest. Hosted MCP signs nothing on your behalf by " +
+        "design — your keypair stays on your machine."
+      : "Set KEYPAIR_B58 (base58-encoded 64-byte secret), KEYPAIR_PATH, " +
+        "or `solana config get` to point at a funded keypair, then restart the MCP server.";
     return {
       errorCode: "auth_required",
       message:   `Signer required${which}.`,
-      hint:
-        "Set KEYPAIR_B58 (base58-encoded 64-byte secret), KEYPAIR_PATH, " +
-        "or `solana config get` to point at a funded keypair, then restart the MCP server.",
+      hint,
       cause,
     };
   }

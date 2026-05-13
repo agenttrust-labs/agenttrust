@@ -55,6 +55,8 @@ Full walkthrough at [docs.agenttrust.tech/quickstart](https://docs.agenttrust.te
 
 > All endpoints run on Solana devnet. The bare `agenttrust-*.fly.dev` hostnames also resolve, but the `agenttrust.tech` URLs above are canonical.
 
+**Two MCP surfaces by design.** Local install (`npx -y @agenttrust-sdk/mcp@latest`) ships the full 21-tool surface and signs with your own keypair. Hosted (`mcp.agenttrust.tech`) is read-only by design — 13 tools, no shared signer. A shared signer would mean every user's on-chain identity is owned by the operator; that's a security model, not a UX shortcut. Write tools live in the local install. See [/quickstart](https://docs.agenttrust.tech/quickstart#two-mcp-surfaces) for the comparison table.
+
 ---
 
 ## What AgentTrust is
