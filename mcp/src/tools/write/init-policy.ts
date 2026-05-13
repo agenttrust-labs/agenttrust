@@ -6,15 +6,27 @@
  * full AgentTrust 0.4.0 onboarding):
  *
  *   1. Quantu `agent_account` + `atom_stats` (via TrustGate's
- *      `register_agent_via_cpi`). Only prepended when the caller's signer
- *      wallet IS the agent_asset — Quantu requires `asset` to sign the
- *      outer tx, so the self-heal only fires when the wallet key signs as
- *      both payer AND asset. Passing a different `agent_asset` is treated
- *      as "operating on a pre-existing identity" and the prepend is
- *      skipped (we never auto-create someone else's Quantu profile).
+ *      `register_agent_via_cpi`). When the caller omits `agent_asset`,
+ *      init_policy generates a fresh ephemeral asset Keypair internally,
+ *      signs the register_with_options CPI with it, and returns the new
+ *      pubkey via the `agentAsset` output field. The asset secret is
+ *      needed only to sign that one CPI (MPL Core mints the asset under
+ *      the asset pubkey), then is discarded — no later AgentTrust or
+ *      Quantu instruction requires asset to sign again. We never use the
+ *      caller's funded wallet as the asset because MPL Core's CreateV2
+ *      would collide with the wallet's existing System Program account.
+ *      When the caller passes an explicit `agent_asset` whose Quantu
+ *      agent_account is missing, we surface a typed
+ *      counterparty_not_registered envelope — we don't auto-create
+ *      someone else's identity, and we cannot sign as an asset whose
+ *      secret we don't have.
  *
  *   2. AgentTrust `PolicyAuthority` (via `init_authority`, single-member =
  *      signer, threshold = 1). Prepended whenever the PDA is missing.
+ *
+ *   3. AgentTrust `KillSwitchState` (via `init_killswitch`). gate_payment
+ *      requires the per-agent kill-switch PDA to exist; without this
+ *      prepend a fresh agent's first simulate_payment hits Anchor 3012.
  *
  * All steps land in one signed transaction. The user never has to learn
  * about Anchor 3012 (AccountNotInitialized) or run a bootstrap script.
@@ -31,17 +43,19 @@
  */
 
 import { BN } from "@coral-xyz/anchor";
-import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
+import { Keypair, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { z } from "zod";
 
 import {
   BASE_COLLECTION_DEVNET,
   buildRegisterAgentViaCpiIx,
   deriveAgentAccountPda,
+  deriveKillSwitchPda,
   derivePolicyPda,
   deriveVelocityPda,
 } from "../../chain";
 import { explorerUrl } from "../../config";
+import { CounterpartyNotRegisteredError } from "../../errors";
 import { PubkeySchema, parsePubkey, HexHashSchema, hexToBytes } from "../common";
 import type { Tool, ToolContext } from "../types";
 
@@ -82,7 +96,12 @@ const ValidationSchema = z.object({
 }).default({ accepted_attestors: [] });
 
 const InputSchema = z.object({
-  agent_asset:           PubkeySchema.describe("Quantu agent asset (must equal a member of the agent's PolicyAuthority)"),
+  agent_asset:           PubkeySchema.optional().describe(
+    "Quantu agent asset pubkey. OMIT to let init_policy generate a fresh agent identity in " +
+    "the same atomic bootstrap transaction (recommended for first-time use; the wallet pays " +
+    "for the new MPL Core asset and never has to learn Quantu's surface). Provide an explicit " +
+    "value only when operating on an existing agent whose Quantu agent_account is already on-chain.",
+  ),
   policy_id:             z.number().int().min(0).max(0xffffffff),
   enabled_kinds_bitmask: z.number().int().min(0).max(255).describe("OR of KIND_* flags: 1=KillSwitch 2=Spending 4=Velocity 8=CounterpartyTier 16=RequireValidation"),
   gate_mode:             z.number().int().min(0).max(1).default(0).describe("0=Immediate, 1=Confirmed"),
@@ -101,6 +120,12 @@ type Input = z.infer<typeof InputSchema>;
 interface Output {
   txSignature:     string;
   explorerTxUrl:   string;
+  /** The agent_asset pubkey the policy is keyed to. Either the value the caller
+   *  passed in, or the freshly-generated identity init_policy created during
+   *  self-bootstrap. Always returned so callers always know their canonical
+   *  agent identity for downstream tool calls (get_policy, simulate_payment, ...). */
+  agentAsset:         string;
+  agentAssetExplorer: string;
   policyPda:       string;
   policyExplorer:  string;
   velocityPda:     string;
@@ -111,7 +136,7 @@ interface Output {
     dailyMax:  string;
     weeklyMax: string;
   };
-  /** True when the tool transparently bootstrapped PolicyAuthority in the same tx. */
+  /** True when the tool transparently bootstrapped one or more accounts. */
   selfHealed:      boolean;
   healedSteps:     string[];
 }
@@ -153,20 +178,40 @@ function applySpendingCapDefaults(spending: { per_tx_max: number | string; daily
 export const initPolicyTool: Tool<Input, Output> = {
   name:        "agenttrust_init_policy",
   description:
-    "Create a PolicyAccount + VelocityLedger PDA for the caller's agent. " +
-    "Self-healing: if the agent's PolicyAuthority PDA does not yet exist, " +
-    "the tool prepends init_authority (single-member = signer, threshold 1) " +
-    "in the same atomic transaction. Sensible cap defaults: when the caller " +
-    "sets at least one spending cap, unspecified peer caps default to the " +
-    "MAX of the specified caps rather than 0 — important because v1 " +
+    "Single-bootstrap call: create a PolicyAccount + VelocityLedger PDA for the caller's agent, " +
+    "self-healing every missing prerequisite in the same atomic transaction. " +
+    "When agent_asset is omitted, generates a fresh ephemeral Quantu agent identity, prepends " +
+    "register_agent_via_cpi to bootstrap it under TrustGate, and returns the new pubkey via " +
+    "the `agentAsset` output. When agent_asset is provided but its PolicyAuthority PDA is " +
+    "missing, prepends init_authority (single-member = signer, threshold 1). " +
+    "Sensible cap defaults: when the caller sets at least one spending cap, unspecified peer " +
+    "caps default to the MAX of the specified caps rather than 0 — important because v1 " +
     "policies are immutable post-init and 0 is a hostile always-deny. " +
     "Requires a signer (KEYPAIR_B58 / KEYPAIR_PATH / Solana CLI default).",
   inputSchema: InputSchema,
 
   async handler(input: Input, ctx: ToolContext): Promise<Output> {
     const signer       = ctx.chain.requireSigner();
-    const agent        = parsePubkey(input.agent_asset, "agent_asset");
     const policyVault  = await ctx.chain.policyVault();
+
+    // Resolve the agent_asset. When the caller omits `agent_asset`, we
+    // generate a fresh ephemeral Keypair: Quantu's register_with_options
+    // invokes MPL Core's CreateV2 under the asset pubkey, so the address
+    // must be a fresh System Program account (the user's funded wallet
+    // would collide). The asset secret is needed ONCE — to sign the
+    // register_with_options CPI — then discarded. No on-chain operation
+    // after that point requires the asset to sign again
+    // (initialize_stats, emit_feedback, dispute_payment, gate_payment,
+    // and every validation-registry flow all treat asset as a read
+    // pubkey). The MCP never persists the secret.
+    let assetKeypair: Keypair | null = null;
+    let agent: PublicKey;
+    if (input.agent_asset === undefined || input.agent_asset === null || input.agent_asset === "") {
+      assetKeypair = Keypair.generate();
+      agent        = assetKeypair.publicKey;
+    } else {
+      agent = parsePubkey(input.agent_asset, "agent_asset");
+    }
 
     const policyPda    = derivePolicyPda(ctx.chain.cfg.programs.policyVault, agent, input.policy_id);
     const velocityPda  = deriveVelocityPda(ctx.chain.cfg.programs.policyVault, agent, input.policy_id);
@@ -227,30 +272,37 @@ export const initPolicyTool: Tool<Input, Output> = {
 
     const healedSteps: string[] = [];
     const tx = new Transaction();
+    const signers: Keypair[] = [signer];
 
-    // Self-heal step #0: Quantu agent_account. Only safe when the user's
-    // signer wallet == agent_asset, because register_agent_via_cpi requires
-    // the asset to sign the outer tx. For a different agent_asset the user
-    // is operating on a pre-existing identity and we never auto-create
-    // someone else's Quantu profile.
-    const isSelfRegister = agent.equals(signer.publicKey);
-    if (isSelfRegister) {
-      const agentAccountPda = deriveAgentAccountPda(ctx.chain.cfg.quantu, agent);
-      const agentInfo       = await ctx.chain.connection.getAccountInfo(agentAccountPda, "confirmed");
-      if (!agentInfo) {
-        const registerIx = await buildRegisterAgentViaCpiIx({
-          provider:       ctx.chain.provider,
-          trustgateId:    ctx.chain.cfg.programs.trustGate,
-          quantuPrograms: ctx.chain.cfg.quantu,
-          baseCollection: BASE_COLLECTION_DEVNET,
-          payer:          signer.publicKey,
-          asset:          signer.publicKey,
-          metadataUri:    input.metadata_uri,
-          trustgate:      await ctx.chain.trustgate(),
+    // Self-heal step #0: Quantu agent_account. Only fires when we own the
+    // asset Keypair (i.e. we generated it just above). When the caller
+    // passed an explicit `agent_asset` but its Quantu PDA is missing, we
+    // surface a typed counterparty_not_registered envelope — we never
+    // auto-create someone else's identity, and we cannot sign as an
+    // asset whose secret we don't have.
+    const agentAccountPda = deriveAgentAccountPda(ctx.chain.cfg.quantu, agent);
+    const agentInfo       = await ctx.chain.connection.getAccountInfo(agentAccountPda, "confirmed");
+    if (!agentInfo) {
+      if (!assetKeypair) {
+        throw new CounterpartyNotRegisteredError({
+          counterpartyPubkey: agent.toBase58(),
+          missingAccountKind: "quantu_agent_account",
+          cause:              "init_policy needs the asset Keypair to sign register_with_options; caller supplied agent_asset as a pubkey only",
         });
-        tx.add(registerIx);
-        healedSteps.push("register_agent_via_cpi");
       }
+      const registerIx = await buildRegisterAgentViaCpiIx({
+        provider:       ctx.chain.provider,
+        trustgateId:    ctx.chain.cfg.programs.trustGate,
+        quantuPrograms: ctx.chain.cfg.quantu,
+        baseCollection: BASE_COLLECTION_DEVNET,
+        payer:          signer.publicKey,
+        asset:          assetKeypair.publicKey,
+        metadataUri:    input.metadata_uri,
+        trustgate:      await ctx.chain.trustgate(),
+      });
+      tx.add(registerIx);
+      healedSteps.push("register_agent_via_cpi");
+      signers.push(assetKeypair);
     }
 
     if (!existingAuth) {
@@ -267,6 +319,29 @@ export const initPolicyTool: Tool<Input, Output> = {
       healedSteps.push("init_authority");
     }
 
+    // Self-heal step #2: KillSwitchState. gate_payment requires this PDA
+    // to exist; a fresh agent would hit AnchorError 3012 on the first
+    // simulate_payment without this prepend. Per-agent scope (scope_kind=2)
+    // matches the seed shape the policy-vault IDL declares.
+    const killSwitchPda = deriveKillSwitchPda(ctx.chain.cfg.programs.policyVault, agent);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existingKs: any = await (policyVault.account as any).killSwitchState.fetchNullable(
+      killSwitchPda,
+    );
+    if (!existingKs) {
+      const initKsIx = await policyVault.methods
+        .initKillswitch(agent)
+        .accounts({
+          payer:           signer.publicKey,
+          killSwitchState: killSwitchPda,
+          systemProgram:   SystemProgram.programId,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+        .instruction();
+      tx.add(initKsIx);
+      healedSteps.push("init_killswitch");
+    }
+
     const initPolicyIx = await policyVault.methods
       .initPolicy(agent, args as never)
       .accounts({
@@ -280,15 +355,17 @@ export const initPolicyTool: Tool<Input, Output> = {
       .instruction();
     tx.add(initPolicyIx);
 
-    const txSignature = await ctx.chain.provider.sendAndConfirm(tx, [signer]);
+    const txSignature = await ctx.chain.provider.sendAndConfirm(tx, signers);
 
     return {
       txSignature,
-      explorerTxUrl:    explorerUrl(ctx.chain.cfg, "tx",      txSignature),
-      policyPda:        policyPda.toBase58(),
-      policyExplorer:   explorerUrl(ctx.chain.cfg, "address", policyPda.toBase58()),
-      velocityPda:      velocityPda.toBase58(),
-      velocityExplorer: explorerUrl(ctx.chain.cfg, "address", velocityPda.toBase58()),
+      explorerTxUrl:      explorerUrl(ctx.chain.cfg, "tx",      txSignature),
+      agentAsset:         agent.toBase58(),
+      agentAssetExplorer: explorerUrl(ctx.chain.cfg, "address", agent.toBase58()),
+      policyPda:          policyPda.toBase58(),
+      policyExplorer:     explorerUrl(ctx.chain.cfg, "address", policyPda.toBase58()),
+      velocityPda:        velocityPda.toBase58(),
+      velocityExplorer:   explorerUrl(ctx.chain.cfg, "address", velocityPda.toBase58()),
       effectiveSpending: {
         perTxMax:  effectiveSpending.per_tx_max,
         dailyMax:  effectiveSpending.daily_max,
