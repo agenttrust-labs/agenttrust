@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "agenttrust": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@agenttrust-sdk/mcp@latest"],
+      "env": {
+        "RPC_URL": "https://api.devnet.solana.com",
+        "NETWORK": "solana-devnet"
+      }
+    }
+  }
+}

@@ -76,6 +76,8 @@ submission/*
 # Whitelist post-merge e2e verification artifacts so they ship as proof
 !submission/e2e-verification-*/
 !submission/e2e-verification-*/**
+!submission/e2e-claude-code-*/
+!submission/e2e-claude-code-*/**
 
 # Marketing video Remotion project (brand-locked, renders are heavy, private)
 marketing-video/

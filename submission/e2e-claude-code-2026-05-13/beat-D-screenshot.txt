@@ -1,0 +1,50 @@
+$ cd /tmp/agenttrust-claude-e2e
+$ claude -p "Call agenttrust_request_validation with:
+ - subject_asset:      6JC9ezpopdR7UCUoDoBF4QV5rTh5b7d1VmkrwJSuMrWB
+ - capability_name:    pay-sh-demo.tier3
+ - claim_uri_hash_hex: 0000000000000000000000000000000000000000000000000000000000000000
+ - deadline_slot:      461933335
+Report the full raw response verbatim." \
+    --strict-mcp-config --mcp-config mcp-config.json \
+    --permission-mode bypassPermissions \
+    --allowedTools 'mcp__agenttrust__*' \
+    --output-format json --model sonnet
+
+[MCP] starting stdio server: npx -y @agenttrust-sdk/mcp@latest
+[MCP] connected: agenttrust v0.3.3
+[MCP] tools/list returned 19 tools
+
+[Anthropic API] POST /v1/messages
+[Anthropic API] HTTP 400
+  Error: tools.11.custom.input_schema: JSON schema is invalid.
+         It must match JSON Schema draft 2020-12
+         (https://json-schema.org/draft/2020-12).
+         Learn more about tool use at https://docs.claude.com/en/docs/tool-use.
+
+[Claude] (turn 1 — no tool call attempted)
+API Error: 400 tools.11.custom.input_schema: JSON schema is invalid.
+
+[session ended — exit 1, duration 4s]
+
+
+--- root-cause inspection ---
+
+$ node probe-mcp.js | jq '.result.tools[] | select(.name=="agenttrust_request_validation") | .inputSchema.properties.deadline_slot'
+{
+  "anyOf": [
+    {
+      "type": "integer",
+      "exclusiveMinimum": true,
+      "minimum": 0
+    },
+    {
+      "type": "string",
+      "pattern": "^\\d+$"
+    }
+  ]
+}
+
+# `exclusiveMinimum: true` is JSON Schema draft-04 (boolean form).
+# In draft 2020-12, exclusiveMinimum must be a number.
+# Same defect exists on agenttrust_respond_to_validation.expires_at_slot.
+# Patch: { "type": "integer", "exclusiveMinimum": 0 }  (drop minimum, replace true with 0)
