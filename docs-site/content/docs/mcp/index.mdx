@@ -3,7 +3,7 @@ title: MCP server
 description: Drop @agenttrust-sdk/mcp into Claude Desktop or Cursor and query the deployed AgentTrust programs in natural language. Twenty-one tools, four resources, three prompts.
 ---
 
-`@agenttrust-sdk/mcp@0.4.0` is the Model Context Protocol server for AgentTrust. Stdio binary published on npm; hosted HTTP transport at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech). Twenty-one tools split into ten read-only, eight write (require a signing keypair), and three discovery / docs-search.
+[`@agenttrust-sdk/mcp`](https://www.npmjs.com/package/@agenttrust-sdk/mcp) is the Model Context Protocol server for AgentTrust. Stdio binary published on npm; hosted HTTP transport at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech). Twenty-one tools split into ten read-only, eight write (require a signing keypair), and three discovery / docs-search.
 
 The MCP server is a thin façade over [`@agenttrust-sdk/trustgate`](/sdk). PDA derivation, IDL loading, and `gate_payment` simulation live in the SDK; the MCP server exposes them with stable Zod schemas to LLM clients.
 
@@ -62,7 +62,7 @@ Health check the hosted endpoint:
 
 ```bash
 curl https://mcp.agenttrust.tech/healthz
-# → {"ok":true,"service":"agenttrust-mcp","version":"0.4.0","network":"solana-devnet","toolCount":21,…}
+# → {"ok":true,"service":"agenttrust-mcp","version":"0.4.5","network":"solana-devnet","toolCount":21,…}
 ```
 
 Full hosted-endpoint reference: [Hosted endpoint](/mcp/hosted-endpoint).

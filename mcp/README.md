@@ -1,8 +1,8 @@
 # `@agenttrust-sdk/mcp`
 
-Model Context Protocol (MCP) server for AgentTrust. Drop the binary
-into Claude Desktop, Cursor, or any MCP client and interact with the
-deployed AgentTrust programs through natural language.
+Model Context Protocol (MCP) server for AgentTrust — the trust layer for AI-agent payments on Solana. Drop the binary into Claude Desktop, Cursor, or any MCP client and interact with the deployed AgentTrust programs through natural language.
+
+**Two surfaces by design.** Local install (this package) ships the full 21-tool surface and signs with your own keypair. The hosted endpoint at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) is read-only by design — 13 tools, no shared signer. A shared signer would mean every user's on-chain identity is owned by the operator; that's a security model, not a UX shortcut.
 
 > Reads devnet by default. Mainnet is one env var away once mainnet
 > deployment lands.
@@ -84,8 +84,8 @@ on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
 }
 ```
 
-Restart Claude Desktop. The agent now has 18 AgentTrust tools available
-in chat. No clone, no local build.
+Restart Claude Desktop. The agent now has 21 AgentTrust tools available
+in chat (10 read · 8 write · 3 discovery). No clone, no local build.
 
 Prefer a local clone (for development)? Swap `command: "npx"` and the
 `args` for:
