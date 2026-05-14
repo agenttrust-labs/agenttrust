@@ -14,6 +14,106 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the tx's inner instructions. Useful when an integrator has the settle
   signature but not the digest.
 
+## [0.4.5] — 2026-05-14
+
+Tag: `mcp-v0.4.5` · Two surgical fixes surfaced by the 2026-05-14
+demo-flow gate, plus the matching doc surface so the two-MCP-surfaces
+design lives next to the code that implements it.
+
+### Fixed
+
+- `agenttrust_emit_feedback` was missing the AgentRegistry program in
+  the instruction's `remainingAccounts`, so the trustgate
+  `invoke_signed` CPI into `agent_registry_8004::give_feedback` failed
+  with `Unknown program 8oo4J9tBB3Hna1jRQ3rWvJjojqM5DYTDJo5cejUuJy3C`
+  at runtime. The SDK helper at
+  [`trustgate/sdk/src/emit-feedback.ts:156-162`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/emit-feedback.ts)
+  has shipped the correct pattern since 0.4.0; the MCP tool now mirrors
+  it. **B-001 closed.** Beat F of the demo-flow gate finalises cleanly
+  on devnet on 0.4.5.
+
+### Changed
+
+- `auth_required` envelope hint is now branched by transport.
+  `classifyError(err, toolName?, transport?)` accepts the active
+  transport; for `transport: "http"` (the hosted MCP) the hint points
+  the caller at the local-install path
+  (`npx -y @agenttrust-sdk/mcp@latest`) instead of "restart the MCP
+  server" guidance that remote callers cannot act on. The thrown source
+  message in `chain.ts:requireSigner()` is trimmed to a stable
+  matchable substring; the classifier emits the actionable copy. The
+  hosted MCP is **read-only by design**, not a degraded local install.
+  **B-002 closed.**
+
+### Docs
+
+- New "Two MCP surfaces" section in
+  [`/quickstart`](https://docs.agenttrust.tech/quickstart#two-mcp-surfaces)
+  with the comparison table (local install: full 21-tool surface +
+  user's keypair · hosted: 13 read-only tools + no shared signer by
+  design). One-paragraph framing in the top-level README.
+- `agenttrust_setup_agent` prompt rewritten around `init_policy`'s
+  self-heal: 1-2 calls instead of the stale 4-step off-band flow.
+- Quickstart sample output now lists three `healedSteps`
+  (`register_agent_via_cpi`, `init_authority`, `init_killswitch`) and
+  describes the ephemeral asset-Keypair behaviour correctly (the
+  caller's wallet is the payer, not the agent_asset).
+- Canonical demo-video recording directive at
+  [`submission/demo-video-script.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/submission/demo-video-script.md).
+
+## [0.4.4] — 2026-05-13
+
+Tag: `mcp-v0.4.4` · The self-heal cascade in `agenttrust_init_policy`
+now covers the AgentTrust `KillSwitchState` PDA as well. Before this
+release, a freshly bootstrapped agent's first `simulate_payment` would
+hit Anchor error 3012 on the missing kill-switch state account; the
+self-heal landed every other PDA but skipped this one. The single
+atomic tx now includes seven program instruction logs in order:
+`RegisterAgentViaCpi` → `RegisterWithOptions` → `CreateV2` →
+`InitializeStats` → `InitAuthority` → `InitKillswitch` → `InitPolicy`.
+
+### Changed
+
+- `agenttrust_init_policy` self-heal now returns
+  `healedSteps: ["register_agent_via_cpi", "init_authority", "init_killswitch"]`
+  (three entries; previously two). Idempotent on second run when the
+  PDAs already exist.
+
+## [0.4.1] — 2026-05-11
+
+Tag: `mcp-v0.4.1` · Refreshed the bundled IDL files (`policy_vault.json`,
+`trustgate.json`, `validation_registry.json`) to match the live devnet
+programs after the 0.4.0 trustgate refresh
+(`register_agent_via_cpi` orchestration). No SDK / API changes.
+
+## [0.4.0] — 2026-05-11
+
+Tag: `mcp-v0.4.0` · Single-bootstrap headline. `agenttrust_init_policy`
+self-heals Quantu's `agent_account` + `atom_stats` via TrustGate's new
+`register_agent_via_cpi` instruction, atomically in the same tx as
+`init_authority` + `init_policy`. A fresh wallet plus one prompt
+produces a fully atom-functional agent identity — no off-band setup,
+no Anchor 3012 on first simulate, no Quantu instruction names to
+learn.
+
+### Added
+
+- `agenttrust_register_namespace` write tool — register a
+  `CapabilityNamespace` PDA on the ValidationRegistry program.
+- `agenttrust_register_attestor` write tool — register an
+  `AttestorProfile` PDA (required before `respond_to_validation`).
+- Two new write tools brings the surface to **21 tools** (10 read + 8
+  write + 3 discovery), up from 19.
+
+### Changed
+
+- `agenttrust_init_policy` is now the single-bootstrap call: when the
+  signer wallet doesn't already have a Quantu `agent_account` PDA, the
+  tool prepends `register_agent_via_cpi` into the same atomic tx.
+  Successful self-heal returns
+  `healedSteps: ["register_agent_via_cpi", "init_authority"]`.
+- Refreshed bundled IDL files to match the trustgate refresh.
+
 ## [0.3.5] — 2026-05-13
 
 Tag: `mcp-v0.3.5` · Polish wave from the gate E2E rerun that confirmed
