@@ -81,7 +81,7 @@ Health check:
 
 ```bash
 curl https://mcp.agenttrust.tech/healthz
-# → {"ok":true,"service":"agenttrust-mcp","version":"0.4.0","network":"solana-devnet","toolCount":21,…}
+# → {"ok":true,"service":"agenttrust-mcp","version":"0.4.5","network":"solana-devnet","toolCount":21,…}
 ```
 
 Hosted on Fly.io (Singapore region, shared-cpu-1x@256MB, always-on with auto-resume on idle). Use this URL in any MCP client that speaks `StreamableHTTPServerTransport` — no local install required. Full hosted-endpoint reference: [Hosted endpoint](/mcp/hosted-endpoint).
@@ -121,7 +121,31 @@ If you already use `solana-keygen` locally, no env is needed. To set an explicit
 }
 ```
 
-Without any usable signer, write tools surface a clear `signer required` error. Read and discovery tools never need one.
+Without any usable signer, write tools surface a clear `auth_required` envelope. Read and discovery tools never need one.
+
+### The `auth_required` envelope
+
+Write tools that fail the signer check return a structured envelope, not a raw chain error. The hint copy is branched by transport:
+
+```json
+// Local install (stdio): tell the developer how to wire a keypair
+{
+  "errorCode": "auth_required",
+  "message":   "Signer required (needed by `agenttrust_init_policy`).",
+  "hint":      "Set KEYPAIR_B58 (base58-encoded 64-byte secret), KEYPAIR_PATH, or `solana config get` to point at a funded keypair, then restart the MCP server.",
+  "cause":     "This tool requires a signer. Set one of: KEYPAIR_B58, KEYPAIR_PATH, or `solana config get`."
+}
+
+// Hosted (HTTP): point the caller at the local-install path
+{
+  "errorCode": "auth_required",
+  "message":   "Signer required (needed by `agenttrust_init_policy`).",
+  "hint":      "This is the hosted read-only endpoint. To use write tools, install MCP locally: npx -y @agenttrust-sdk/mcp@latest. Hosted MCP signs nothing on your behalf by design — your keypair stays on your machine.",
+  "cause":     "This tool requires a signer. Set one of: KEYPAIR_B58, KEYPAIR_PATH, or `solana config get`."
+}
+```
+
+The hosted endpoint at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) is **read-only by design** and ships no signer. A shared signer would mean every user's on-chain identity is owned by the operator; that's a security model, not a UX shortcut. For write tools, install the MCP locally with your own keypair. See [/quickstart](/quickstart#two-mcp-surfaces) for the surface comparison table.
 
 Convert a Solana CLI keypair to base58:
 

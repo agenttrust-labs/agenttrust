@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-05-12
+
+Tag: `sdk-v0.4.1` · Pairs with `mcp@0.4.4`. Closes the trailing
+chain-level holes surfaced while wiring up `init_policy`'s self-heal
+cascade.
+
+### Fixed
+
+- `register_agent_via_cpi` instruction builder now appends the
+  `agent_registry_8004` program to `remainingAccounts`. The trustgate
+  Rust handler `invoke_signed`s into that program; the Solana runtime
+  needs its AccountInfo in the tx account list to resolve the CPI.
+  Without it, the same `Unknown program 8oo4J9tBB…` log fires that
+  later surfaced separately for `emit_feedback` (closed in
+  `mcp@0.4.5`).
+- `register_agent_via_cpi`'s on-chain handler now uses `init_if_needed`
+  for the `TrustGateAuthority` PDA so the self-heal cascade is
+  idempotent even when the facilitator already has an authority. The
+  prior shape relied on the caller to skip `init_authority` when the
+  authority existed; the new shape collapses both branches into a
+  single instruction.
+
+## [0.4.0] — 2026-05-11
+
+Tag: `sdk-v0.4.0` · The single-bootstrap headline. New trustgate
+instruction `register_agent_via_cpi` orchestrates Quantu onboarding in
+one program-signed CPI; the SDK ships the matching builder, PDA
+derivers, and tests so any client can compose the bootstrap path.
+
+### Added
+
+- `buildRegisterAgentViaCpiIx(opts)` instruction builder targeting the
+  new on-chain `trustgate::register_agent_via_cpi` handler. Threads
+  the Quantu accounts through `remainingAccounts` per the documented
+  order and PDA-signs the inner `agent_registry::register_with_options`
+  + `atom_engine::initialize_stats` CPIs.
+- `deriveQuantuRegisterAccounts(opts)` helper exposing the full
+  `(agent_account, atom_stats, atom_config, registry_authority)`
+  quadruple required by the inner CPIs. Single source of truth for
+  any caller that needs to materialise the same account set off-band.
+- Public constants for the MPL Core base collection on devnet and the
+  trustgate root + registry config PDAs (`BASE_COLLECTION_DEVNET`,
+  `deriveRootConfigPda`, `deriveRegistryConfigPda`,
+  `MPL_CORE_PROGRAM_ID`).
+
+### Changed
+
+- The `composeAtomicSettleTx` path is unchanged; only new builders are
+  added. Existing 0.2.x / 0.3.x consumers see no breaking changes.
+
 ## [0.3.2] — 2026-05-13
 
 Tag: `sdk-v0.3.2` · Pipeline-only release pairing the mcp 0.3.5

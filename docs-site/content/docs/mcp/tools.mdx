@@ -105,13 +105,13 @@ The demo state is bundled in the tarball as of 0.2.3 — the published package d
 
 ### `agenttrust_init_authority`
 
-Required args: `agent_asset`, `members` (1–5 base58 pubkeys), `threshold`. Creates the `PolicyAuthority` PDA at `["policy_authority", agent_asset]`. You rarely call this directly in 0.4.0 — `init_policy` prepends it transparently when the PDA is missing. Use this tool when you need a non-trivial multisig (members > 1) before any policy is created.
+Required args: `agent_asset`, `members` (1–5 base58 pubkeys), `threshold`. Creates the `PolicyAuthority` PDA at `["policy_authority", agent_asset]`. You rarely call this directly in 0.4.x — `init_policy` prepends it transparently when the PDA is missing. Use this tool when you need a non-trivial multisig (members > 1) before any policy is created.
 
 ### `agenttrust_init_policy`
 
-Required args: `agent_asset`, `policy_id`, `enabled_kinds_bitmask` (e.g., `0b11111` = all five kinds). Optional: `metadata_uri` (used when self-healing Quantu registration; max 256 bytes), and every `PolicyAccount` field — defaults are documented in [`programs/policy-vault/src/instructions/init_policy.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs).
+Required args: `policy_id`, `enabled_kinds_bitmask` (e.g., `0b11111` = all five kinds). Optional: `agent_asset` (omit to let the tool generate a fresh identity), `metadata_uri` (used when self-healing Quantu registration; max 256 bytes), and every `PolicyAccount` field — defaults are documented in [`programs/policy-vault/src/instructions/init_policy.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs).
 
-AgentTrust 0.4.0 single-bootstrap behavior: when the signer wallet equals `agent_asset` and the Quantu `agent_account` PDA does not exist, the tool prepends TrustGate's `register_agent_via_cpi` into the same atomic transaction. That instruction CPIs into `agent_registry_8004::register_with_options` and `atom_engine::initialize_stats`, so the user's wallet ends up with a Quantu agent profile, an `atom_stats` PDA, an AgentTrust `PolicyAuthority`, and the new policy — all in one signed tx. Successful self-heal returns `healedSteps: ["register_agent_via_cpi", "init_authority"]`.
+Single-bootstrap behaviour: when `agent_asset` is omitted, the tool generates a fresh ephemeral asset Keypair and prepends TrustGate's `register_agent_via_cpi` into the same atomic transaction. That instruction CPIs into `agent_registry_8004::register_with_options` and `atom_engine::initialize_stats`. The same call also self-heals the AgentTrust `PolicyAuthority` PDA (`init_authority`) and the `KillSwitchState` PDA (`init_killswitch`) when either is missing. End result: a brand-new Quantu agent profile, an `atom_stats` PDA, the AgentTrust authority + kill-switch, plus the new `PolicyAccount` + `VelocityLedger` — all in one signed tx. Successful self-heal returns `healedSteps: ["register_agent_via_cpi", "init_authority", "init_killswitch"]`.
 
 ### `agenttrust_set_killswitch`
 
@@ -161,7 +161,7 @@ Maps a `DenyReason` code (`1..15`) to the canonical name + remediation hint. Sam
 
 ## Validation status
 
-Phase M comprehensive E2E (2026-05-07): all 18 tools present, 10/10 read tools return live devnet state with clickable Explorer URLs, 6/6 PDAs cross-validated against on-chain ground truth, 4/4 Explorer URLs return HTTP 200. Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-m-mcp-e2e.md).
+Phase M comprehensive E2E (2026-05-07): all 18 tools present at the time of that report, 10/10 read tools return live devnet state with clickable Explorer URLs, 6/6 PDAs cross-validated against on-chain ground truth, 4/4 Explorer URLs return HTTP 200. Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-m-mcp-e2e.md). The surface has since grown to 21 tools (10 read + 8 write + 3 discovery) in 0.4.x — confirmed live via [`mcp.agenttrust.tech/healthz`](https://mcp.agenttrust.tech/healthz).
 
 Phase P real-LLM tool-routing (2026-05-08): 7/10 strict pass on natural-language scenarios via Claude `sonnet`. The three false negatives were context-gathering artefacts (the LLM called `agenttrust_demo_state` first to gather context, then the expected tool); a less agentic client would score 9/10. Full report: [`docs/proofs/phase-p-llm-routing.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-p-llm-routing.md).
 

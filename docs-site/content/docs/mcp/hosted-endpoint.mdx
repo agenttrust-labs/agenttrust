@@ -19,7 +19,7 @@ Returns:
 {
   "ok":             true,
   "service":        "agenttrust-mcp",
-  "version":        "0.4.0",
+  "version":        "0.4.5",
   "network":        "solana-devnet",
   "rpcUrl":         "https://api.devnet.solana.com",
   "uptimeSeconds":  60978,
@@ -66,7 +66,7 @@ Mcp-Session-Id: 9f3a…
   "result": {
     "protocolVersion": "2025-03-26",
     "capabilities":    { "tools": {}, "resources": {}, "prompts": {} },
-    "serverInfo":      { "name": "agenttrust", "version": "0.4.0" }
+    "serverInfo":      { "name": "agenttrust", "version": "0.4.5" }
   }
 }
 ```
@@ -181,7 +181,7 @@ Phase M end-to-end test against the hosted endpoint:
 
 | Check | Result |
 |---|---|
-| `GET /healthz` | 200, returns `version: "0.4.0"`, `toolCount: 21` |
+| `GET /healthz` | 200, returns `version: "0.4.5"`, `toolCount: 21` |
 | `POST /` initialize | 200, returns matching `serverInfo`, `Mcp-Session-Id` header set |
 | `tools/list` | 21 tools, exact match with stdio |
 | `tools/call agenttrust_simulate_payment` | `{ kind: "Allow" }` for the tier-3 demo agent |

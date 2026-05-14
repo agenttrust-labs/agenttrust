@@ -19,9 +19,9 @@ this package is the TypeScript surface that lets x402 facilitators
 AgentTrust ships day-one Pay.sh adapter as the canonical reference impl.
 
 > **Companion package:** [`@agenttrust-sdk/mcp`](https://www.npmjs.com/package/@agenttrust-sdk/mcp) —
-> 18-tool MCP server. Drop into Claude Desktop / Cursor with
-> `npx @agenttrust-sdk/mcp` and query the deployed AgentTrust programs
-> via natural language.
+> 21-tool MCP server (10 read · 8 write · 3 discovery). Drop into
+> Claude Desktop / Cursor with `npx @agenttrust-sdk/mcp` and query the
+> deployed AgentTrust programs via natural language.
 
 ## Breaking changes (0.2.0)
 
