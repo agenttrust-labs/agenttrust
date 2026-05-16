@@ -29,6 +29,8 @@ export const PUBLIC_LINKS = {
   privacy: "/privacy",
   site: "https://agenttrust.tech",
   terms: "/terms",
+  blog: "/blog",
+  blogFeed: "/blog/feed.xml",
 } as const;
 
 export const SOCIAL_LINKS = {

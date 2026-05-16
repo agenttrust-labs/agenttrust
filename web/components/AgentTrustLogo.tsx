@@ -1,7 +1,7 @@
-export default function AgentTrustLogo() {
+export default function AgentTrustLogo({ href = "#home" }: { href?: string } = {}) {
   return (
     <a
-      href="#home"
+      href={href}
       aria-label="AgentTrust home"
       className="group flex h-6 items-center gap-2 text-ink"
     >
