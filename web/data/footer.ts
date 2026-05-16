@@ -13,7 +13,7 @@ export interface FooterLinkGroup {
 export type FooterUtilityLink = FooterLink;
 
 export interface FooterSocialLink extends FooterLink {
-  readonly icon: "discord" | "x";
+  readonly icon: "discord" | "x" | "rss";
 }
 
 export const NEWSLETTER_CONTENT = {
@@ -30,6 +30,7 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
       { href: "#trust-stack", label: "Trust Stack" },
       { href: "#performance", label: "Performance" },
       { href: "#network", label: "Network" },
+      { href: PUBLIC_LINKS.blog, label: "Blog" },
     ],
   },
   {

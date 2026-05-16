@@ -45,8 +45,8 @@ export const HERO_ACTIONS: readonly HeroAction[] = [
   },
   {
     icon: "file",
-    label: "Read the Documentation",
-    href: PUBLIC_LINKS.docs,
+    label: "View on GitHub",
+    href: PUBLIC_LINKS.github,
     variant: "secondary",
   },
 ];
