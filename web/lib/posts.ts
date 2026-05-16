@@ -61,7 +61,7 @@ export const getAllPosts = cache(async (): Promise<PostMeta[]> => {
   return posts
     .filter((post): post is Post => post !== null)
     .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .map(({ content: _content, ...meta }) => meta);
+    .map(({ content, ...meta }) => { void content; return meta; });
 });
 
 export const getPost = cache(async (slug: string): Promise<Post | null> => {
