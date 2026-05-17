@@ -14,6 +14,7 @@ export interface PostFrontmatter {
 export interface PostMeta extends PostFrontmatter {
   readonly slug: string;
   readonly readingTime: string;
+  readonly coverImage: string;
 }
 
 export interface Post extends PostMeta {
@@ -43,6 +44,7 @@ async function readPostFile(slug: string): Promise<Post | null> {
     date: data.date,
     author: data.author,
     readingTime: stats.text,
+    coverImage: `/blog/covers/${slug}.png`,
     content: parsed.content,
   };
 }

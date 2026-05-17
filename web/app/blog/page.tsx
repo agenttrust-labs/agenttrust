@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import BlogTopBar from "@/components/blog/BlogTopBar";
 import { PUBLIC_LINKS } from "@/data/links";
@@ -52,8 +53,16 @@ export default async function BlogIndexPage() {
               className={styles.card}
               aria-label={post.title}
             >
-              <div className={styles.cardCover} aria-hidden="true">
-                <span className={styles.cardSlug}>{post.slug}</span>
+              <div className={styles.cardCover}>
+                <Image
+                  className={styles.cardCoverImage}
+                  src={post.coverImage}
+                  alt=""
+                  width={1536}
+                  height={1024}
+                  sizes="(max-width: 940px) 100vw, 50vw"
+                  priority={false}
+                />
               </div>
               <div className={styles.cardBody}>
                 <h2 className={styles.cardTitle}>{post.title}</h2>
