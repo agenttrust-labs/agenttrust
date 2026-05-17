@@ -7,6 +7,12 @@ author: "Mohit"
 
 An AI agent moving stablecoins under a policy you have not proven safe is a footgun with a network connection. The failure mode that matters is the same on every payment rail. An `Allow` returned when the policy meant `Deny`. The money is already gone by the time anyone notices. Most "safety checks" sitting between an agent and a settlement are integration tests. Tests run on the inputs you remembered to write. Kani runs on every input the type system allows. AgentTrust's PolicyVault ships six invariants, 635 sub-checks total, in about 64 seconds on every PR. That is the unit of trust this post is about.
 
+<StatGrid>
+  <Stat number="6" unit="invariants" label="Each one names a load-bearing property" />
+  <Stat number="635" unit="sub-checks" label="Discharged on every pull request" />
+  <Stat number="~64" unit="seconds" label="Wall time on a single CI runner" />
+</StatGrid>
+
 ## What Kani actually does
 
 Kani is a symbolic model checker for Rust. It reads your function, enumerates the state space the function can reach, and either returns a concrete counterexample or proves the property clean. The PolicyVault uses it via [`model-checking/kani`](https://github.com/model-checking/kani). You write a harness that declares the inputs as `kani::any()` and asserts the property at the end. If a single reachable state breaks the assertion, Kani prints the witness with every field value populated. If none does, the property holds for every value the input types admit. That is a stronger claim than any test suite can make.
@@ -62,6 +68,10 @@ CI runs all six harnesses on every pull request that touches `programs/policy-va
 Not nine, not three. Each invariant names a load-bearing property of one policy kind, plus the composer correctness that binds them together. `paused_implies_no_allow` is the only property the KillSwitch policy needs to be safe. `velocity_counter_le_limit` is the only one the Velocity policy needs. `counterparty_tier_monotone` is the one the CounterpartyTier policy needs. `validation_expiry_correct` is the one RequireValidation needs. `multisig_threshold_enforced` covers the KillSwitch authority surface. `gate_payment_strict_correctness` proves the composer itself never lies about what its arms mean. Five policy kinds plus one composer equals six.
 
 ## What this is not
+
+<Quote attribution="AgentTrust formal verification stance">
+Tests check the inputs you remembered. Kani checks every input the type system allows. The unit of trust shifts.
+</Quote>
 
 <Note>
 Kani proves what you ask it to prove. The six harnesses cover the gate-decision surface of the PolicyVault program deployed at [`8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR`](https://explorer.solana.com/address/8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR?cluster=devnet). They do not prove the absence of integer overflow elsewhere in the workspace. They do not replace the Anchor TS integration tests that run against live devnet. They do not cover the off-chain facilitator code, the SDK, or the MCP. What they cover is the on-chain decision surface, which is the exact boundary an AI agent's blast radius reduces to once a payment is in flight. For the broader proof set, the adversarial harness, and the devnet smoke runs, read the [Live evidence](https://docs.agenttrust.tech/verification/live-evidence) page.

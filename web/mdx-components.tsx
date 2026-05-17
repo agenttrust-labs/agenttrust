@@ -2,7 +2,11 @@ import type { MDXComponents } from "mdx/types";
 import type { ReactElement, ReactNode } from "react";
 import { isValidElement } from "react";
 import CodeBlock from "@/components/blog/CodeBlock";
+import { DataPanel, DataRow } from "@/components/blog/DataPanel";
 import Note from "@/components/blog/Note";
+import { Pillar, PillarGrid } from "@/components/blog/Pillar";
+import Quote from "@/components/blog/Quote";
+import { Stat, StatGrid } from "@/components/blog/Stat";
 
 function getStringChild(node: ReactNode): string {
   if (typeof node === "string") return node;
@@ -23,6 +27,13 @@ function extractLang(className: string | undefined): string | undefined {
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     Note,
+    Quote,
+    Stat,
+    StatGrid,
+    Pillar,
+    PillarGrid,
+    DataPanel,
+    DataRow,
     pre: ({ children }) => {
       if (
         isValidElement<{ className?: string; children?: ReactNode }>(children) &&
