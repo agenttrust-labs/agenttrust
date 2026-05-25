@@ -5,7 +5,7 @@ import {
   getLatestUserPrompt,
   sanitizeMessages,
 } from '@/lib/server/input';
-import { createOpenAIProvider, MissingOpenAIKeyError } from '@/lib/server/openai';
+import { createAskAiProvider, MissingAskAiKeyError } from '@/lib/server/ask-ai-provider';
 import { checkRateLimit, hashIp, ipFromRequest } from '@/lib/server/ratelimit';
 
 export const runtime = 'nodejs';
@@ -54,23 +54,22 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
+    const provider = createAskAiProvider();
     const result = streamText({
-      model: createOpenAIProvider().chatModel(),
-      system: await buildDocsAssistantPrompt(),
-      messages: await convertToModelMessages(messages),
+      model: provider.model,
+      messages: [
+        provider.systemMessage(await buildDocsAssistantPrompt()),
+        ...(await convertToModelMessages(messages)),
+      ],
       temperature: 0.2,
       experimental_transform: smoothStream({ chunking: 'word' }),
-      providerOptions: {
-        openai: {
-          promptCacheKey: 'docs-assistant-v1',
-        },
-      },
+      ...provider.callOptions,
     });
 
     return result.toUIMessageStreamResponse();
   } catch (error) {
-    if (error instanceof MissingOpenAIKeyError) {
-      return errorResponse('OPENAI_API_KEY is not configured for this deployment.', { status: 503 });
+    if (error instanceof MissingAskAiKeyError) {
+      return errorResponse('Ask AI is not configured for this deployment.', { status: 503 });
     }
     return errorResponse('Ask AI failed. Try again shortly.', { status: 500 });
   }
