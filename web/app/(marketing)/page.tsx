@@ -6,6 +6,7 @@ import Hero from "@/components/Hero";
 import NetworkSection from "@/components/NetworkSection";
 import PerformanceSection from "@/components/PerformanceSection";
 import PlugAndPlaySection from "@/components/PlugAndPlaySection";
+import ProgramsSection from "@/components/ProgramsSection";
 import SectionMarkers from "@/components/SectionMarkers";
 import StorytellingSection from "@/components/StorytellingSection";
 import TopNav from "@/components/TopNav";
@@ -20,6 +21,7 @@ export default function Home() {
         <Hero />
         <BenchmarkSection />
         <StorytellingSection />
+        <ProgramsSection />
         <PerformanceSection />
         <PlugAndPlaySection />
         <NetworkSection />
