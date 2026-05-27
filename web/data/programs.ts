@@ -9,7 +9,7 @@ export interface DevnetProgram {
 
 export const PROGRAMS_SECTION_ID = "programs";
 
-export const PROGRAMS_EYEBROW = "Live · Solana devnet";
+export const PROGRAMS_EYEBROW = "Live on Solana devnet";
 
 export const PROGRAMS_TITLE = {
   lead: "Three smart contracts,",
@@ -17,13 +17,7 @@ export const PROGRAMS_TITLE = {
 } as const;
 
 export const PROGRAMS_INTRO =
-  "Three Anchor programs compose into a single payment path on Solana devnet. The policy engine is proven correct with Kani, and every address opens in the explorer.";
-
-export const PROGRAMS_PROOFS: readonly string[] = [
-  "6 / 6 invariants proven with Kani",
-  "Atomic settlement in one transaction",
-  "MIT licensed",
-];
+  "Three Anchor programs compose into a single payment path on Solana devnet. Every agent payment runs through them, and every address opens in the explorer.";
 
 export const DEVNET_PROGRAMS: readonly DevnetProgram[] = [
   {
