@@ -4,7 +4,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 interface PerformanceScrollAnimationConfig {
   readonly isReducedMotion: boolean;
   readonly root: HTMLElement;
-  readonly stage: HTMLElement;
 }
 
 function readNumberAttribute(
@@ -51,7 +50,6 @@ function setCountersProgress(root: HTMLElement, progress: number): void {
 export function createPerformanceScrollAnimation({
   isReducedMotion,
   root,
-  stage,
 }: PerformanceScrollAnimationConfig): () => void {
   gsap.registerPlugin(ScrollTrigger);
 
@@ -80,14 +78,11 @@ export function createPerformanceScrollAnimation({
   }
 
   media.add("(min-width: 940px)", () => {
-    const pinTrigger = ScrollTrigger.create({
-      trigger: root,
-      start: "top top",
-      end: "bottom bottom",
-      pin: stage,
-      pinSpacing: true,
-    });
-
+    // The stage is already pinned via CSS `position: sticky` (PerformanceScroll.module.css,
+    // .stage + .pinArea height: 350dvh). A second GSAP `pin` here inserts a pin-spacer and
+    // flips the stage to fixed positioning on top of the sticky, which fights it and shifts
+    // the absolutely-positioned bars — the source of the section's layout shift (CLS). Rely
+    // on the CSS sticky alone; GSAP only scrubs the counters.
     const counterTrigger = ScrollTrigger.create({
       trigger: root,
       start: "top top",
@@ -101,7 +96,6 @@ export function createPerformanceScrollAnimation({
     setCountersProgress(root, 0);
 
     return () => {
-      pinTrigger.kill();
       counterTrigger.kill();
     };
   });

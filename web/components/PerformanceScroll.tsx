@@ -14,21 +14,18 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 export default function PerformanceScroll() {
   const isReducedMotion = useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
       const root = rootRef.current;
-      const stage = stageRef.current;
 
-      if (!root || !stage) {
+      if (!root) {
         return;
       }
 
       return createPerformanceScrollAnimation({
         isReducedMotion,
         root,
-        stage,
       });
     },
     { dependencies: [isReducedMotion], revertOnUpdate: true, scope: rootRef },
@@ -36,7 +33,7 @@ export default function PerformanceScroll() {
 
   return (
     <div className={styles.pinArea} ref={rootRef}>
-      <div className={styles.stage} ref={stageRef}>
+      <div className={styles.stage}>
         <div className={styles.dots} aria-hidden="true" />
         <div className={styles.content}>
           <p className={styles.eyebrow} data-performance-reveal>
