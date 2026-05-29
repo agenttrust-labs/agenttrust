@@ -88,3 +88,6 @@ submission/e2e-claude-code-*/**/test-wallet.b58
 
 # Marketing video Remotion project (brand-locked, renders are heavy, private)
 marketing-video/
+
+# Program keypairs — secret keys, never track. Program IDs are public via Anchor.toml / declare_id!.
+keys/
