@@ -11,8 +11,6 @@
 [![CI workflows](https://img.shields.io/badge/CI-16_workflows-c2410c?style=flat-square)](.github/workflows/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-c2410c?style=flat-square)](./LICENSE)
 
-Submitted to the **Solana Frontier 2026** hackathon by [@mohit-1710](https://github.com/mohit-1710).
-
 **Read first:** [`docs/COMPLETING-THE-TRUST-STACK.md`](./docs/COMPLETING-THE-TRUST-STACK.md) — the full v1 narrative (~2k words, Foundation-aligned).
 
 ---
@@ -355,4 +353,4 @@ MIT for everything in `programs/`, `trustgate/sdk/`, `trustgate/server/`, `tests
 
 ## Contact
 
-Questions or feedback: email [mohit@agenttrust.tech](mailto:mohit@agenttrust.tech) or [open an issue](https://github.com/agenttrust-labs/agenttrust/issues).
+Questions or feedback: email [mohit@agenttrust.tech](mailto:mohit@agenttrust.tech) or [open an issue](https://github.com/agenttrust-labs/agenttrust/issues). Follow us on X: [@agenttrustlabs](https://x.com/agenttrustlabs).
