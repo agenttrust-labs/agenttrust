@@ -355,4 +355,4 @@ MIT for everything in `programs/`, `trustgate/sdk/`, `trustgate/server/`, `tests
 
 ## Contact
 
-Built solo by Mohit ([@mohit-1710](https://github.com/mohit-1710)) for the Solana Frontier 2026 hackathon. Issues / questions: [open an issue](https://github.com/agenttrust-labs/agenttrust/issues).
+Questions or feedback: email [mohit@agenttrust.tech](mailto:mohit@agenttrust.tech) or [open an issue](https://github.com/agenttrust-labs/agenttrust/issues).
