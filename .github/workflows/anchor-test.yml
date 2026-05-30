@@ -9,7 +9,6 @@ on:
       - 'Cargo.lock'
       - 'tests/**'
       - 'trustgate/sdk/src/**'
-      - 'keys/**'
       - '.github/workflows/anchor-test.yml'
     # NOTE on docs-only diffs: GitHub Actions rejects `paths` +
     # `paths-ignore` at the same trigger level (HTTP 422 "you may
@@ -25,7 +24,6 @@ on:
       - 'Cargo.lock'
       - 'tests/**'
       - 'trustgate/sdk/src/**'
-      - 'keys/**'
       - '.github/workflows/anchor-test.yml'
   workflow_dispatch:
 
@@ -170,25 +168,28 @@ jobs:
           avm use ${ANCHOR_VERSION}
           anchor --version
 
-      - name: Restore program keypairs from keys/
+      - name: Restore program keypairs from secrets
         # `anchor build` emits target/deploy/<program>-keypair.json
         # if it doesn't exist; on a fresh CI checkout the keypair is
         # randomly generated and its pubkey diverges from the
         # source-code declare_id!. Anchor 1.0.1 hard-fails the build
         # with "Program ID mismatch detected" in that case.
         #
-        # The keys/ dir holds the canonical keypairs that generate
-        # the deployed program IDs (8Y6f… / HF8z… / Cx4R…) — these
-        # are NOT secrets (any deploy authority is a separate key),
-        # they just identify the on-chain program. Copy them into
+        # The canonical keypairs that generate the deployed program IDs
+        # (8Y6f… / HF8z… / Cx4R…) are stored as repo secrets (the keys/
+        # dir is gitignored and not in the checkout). Write them into
         # target/deploy/ before `anchor build` so the keypair check
         # passes and the produced .so files can be deployed (in
         # `anchor test`) at the source-declared IDs.
+        env:
+          POLICY_VAULT_KEYPAIR: ${{ secrets.POLICY_VAULT_KEYPAIR }}
+          TRUSTGATE_KEYPAIR: ${{ secrets.TRUSTGATE_KEYPAIR }}
+          VALIDATION_REGISTRY_KEYPAIR: ${{ secrets.VALIDATION_REGISTRY_KEYPAIR }}
         run: |
           mkdir -p target/deploy
-          cp keys/policy_vault-keypair.json        target/deploy/policy_vault-keypair.json
-          cp keys/trustgate-keypair.json           target/deploy/trustgate-keypair.json
-          cp keys/validation_registry-keypair.json target/deploy/validation_registry-keypair.json
+          printf '%s' "$POLICY_VAULT_KEYPAIR"        > target/deploy/policy_vault-keypair.json
+          printf '%s' "$TRUSTGATE_KEYPAIR"           > target/deploy/trustgate-keypair.json
+          printf '%s' "$VALIDATION_REGISTRY_KEYPAIR" > target/deploy/validation_registry-keypair.json
 
       - name: Anchor build (skip-lint disabled per Anchor.toml)
         run: anchor build
