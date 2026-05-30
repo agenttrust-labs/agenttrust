@@ -10,6 +10,9 @@
 [![Kani 6/6](https://img.shields.io/badge/kani-6%2F6_proven-c2410c?style=flat-square)](.github/workflows/kani-prove.yml)
 [![CI workflows](https://img.shields.io/badge/CI-16_workflows-c2410c?style=flat-square)](.github/workflows/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-c2410c?style=flat-square)](./LICENSE)
+[![Follow on X](https://img.shields.io/badge/follow-@agenttrustlabs-c2410c?style=flat-square&logo=x&logoColor=white)](https://x.com/agenttrustlabs)
+
+### Follow us on X → [@agenttrustlabs](https://x.com/agenttrustlabs)
 
 **Read first:** [`docs/COMPLETING-THE-TRUST-STACK.md`](./docs/COMPLETING-THE-TRUST-STACK.md) — the full v1 narrative (~2k words, Foundation-aligned).
 
