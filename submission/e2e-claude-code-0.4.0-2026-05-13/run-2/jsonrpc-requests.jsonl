@@ -1,7 +1,0 @@
-{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"gate-e2e","version":"0.4.0"}},"id":1}
-{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}
-{"jsonrpc":"2.0","method":"tools/list","params":{},"id":2}
-{"jsonrpc":"2.0","method":"tools/call","params":{"name":"agenttrust_init_policy","arguments":{"agent_asset":"GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o","policy_id":1,"enabled_kinds_bitmask":2,"spending":{"per_tx_max":"1000000"}}},"id":3}
-{"jsonrpc":"2.0","method":"tools/call","params":{"name":"agenttrust_init_policy","arguments":{"agent_asset":"GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o","policy_id":2,"enabled_kinds_bitmask":2,"spending":{"per_tx_max":"500000"}}},"id":4}
-{"jsonrpc":"2.0","method":"tools/call","params":{"name":"agenttrust_demo_state","arguments":{}},"id":5}
-{"jsonrpc":"2.0","method":"tools/call","params":{"name":"agenttrust_simulate_payment","arguments":{"caller":"GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o","payer_agent":"GCoJB3pVSeSwrky3FkHQcXxEj61XyeBWxpFWYtXTFp5o","payee_agent":"BTcgiDauqVHoGMiXujytE5wycfncDEmNnXJiUZ4s4oWL","amount":"5000000","mint":"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v","policy_id":1}},"id":6}

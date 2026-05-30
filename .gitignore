@@ -71,20 +71,8 @@ docs/video-scripts/
 # X / social orchestration workspace (private, expansive, not for git)
 x_posts_agenttrust/
 
-# Submission artifacts (local-only per submission/README.md)
-submission/*
-# Whitelist post-merge e2e verification artifacts so they ship as proof
-!submission/e2e-verification-*/
-!submission/e2e-verification-*/**
-# Whitelist Claude-Code-as-client gate E2E artifacts so they ship as proof.
-!submission/e2e-claude-code-*/
-!submission/e2e-claude-code-*/**
-# Canonical recording directive for the demo video — not a run artifact.
-!submission/demo-video-script.md
-# But never commit wallet secrets even from devnet gate runs.
-# Pubkeys (test-wallet.pubkey.txt) are kept for verification.
-submission/e2e-claude-code-*/**/test-wallet.json
-submission/e2e-claude-code-*/**/test-wallet.b58
+# Submission artifacts — local-only, never tracked on remote.
+submission/
 
 # Marketing video Remotion project (brand-locked, renders are heavy, private)
 marketing-video/
