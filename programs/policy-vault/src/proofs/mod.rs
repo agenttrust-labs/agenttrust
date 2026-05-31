@@ -2,8 +2,8 @@
 //!
 //! Compiled and run only under `cargo kani`. Each harness asserts a
 //! load-bearing invariant of the PolicyVault decision logic. Six v1
-//! invariants per `docs/plan/research/04-policyvault-build-playbook.md §H`
-//! plus Phase J5:
+//! invariants per `docs/plan/research/04-policyvault-build-playbook.md §H`,
+//! plus Phase J5 and a Spending safety bound:
 //!   1. `paused_implies_no_allow`         — KillSwitch paused ⇒ never Allow
 //!   2. `velocity_counter_le_limit`       — post-Allow Velocity counter ≤ cap
 //!   3. `counterparty_tier_monotone`      — tighter min_tier passes ⇒ looser passes
@@ -12,6 +12,8 @@
 //!   6. `gate_payment_strict_correctness` — strict handler returns Ok ⇔ Allow
 //!                                          (Phase J5 — pins the contract the
 //!                                          SDK's composeAtomicSettleTx relies on)
+//!   7. `spending_allow_respects_caps`    — Spending Allow honors per-tx, daily,
+//!                                          and weekly caps at once (inductive)
 //!
 //! Harnesses live in pure-Rust modules so Kani never has to interpret
 //! Anchor's `#[program]` macro — the Anchor wrapper (`gate_payment.rs`)
@@ -24,6 +26,7 @@ pub mod inv_counterparty_tier_monotone;
 pub mod inv_gate_payment_strict_correctness;
 pub mod inv_multisig_threshold_enforced;
 pub mod inv_paused_implies_no_allow;
+pub mod inv_spending_allow_respects_caps;
 pub mod inv_validation_expiry_correct;
 pub mod inv_velocity_counter_le_limit;
 pub mod smoke;
