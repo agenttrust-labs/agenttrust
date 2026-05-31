@@ -1,14 +1,14 @@
 # PolicyVault formal verification — Kani proofs
 
-PolicyVault ships with **6 machine-checked invariants** proved by
+PolicyVault ships with **7 machine-checked invariants** proved by
 [model-checking/kani](https://github.com/model-checking/kani) (v0.67.0).
 Each invariant is a `#[kani::proof]` harness over a pure-Rust composer or
 helper; CI ([`.github/workflows/kani-prove.yml`](../../.github/workflows/kani-prove.yml))
-re-runs all six on every PR.
+re-runs all seven on every PR.
 
-**Total: 635 sub-checks, 6/6 proven, ~80s on a single CI runner.**
+**Total: 662 sub-checks, 7/7 proven, ~81s on a single CI runner.**
 
-## The six invariants
+## The seven invariants
 
 ### 1 · `paused_implies_no_allow`
 **File:** [`programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs`](../../programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs)
@@ -92,6 +92,24 @@ arms so a future fourth variant cannot silently slip past the strict
 dispatch. If a future change re-routes the `Deny` arm to an `Ok` return
 or introduces a new variant, both proofs fail loud.
 
+### 7 · `spending_allow_respects_caps`
+**File:** [`programs/policy-vault/src/proofs/inv_spending_allow_respects_caps.rs`](../../programs/policy-vault/src/proofs/inv_spending_allow_respects_caps.rs)
+**Harness:** `spending_allow_respects_caps`
+**Sub-checks:** 27
+**Time:** 0.67s
+
+Inductive form: if the pre-state spending counters satisfy
+`today_used ≤ daily_max` and `week_used ≤ weekly_max`, then whenever
+`spending::evaluate` returns `Allow(deltas)` the authorized payment honors
+all three caps at once — `amount ≤ per_tx_max`, `new_today_used ≤
+daily_max`, and `new_week_used ≤ weekly_max`. The per-tx bound is
+unconditional (the early `amount > per_tx_max` guard); the daily and
+weekly bounds are inductive, with a fresh account at `today_used =
+week_used = 0` as the base case and every Allow path (rollover reset,
+zero-amount no-op, checked-add accumulate) preserving the bound. Pins the
+contract the composer relies on when it calls `spending::apply_deltas` on
+the all-policies-passed branch.
+
 ## How to reproduce
 
 From a fresh checkout:
@@ -101,7 +119,7 @@ From a fresh checkout:
 cargo install --locked kani-verifier
 cargo kani setup
 
-# Run all 6 proofs
+# Run all 7 proofs
 cd programs/policy-vault
 cargo kani --harness paused_killswitch_implies_no_allow
 cargo kani --harness velocity_allow_implies_cumulative_le_max
@@ -110,6 +128,7 @@ cargo kani --harness validation_expiry_correct
 cargo kani --harness multisig_threshold_enforced
 cargo kani --harness strict_returns_ok_iff_allow
 cargo kani --harness gate_decision_is_one_of_three_disjoint_variants
+cargo kani --harness spending_allow_respects_caps
 ```
 
 Or all-at-once via the CI workflow:
@@ -151,8 +170,9 @@ hardening item.
 | 5 | multisig_threshold_enforced | 0 | 149 | 1 |
 | 6 | gate_payment_strict_correctness (`strict_returns_ok_iff_allow`) | 0 | 131 | 3 |
 | 6 | gate_payment_strict_correctness (`disjoint_variants`)            | 0 | 127 | 3 |
+| 7 | spending_allow_respects_caps | 0 | 27 | — |
 
-Failed: **0 / 635**.
+Failed: **0 / 662**.
 
 ## What this does NOT prove
 
@@ -166,6 +186,6 @@ Failed: **0 / 635**.
 - Liveness — a denied request never reaches Allow, but the proofs do not
   bound the number of denials before an Allow eventually fires.
 
-The six invariants above are the **safety** properties: nothing
+The seven invariants above are the **safety** properties: nothing
 catastrophic happens. Liveness + economic-game-theoretic properties
 are out of scope for v1.

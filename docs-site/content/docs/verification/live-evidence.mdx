@@ -25,7 +25,7 @@ for p in 8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR \
 done
 ```
 
-## Six Kani proofs
+## Seven Kani proofs
 
 <KaniProofBadge />
 
@@ -37,8 +37,9 @@ done
 | 4 | `validation_expiry_correct` | 85 | 0.23 s |
 | 5 | `multisig_threshold_enforced` | 149 | 77.17 s |
 | 6 | `gate_payment_strict_correctness` (J5) | 258 (`131 + 127`) | ~0.9 s |
+| 7 | `spending_allow_respects_caps` | 27 | 0.67 s |
 
-**Total: 635 sub-checks, 6/6 proven, ~80 s on a single CI runner.** Workflow: [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). Per-harness deep-dive: [Kani proofs](/verification/kani-proofs).
+**Total: 662 sub-checks, 7/7 proven, ~81 s on a single CI runner.** Workflow: [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). Per-harness deep-dive: [Kani proofs](/verification/kani-proofs).
 
 Reproduce:
 
@@ -121,7 +122,7 @@ Full deep-dive: [Atomic-tx invariant](/verification/atomic-tx-invariant). Backgr
 | Layer | Count | Where |
 |---|---:|---|
 | Rust unit tests | 113 | `cargo test --workspace --lib` |
-| Kani formal proofs | 6 / 635 sub-checks | `cargo kani` per proof harness |
+| Kani formal proofs | 7 / 662 sub-checks | `cargo kani` per proof harness |
 | Anchor TS end-to-end | 50 | `anchor test --provider.cluster devnet` |
 | Adversarial harness | 14 | `tests/adversarial.spec.ts` |
 | SDK unit tests | 56 (+ 16 INTEGRATION-gated) | `cd trustgate/sdk && pnpm test` |

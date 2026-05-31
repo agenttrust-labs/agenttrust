@@ -1,13 +1,13 @@
 # AgentTrust
 
-> The trust layer for AI-agent payments on Solana. A policy + reputation check that runs right before an agent's payment settles, completing the third leg of the ERC-8004 trust stack. **Six formally-verified safety properties.** Day-one Pay.sh integration (Solana Foundation's first x402 facilitator, launched May 5 2026 with Google Cloud).
+> The trust layer for AI-agent payments on Solana. A policy + reputation check that runs right before an agent's payment settles, completing the third leg of the ERC-8004 trust stack. **Seven formally-verified safety properties.** Day-one Pay.sh integration (Solana Foundation's first x402 facilitator, launched May 5 2026 with Google Cloud).
 
 [![Web app](https://img.shields.io/badge/web-live-c2410c?style=flat-square)](https://www.agenttrust.tech)
 [![Docs](https://img.shields.io/badge/docs-live-c2410c?style=flat-square)](https://docs.agenttrust.tech)
 [![Hosted MCP](https://img.shields.io/badge/mcp-mcp.agenttrust.tech-c2410c?style=flat-square)](https://mcp.agenttrust.tech)
 [![SDK on npm](https://img.shields.io/npm/v/@agenttrust-sdk/trustgate?style=flat-square&color=c2410c&label=sdk)](https://www.npmjs.com/package/@agenttrust-sdk/trustgate)
 [![MCP on npm](https://img.shields.io/npm/v/@agenttrust-sdk/mcp?style=flat-square&color=c2410c&label=mcp)](https://www.npmjs.com/package/@agenttrust-sdk/mcp)
-[![Kani 6/6](https://img.shields.io/badge/kani-6%2F6_proven-c2410c?style=flat-square)](.github/workflows/kani-prove.yml)
+[![Kani 7/7](https://img.shields.io/badge/kani-7%2F7_proven-c2410c?style=flat-square)](.github/workflows/kani-prove.yml)
 [![CI workflows](https://img.shields.io/badge/CI-16_workflows-c2410c?style=flat-square)](.github/workflows/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-c2410c?style=flat-square)](./LICENSE)
 [![Follow on X](https://img.shields.io/badge/follow-@agenttrustlabs-c2410c?style=flat-square&logo=x&logoColor=white)](https://x.com/agenttrustlabs)
@@ -139,7 +139,7 @@ Five orthogonal policy kinds composed under one `gate_payment` instruction with 
 
 Manual byte-offset deserialization of Quantu PDAs (Pattern B per playbook §02-A): **zero Cargo dep on Quantu's crate**. Schema-version canary at byte 560 catches breaking changes early.
 
-**Six Kani-proven invariants** (machine-checked via [model-checking/kani](https://github.com/model-checking/kani)):
+**Seven Kani-proven invariants** (machine-checked via [model-checking/kani](https://github.com/model-checking/kani)):
 
 | # | Invariant | Sub-checks | Time |
 |---|-----------|-----------:|-----:|
@@ -149,8 +149,9 @@ Manual byte-offset deserialization of Quantu PDAs (Pattern B per playbook §02-A
 | 4 | `validation_expiry_correct` — expired attestation ⇒ never Allow | 85 | 0.21s |
 | 5 | `multisig_threshold_enforced` — distinct signer count ≥ threshold | 149 | 62.55s |
 | 6 | `gate_payment_strict_correctness` — strict Ok ⇔ Allow + 3 disjoint variants | 258 | 0.9s |
+| 7 | `spending_allow_respects_caps` — Allow honors per-tx, daily, weekly caps | 27 | 0.67s |
 
-**Total: 635 sub-checks, 6/6 proven, ~64s.** CI ([`kani-prove.yml`](.github/workflows/kani-prove.yml)) runs all six on every PR.
+**Total: 662 sub-checks, 7/7 proven, ~65s.** CI ([`kani-prove.yml`](.github/workflows/kani-prove.yml)) runs all seven on every PR.
 
 **Devnet:** [`8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR`](https://explorer.solana.com/address/8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR?cluster=devnet)
 
@@ -315,7 +316,7 @@ agenttrust/
 | Layer | Where |
 |---|---|
 | Rust unit tests | `cargo test --workspace --lib` |
-| Kani formal proofs (6 invariants · 635 sub-checks) | `cargo kani` per `proofs/*` |
+| Kani formal proofs (7 invariants · 662 sub-checks) | `cargo kani` per `proofs/*` |
 | Anchor TS end-to-end | `anchor test --provider.cluster devnet` |
 | Adversarial harness | `tests/adversarial.spec.ts` |
 | SDK unit tests | `cd trustgate/sdk && pnpm test` |

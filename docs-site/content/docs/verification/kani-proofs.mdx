@@ -1,15 +1,15 @@
 ---
 title: Kani proofs
-description: Six machine-checked invariants over the pure-Rust composer — 635 sub-checks, zero failures, ~80 s on a single CI runner. Per-harness deep-dive.
+description: Seven machine-checked invariants over the pure-Rust composer — 662 sub-checks, zero failures, ~81 s on a single CI runner. Per-harness deep-dive.
 ---
 
-PolicyVault ships with six `#[kani::proof]` harnesses over the pure-Rust composer (and one helper). Each runs on every PR via [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). Source: [`programs/policy-vault/src/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/proofs).
+PolicyVault ships with seven `#[kani::proof]` harnesses over the pure-Rust composer (and one helper). Each runs on every PR via [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). Source: [`programs/policy-vault/src/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/proofs).
 
 Kani is the [model-checking/kani](https://github.com/model-checking/kani) bounded model checker. It compiles the Rust under verification to CBMC's intermediate form and explores every reachable state inside the configured bounds.
 
 <KaniProofBadge />
 
-## Six invariants — summary
+## Seven invariants — summary
 
 | # | Invariant | Sub-checks | Time | Bound |
 |---:|---|---:|---:|---|
@@ -19,8 +19,9 @@ Kani is the [model-checking/kani](https://github.com/model-checking/kani) bounde
 | 4 | `validation_expiry_correct` | 85 | 0.23 s | none |
 | 5 | `multisig_threshold_enforced` | 149 | 77.17 s | 3 members + 3 signers |
 | 6 | `gate_payment_strict_correctness` | 258 | ~0.9 s | none |
+| 7 | `spending_allow_respects_caps` | 27 | 0.67 s | none |
 
-**Total: 635 sub-checks, 0 failures, ~80 s.** Phase J5 added invariant 6.
+**Total: 662 sub-checks, 0 failures, ~81 s.** Phase J5 added invariant 6; invariant 7 adds the Spending cap bound.
 
 ## 1 · `paused_implies_no_allow`
 
@@ -88,6 +89,14 @@ Sub-check breakdown:
 
 Combined: 0 / 258 failed.
 
+## 7 · `spending_allow_respects_caps`
+
+**Property.** Inductive form: if the pre-state spending counters satisfy `today_used ≤ daily_max` and `week_used ≤ weekly_max`, then whenever `spending::evaluate` returns `Allow(deltas)` the authorized payment honors all three caps at once — `amount ≤ per_tx_max`, `new_today_used ≤ daily_max`, and `new_week_used ≤ weekly_max`.
+
+**File.** [`proofs/inv_spending_allow_respects_caps.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_spending_allow_respects_caps.rs). **Harness:** `spending_allow_respects_caps`.
+
+**Why it's load-bearing.** Spending is the policy that bounds how much value moves. The per-tx bound is unconditional — the early `amount > per_tx_max` guard means any `Allow` already cleared it. The daily and weekly bounds are inductive: a fresh account starts at `today_used = week_used = 0` (base case), and every `Allow` path — the UTC/ISO-week rollover reset, the zero-amount no-op, and the checked-add accumulate behind a `v <= max` guard — preserves the bound. This pins the contract the composer relies on when it calls `spending::apply_deltas` on the all-policies-passed branch.
+
 ## Reproduce locally
 
 ```bash
@@ -104,9 +113,10 @@ cargo kani --harness validation_expiry_correct
 cargo kani --harness multisig_threshold_enforced
 cargo kani --harness strict_returns_ok_iff_allow
 cargo kani --harness gate_decision_is_one_of_three_disjoint_variants
+cargo kani --harness spending_allow_respects_caps
 ```
 
-Or run all six via the CI workflow:
+Or run all seven via the CI workflow:
 
 ```bash
 gh workflow run kani-prove.yml
@@ -128,7 +138,7 @@ VERIFICATION:- SUCCESSFUL
 - **Integer overflow in the SPL token transfer.** Legacy SPL token's own invariant — out of scope for AgentTrust verification.
 - **Liveness.** A denied request never reaches Allow, but the proofs do not bound the number of denials before an Allow eventually fires. Liveness + economic-game-theoretic properties are out of scope for v1.
 
-The six invariants above are the **safety** properties: nothing catastrophic happens.
+The seven invariants above are the **safety** properties: nothing catastrophic happens.
 
 ## Why bounded
 

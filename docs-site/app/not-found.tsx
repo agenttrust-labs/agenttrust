@@ -32,7 +32,7 @@ export default function NotFound(): JSX.Element {
           <span className="not-found-card-eyebrow">Verification</span>
           <span className="not-found-card-title">Live evidence</span>
           <span className="not-found-card-body">
-            Six Kani proofs, devnet smoke traces, every claim with an Explorer URL.
+            Seven Kani proofs, devnet smoke traces, every claim with an Explorer URL.
           </span>
         </Link>
       </div>
