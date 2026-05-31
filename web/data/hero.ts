@@ -13,7 +13,7 @@ export interface HeroAction {
 }
 
 export const HERO_FOUNDATION_LINE =
-  "Live on Solana devnet · 6 / 6 Kani proofs · 635 sub-checks";
+  "Live on Solana devnet · 7 / 7 Kani proofs · 662 sub-checks";
 
 export const HERO_HEADLINE_LINES: readonly (readonly HeadlineWord[])[] = [
   [

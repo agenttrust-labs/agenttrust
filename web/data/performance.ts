@@ -56,8 +56,8 @@ export const PERFORMANCE_STATS: readonly PerformanceStat[] = [
   },
   {
     label: "Invariants verified",
-    value: "6 / 6",
-    count: { from: 0, target: 6, suffix: " / 6" },
+    value: "7 / 7",
+    count: { from: 0, target: 7, suffix: " / 7" },
   },
   {
     label: "Live route",

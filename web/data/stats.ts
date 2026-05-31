@@ -6,7 +6,7 @@ export interface HeroStat {
 export const HERO_STATS: readonly HeroStat[] = [
   { value: "3", label: "Trust checks" },
   { value: "1 tx", label: "Atomic settlement" },
-  { value: "6 / 6", label: "Invariants verified" },
+  { value: "7 / 7", label: "Invariants verified" },
   { value: "MIT", label: "Open-source license" },
 ];
 
@@ -17,4 +17,5 @@ export const KANI_HARNESS_NAMES: readonly string[] = [
   "validation_expiry_correct",
   "multisig_threshold_enforced",
   "gate_payment_strict_correctness",
+  "spending_allow_respects_caps",
 ];
